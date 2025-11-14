@@ -33,8 +33,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Optional dependencies for concurrent execution support
+  # Dependencies for concurrent execution and dependency management
   spec.add_dependency "async", "~> 2.0"
+  spec.add_dependency "dagwood", "~> 1.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

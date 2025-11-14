@@ -8,11 +8,14 @@ A lightweight, modular Ruby framework for building composable data processing pi
 ## Features
 
 - **🔄 Concurrent Execution**: Run independent steps in parallel using the Async gem
+  - **Manual mode**: Explicit `parallel` blocks for simple cases
+  - **Automatic mode**: Dependency-based execution with automatic parallelization
 - **🔗 Composable Pipelines**: Build complex workflows from simple, reusable steps
 - **🛡️ Immutable Results**: Thread-safe result objects with context and error tracking
 - **🔌 Middleware Support**: Apply cross-cutting concerns like logging and instrumentation
 - **⚡ Flow Control**: Halt execution early or continue based on step outcomes
 - **📊 Built for Performance**: Fiber-based concurrency without threading overhead
+- **🧩 Dependency Graphs**: Topological sorting, cycle detection, subgraph extraction
 - **🎯 Simple API**: Minimal surface area, maximum power
 
 ## Installation
@@ -81,7 +84,11 @@ end
 
 ## Concurrent Execution 🚀
 
-Run independent steps in parallel for better performance:
+SimpleFlow supports **two approaches** to parallel execution:
+
+### 1. Manual Parallel Blocks
+
+Explicitly declare which steps run concurrently:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
@@ -97,6 +104,42 @@ pipeline = SimpleFlow::Pipeline.new do
   step ->(result) { aggregate_data(result) }
 end
 ```
+
+**Best for**: Simple pipelines with obvious parallel sections
+
+### 2. Automatic Dependency-Based Execution
+
+Declare named steps with dependencies, and SimpleFlow automatically parallelizes:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :fetch_user, ->(result) { fetch_user(result) }
+
+  # These automatically run in parallel (no dependency between them)
+  step :fetch_orders, ->(result) { fetch_orders(result) }, depends_on: [:fetch_user]
+  step :fetch_preferences, ->(result) { fetch_prefs(result) }, depends_on: [:fetch_user]
+  step :fetch_analytics, ->(result) { fetch_analytics(result) }, depends_on: [:fetch_user]
+
+  # This waits for all three to complete
+  step :aggregate, ->(result) { aggregate_data(result) },
+    depends_on: [:fetch_orders, :fetch_preferences, :fetch_analytics]
+end
+
+# See the computed execution order
+puts pipeline.parallel_order.inspect
+# => [[:fetch_user], [:fetch_orders, :fetch_preferences, :fetch_analytics], [:aggregate]]
+```
+
+**Best for**: Complex dependency graphs, pipeline composition, debugging
+
+**Benefits of dependency-based execution:**
+- 🎯 Self-documenting (dependencies are explicit)
+- 🔍 Better debugging (named steps)
+- 🧩 Composable (merge pipelines, extract subgraphs)
+- ♻️ Reverse execution order for cleanup/teardown
+- 🔄 Automatic cycle detection
+
+See `examples/manual_vs_automatic_parallel.rb` and `examples/dependency_graph_features.rb` for detailed comparisons.
 
 ### Performance Benefits
 
@@ -199,6 +242,26 @@ end
 ## Examples
 
 The `examples/` directory contains real-world use cases:
+
+### Manual vs Automatic Parallel Execution
+
+Compare both approaches side-by-side:
+
+```bash
+ruby examples/manual_vs_automatic_parallel.rb
+```
+
+Shows when to use manual `parallel` blocks vs automatic dependency-based execution.
+
+### Dependency Graph Features
+
+Explore advanced DependencyGraph capabilities:
+
+```bash
+ruby examples/dependency_graph_features.rb
+```
+
+Demonstrates subgraph extraction, graph merging, reverse order, and cycle detection.
 
 ### Parallel Data Fetching
 
@@ -313,6 +376,7 @@ rake
 
 - Ruby >= 2.7.0
 - async ~> 2.0 (for concurrent execution)
+- dagwood ~> 1.0 (for dependency graph management)
 
 ## Contributing
 

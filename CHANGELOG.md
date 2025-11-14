@@ -7,11 +7,24 @@
 - Removed deprecated assertions in tests
 
 ### Added
+- **Dependency Graph Support** 🔄
+  - `DependencyGraph` class for automatic parallelization based on dependencies
+  - Named steps with `depends_on` parameter for explicit dependency declaration
+  - Automatic topological sorting and parallel execution order computation
+  - Pipeline methods: `parallel_order`, `order`, `merge`, `subgraph`
+  - Cycle detection to prevent infinite loops
+  - Graph composition for building pipelines from reusable components
+  - Subgraph extraction for partial pipeline execution
+  - Reverse execution order support for cleanup/teardown scenarios
+  - Dagwood gem integration for robust dependency management
+  - Examples: `manual_vs_automatic_parallel.rb`, `dependency_graph_features.rb`
+  - Comprehensive test suite for DependencyGraph (13 tests, 44 assertions)
 - **Concurrent Execution Support** 🚀
   - `ParallelStep` class for executing multiple steps concurrently using Async gem
   - `parallel` DSL method in Pipeline for intuitive parallel execution blocks
   - Automatic merging of results, contexts, and errors from parallel steps
   - Fiber-based concurrency for efficient resource usage
+  - **Two execution modes**: Manual `parallel` blocks OR automatic dependency-based
 - **Development Tools** 🛠️
   - RuboCop for code style enforcement with custom configuration
   - SimpleCov for code coverage tracking (90% line, 80% branch minimum)
@@ -32,14 +45,18 @@
 - Proper gemspec metadata (summary, description, homepage, URLs)
 - Better test coverage for StepTracker functionality
 - Async gem dependency for fiber-based concurrency
+- Dagwood gem dependency for dependency graph management
 - Development dependencies: rubocop, rubocop-minitest, rubocop-performance, simplecov, benchmark-ips
 
 ### Changed
+- **Pipeline API Enhancement**: `step` method now accepts Symbol name and `depends_on` for dependency-based execution
+- Pipeline now supports **two execution modes**: manual (parallel blocks) OR automatic (dependency-based)
+- Updated gemspec to use dagwood ~> 1.0 (was ~> 0.3)
 - Updated gemspec required Ruby version to >= 2.7.0 (from >= 3.2.0) for broader compatibility
 - Improved file structure and require statements in lib/simple_flow.rb
 - Enhanced test reliability and maintainability
 - Pipeline now supports both sequential and parallel step execution
-- Completely rewritten README with comprehensive documentation
+- Completely rewritten README with comprehensive dependency graph documentation
 - Enhanced CI workflow to include RuboCop linting
 
 ## [0.1.0] - 2025-11-13
