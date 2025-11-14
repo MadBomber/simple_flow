@@ -51,6 +51,45 @@ module SimpleFlow
       self
     end
 
+    # Adds a parallel execution block to the pipeline. Steps defined within the block
+    # will execute concurrently using the Async gem.
+    #
+    # Example:
+    #   pipeline = SimpleFlow::Pipeline.new do
+    #     step ->(result) { fetch_user(result) }
+    #     parallel do
+    #       step ->(result) { fetch_orders(result) }
+    #       step ->(result) { fetch_preferences(result) }
+    #     end
+    #     step ->(result) { aggregate_data(result) }
+    #   end
+    #
+    # @param block [Block] a block containing steps to execute in parallel
+    # @return [self] so that calls can be chained
+    def parallel(&block)
+      require_relative 'parallel_step'
+
+      parallel_step = ParallelStep.new
+
+      # Temporarily collect steps for parallel execution
+      original_steps = @steps
+      @steps = []
+
+      # Execute the block to collect parallel steps
+      instance_eval(&block)
+
+      # Add collected steps to parallel_step with middleware applied
+      @steps.each do |step|
+        parallel_step.add_step(step)
+      end
+
+      # Restore original steps and add the parallel step
+      @steps = original_steps
+      @steps << parallel_step
+
+      self
+    end
+
     # Internal: Applies registered middlewares to a callable.
     # @param [Proc, Object] callable the target callable to wrap with middleware
     # @return [Object] the callable wrapped with all registered middleware
