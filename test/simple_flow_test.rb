@@ -1,5 +1,6 @@
-require 'minitest/autorun'
-require_relative 'simple_flow' # Make sure this points to the file where SimpleFlow module is defined.
+# frozen_string_literal: true
+
+require 'test_helper'
 
 module SimpleFlow
   class TestSimpleFlow < Minitest::Test
@@ -16,7 +17,7 @@ module SimpleFlow
     def test_pipeline_execution
       result = @pipeline.call(@initial_result)
       assert_equal 22, result.value, "Pipeline should process value correctly"
-      assert result.continue?, "Result should not halt unexpectedly"
+      refute result.continue?, "Result should be halted by the second step"
     end
 
     def test_middleware_integration

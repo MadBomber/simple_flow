@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'delegate'
 
 # This Ruby module is called SimpleFlow and it provides a simple workflow management utility. 

@@ -1,72 +1,56 @@
-require 'minitest/autorun'
-require_relative 'simple_flow' # Assuming your SimpleFlow module code is saved in simple_flow.rb
+# frozen_string_literal: true
 
-module SimpleFlow
-  class Result
-    attr_accessor :value, :continue
-
-    def initialize(value = nil, continue: true)
-      @value = value
-      @continue = continue
-    end
-
-    def continue?
-      @continue
-    end
-
-    def call(input)
-      yield(input, self) if block_given?
-      self
-    end
-  end
-end
+require 'test_helper'
 
 class TestSimpleFlowPipeline < Minitest::Test
   def test_pipeline_with_no_step
     pipeline = SimpleFlow::Pipeline.new
-    result = SimpleFlow::Result.new
-    assert_equal result, pipeline.call(result)
+    result = SimpleFlow::Result.new(nil)
+    final_result = pipeline.call(result)
+    assert_nil final_result.value
+    assert final_result.continue?
   end
 
   def test_pipeline_with_one_step
     pipeline = SimpleFlow::Pipeline.new do
-      step ->(result) { result.call { |input, res| res.value = "processed"; res } }
+      step ->(result) { result.continue("processed") }
     end
-    result = pipeline.call(SimpleFlow::Result.new)
+    result = pipeline.call(SimpleFlow::Result.new(nil))
     assert_equal "processed", result.value
   end
 
   def test_pipeline_with_multiple_steps
     pipeline = SimpleFlow::Pipeline.new do
-      step ->(result) { result.call { |_, res| res.value = 1; res } }
-      step ->(result) { result.call { |_, res| res.value += 1; res } }
+      step ->(result) { result.continue(1) }
+      step ->(result) { result.continue(result.value + 1) }
     end
-    result = pipeline.call(SimpleFlow::Result.new)
+    result = pipeline.call(SimpleFlow::Result.new(nil))
     assert_equal 2, result.value
   end
-  
+
   def test_pipeline_with_middleware
     middleware = ->(callable) {
       ->(result) {
         modified_result = callable.call(result)
-        modified_result.call { |_, res| res.value *= 2; res }
+        modified_result.continue(modified_result.value * 2)
       }
     }
 
     pipeline = SimpleFlow::Pipeline.new do
       use_middleware middleware
-      step ->(result) { result.call { |_, res| res.value = 1; res } }
+      step ->(result) { result.continue(1) }
     end
-    result = pipeline.call(SimpleFlow::Result.new)
+    result = pipeline.call(SimpleFlow::Result.new(nil))
     assert_equal 2, result.value
   end
-  
+
   def test_pipeline_stops_when_continue_is_false
     pipeline = SimpleFlow::Pipeline.new do
-      step ->(result) { result.call { |_, res| res.continue = false } }
-      step ->(result) { result.call { |_, res| res.value = "should not process"; res } }
+      step ->(result) { result.halt }
+      step ->(result) { result.continue("should not process") }
     end
-    result = pipeline.call(SimpleFlow::Result.new)
+    result = pipeline.call(SimpleFlow::Result.new(nil))
     assert_nil result.value, "Pipeline did not stop as expected"
+    refute result.continue?, "Result should be halted"
   end
 end

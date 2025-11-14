@@ -1,6 +1,7 @@
-require 'minitest/autorun'
-require 'logger'
-require_relative 'middleware'
+# frozen_string_literal: true
+
+require 'test_helper'
+require 'stringio'
 
 module SimpleFlow
   module MiddleWare

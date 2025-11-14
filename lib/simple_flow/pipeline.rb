@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SimpleFlow
   ##
   # The Pipeline class facilitates the creation and execution of a sequence of steps (or operations),

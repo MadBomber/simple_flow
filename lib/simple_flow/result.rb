@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SimpleFlow
   ##
   # This class represents the result of an operation within a simple flow system.
@@ -5,7 +7,7 @@ module SimpleFlow
   # It encapsulates the operation's outcome (value), contextual data (context),
   # and any errors occurred during the operation (errors). Its primary purpose
   # is to facilitate flow control and error handling in a clean and predictable
-  # manner. The class provides mechanisms to update context and errors, halt 
+  # manner. The class provides mechanisms to update context and errors, halt
   # the flow, and conditionally continue based on the operation state. This
   # promotes creating a chainable, fluent interface for managing operation
   # results in complex processes or workflows.
@@ -22,13 +24,14 @@ module SimpleFlow
 
     # Initializes a new Result instance.
     # @param value [Object] the outcome of the operation.
-    # @param context [Hash, optional] contextual data related to the operation.
-    # @param errors [Hash, optional] errors occurred during the operation.
-    def initialize(value, context: {}, errors: {})
+    # @param context [Hash] contextual data related to the operation.
+    # @param errors [Hash] errors occurred during the operation.
+    # @param continue [Boolean] whether the flow should continue.
+    def initialize(value, context: {}, errors: {}, continue: true)
       @value = value
       @context = context
       @errors = errors
-      @continue = true
+      @continue = continue
     end
 
     # Adds or updates context to the result.
@@ -36,7 +39,7 @@ module SimpleFlow
     # @param value [Object] the value to store.
     # @return [Result] a new Result instance with updated context.
     def with_context(key, value)
-      self.class.new(@value, context: @context.merge(key => value), errors: @errors)
+      self.class.new(@value, context: @context.merge(key => value), errors: @errors, continue: @continue)
     end
 
     # Adds an error message under a specific key.
@@ -45,15 +48,16 @@ module SimpleFlow
     # @param message [String] the error message.
     # @return [Result] a new Result instance with updated errors.
     def with_error(key, message)
-      self.class.new(@value, context: @context, errors: @errors.merge(key => [*@errors[key], message]))
+      self.class.new(@value, context: @context, errors: @errors.merge(key => [*@errors[key], message]), continue: @continue)
     end
 
     # Halts the flow, optionally updating the result's value.
     # @param new_value [Object, nil] the new value to set, if any.
     # @return [Result] a new Result instance or self if no new value is provided.
     def halt(new_value = nil)
-      @continue = false
-      new_value ? with_value(new_value) : self
+      result = new_value ? with_value(new_value) : self
+      result.instance_variable_set(:@continue, false)
+      result
     end
 
     # Continues the flow, updating the result's value.
@@ -75,7 +79,7 @@ module SimpleFlow
     # @param new_value [Object] the new value for the result.
     # @return [Result] a new Result instance.
     def with_value(new_value)
-      self.class.new(new_value, context: @context, errors: @errors)
+      self.class.new(new_value, context: @context, errors: @errors, continue: @continue)
     end
   end
 end

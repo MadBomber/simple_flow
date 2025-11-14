@@ -1,5 +1,6 @@
-require 'minitest/autorun'
-require_relative 'result' # Update with actual path
+# frozen_string_literal: true
+
+require 'test_helper'
 
 module SimpleFlow
   class ResultTest < Minitest::Test

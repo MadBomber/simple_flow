@@ -8,16 +8,17 @@ Gem::Specification.new do |spec|
   spec.authors = ["Dewayne VanHoozer"]
   spec.email = ["dvanhoozer@gmail.com"]
 
-  spec.summary = "TODO: Write a short summary, because RubyGems requires one."
-  spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = "TODO: Put your gem's website or public repo URL here."
+  spec.summary = "A lightweight, modular Ruby framework for building composable data processing pipelines"
+  spec.description = "SimpleFlow provides a clean and flexible architecture for orchestrating multi-step workflows with middleware support, flow control, and immutable results. Perfect for building data processing pipelines with cross-cutting concerns like logging and instrumentation."
+  spec.homepage = "https://github.com/MadBomber/simple_flow"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 2.7.0"
 
-  spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-  spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+  spec.metadata["source_code_uri"] = "https://github.com/MadBomber/simple_flow"
+  spec.metadata["changelog_uri"] = "https://github.com/MadBomber/simple_flow/blob/main/CHANGELOG.md"
+  spec.metadata["documentation_uri"] = "https://github.com/MadBomber/simple_flow/blob/main/README.md"
+  spec.metadata["bug_tracker_uri"] = "https://github.com/MadBomber/simple_flow/issues"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
