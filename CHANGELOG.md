@@ -10,13 +10,14 @@
 - **Dependency Graph Support** 🔄
   - `DependencyGraph` class for automatic parallelization based on dependencies
   - Named steps with `depends_on` parameter for explicit dependency declaration
-  - Automatic topological sorting and parallel execution order computation
+  - Automatic topological sorting using Kahn's algorithm (custom implementation)
+  - Parallel execution order computation with automatic level detection
   - Pipeline methods: `parallel_order`, `order`, `merge`, `subgraph`
-  - Cycle detection to prevent infinite loops
+  - Cycle detection with `CyclicDependencyError` to prevent infinite loops
   - Graph composition for building pipelines from reusable components
   - Subgraph extraction for partial pipeline execution
   - Reverse execution order support for cleanup/teardown scenarios
-  - Dagwood gem integration for robust dependency management
+  - Inspired by Dagwood concepts but with custom implementation for SimpleFlow
   - Examples: `manual_vs_automatic_parallel.rb`, `dependency_graph_features.rb`
   - Comprehensive test suite for DependencyGraph (13 tests, 44 assertions)
 - **Concurrent Execution Support** 🚀
@@ -45,13 +46,11 @@
 - Proper gemspec metadata (summary, description, homepage, URLs)
 - Better test coverage for StepTracker functionality
 - Async gem dependency for fiber-based concurrency
-- Dagwood gem dependency for dependency graph management
 - Development dependencies: rubocop, rubocop-minitest, rubocop-performance, simplecov, benchmark-ips
 
 ### Changed
 - **Pipeline API Enhancement**: `step` method now accepts Symbol name and `depends_on` for dependency-based execution
 - Pipeline now supports **two execution modes**: manual (parallel blocks) OR automatic (dependency-based)
-- Updated gemspec to use dagwood ~> 1.0 (was ~> 0.3)
 - Updated gemspec required Ruby version to >= 2.7.0 (from >= 3.2.0) for broader compatibility
 - Improved file structure and require statements in lib/simple_flow.rb
 - Enhanced test reliability and maintainability

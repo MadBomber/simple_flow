@@ -1,23 +1,19 @@
 # frozen_string_literal: true
 
-require 'dagwood'
-
 module SimpleFlow
   ##
-  # DependencyGraph manages named steps with explicit dependencies and automatically
-  # determines optimal execution order including parallel execution opportunities.
+  # DependencyGraph manages steps with explicit dependencies and provides
+  # automatic topological sorting and parallel execution order computation.
   #
-  # This provides an alternative to manual `parallel` blocks by declaring dependencies
-  # and letting the graph automatically detect which steps can run concurrently.
+  # This class implements dependency graph concepts inspired by Dagwood but
+  # with a custom implementation tailored for SimpleFlow's needs.
   #
-  # Example:
-  #   graph = SimpleFlow::DependencyGraph.new
-  #   graph.add_step(:fetch_user, user_step)
-  #   graph.add_step(:fetch_orders, orders_step, depends_on: [:fetch_user])
-  #   graph.add_step(:fetch_prefs, prefs_step, depends_on: [:fetch_user])
-  #
-  #   # fetch_orders and fetch_prefs will automatically run in parallel
-  #   result = graph.execute(initial_result)
+  # Features:
+  # - Topological sorting (Kahn's algorithm)
+  # - Automatic parallel execution order computation
+  # - Cycle detection
+  # - Graph composition (merge)
+  # - Subgraph extraction
   #
   class DependencyGraph
     attr_reader :steps, :dependencies
@@ -27,136 +23,233 @@ module SimpleFlow
       @dependencies = {}
     end
 
-    # Add a named step with optional dependencies
+    ##
+    # Add a step to the graph with optional dependencies
+    #
     # @param name [Symbol] The name of the step
-    # @param callable [#call] The callable object (lambda, proc, method)
+    # @param callable [Proc, Object] The callable to execute
     # @param depends_on [Array<Symbol>] Array of step names this step depends on
-    # @return [self]
+    # @return [self] for chaining
+    #
     def add_step(name, callable, depends_on: [])
+      raise ArgumentError, "Step name must be a Symbol" unless name.is_a?(Symbol)
+      raise ArgumentError, "Callable must respond to #call" unless callable.respond_to?(:call)
+
       @steps[name] = callable
-      @dependencies[name] = depends_on
+      @dependencies[name] = Array(depends_on)
       self
     end
 
-    # Check if any steps have been added
-    # @return [Boolean]
-    def empty?
-      @steps.empty?
-    end
-
-    # Get the number of steps
-    # @return [Integer]
+    ##
+    # Get the number of steps in the graph
+    #
     def size
       @steps.size
     end
 
-    # Get parallel execution order using Dagwood
-    # Returns array of arrays where each sub-array contains steps that can run in parallel
-    # @return [Array<Array<Symbol>>]
-    def parallel_order
-      return [[]] if @dependencies.empty?
-
-      # Handle steps with no dependencies (orphans)
-      orphans = @steps.keys - @dependencies.keys
-      graph_deps = @dependencies.dup
-
-      # Add orphans with empty dependencies
-      orphans.each { |name| graph_deps[name] ||= [] }
-
-      # Create Dagwood graph and get parallel order
-      dagwood_graph = Dagwood::DependencyGraph.new(graph_deps)
-      dagwood_graph.parallel_order
+    ##
+    # Check if the graph is empty
+    #
+    def empty?
+      @steps.empty?
     end
 
-    # Get sequential execution order
-    # @return [Array<Symbol>]
+    ##
+    # Compute topological ordering of steps using Kahn's algorithm
+    #
+    # @return [Array<Symbol>] Ordered array of step names
+    # @raise [CyclicDependencyError] if graph contains cycles
+    #
     def order
-      return [] if @dependencies.empty?
+      # Build in-degree map (count of dependencies for each node)
+      in_degree = Hash.new(0)
+      @steps.keys.each do |step|
+        in_degree[step] ||= 0
+        @dependencies[step]&.each do |dep|
+          in_degree[step] += 1
+        end
+      end
 
-      orphans = @steps.keys - @dependencies.keys
-      graph_deps = @dependencies.dup
-      orphans.each { |name| graph_deps[name] ||= [] }
+      # Queue of nodes with no dependencies
+      queue = @steps.keys.select { |step| in_degree[step].zero? }
+      result = []
 
-      dagwood_graph = Dagwood::DependencyGraph.new(graph_deps)
-      dagwood_graph.order
+      while queue.any?
+        # Process node with no dependencies
+        node = queue.shift
+        result << node
+
+        # For each step that depends on this node, reduce its in-degree
+        @dependencies.each do |step, deps|
+          next unless deps.include?(node)
+
+          in_degree[step] -= 1
+          queue << step if in_degree[step].zero?
+        end
+      end
+
+      # If we haven't processed all nodes, there's a cycle
+      if result.size != @steps.size
+        unprocessed = @steps.keys - result
+        raise CyclicDependencyError, "Circular dependency detected involving: #{unprocessed.inspect}"
+      end
+
+      result
     end
 
-    # Execute all steps in optimal order with automatic parallelization
-    # @param initial_result [Result] The starting result
-    # @return [Result] The final result after all steps complete
+    ##
+    # Compute parallel execution order - groups steps that can run concurrently
+    #
+    # @return [Array<Array<Symbol>>] Array of arrays, where each sub-array contains
+    #   steps that can execute in parallel
+    #
+    def parallel_order
+      # Build reverse dependency map (who depends on whom)
+      dependents = Hash.new { |h, k| h[k] = [] }
+      @dependencies.each do |step, deps|
+        deps.each do |dep|
+          dependents[dep] << step
+        end
+      end
+
+      # Track completion level for each step
+      levels = {}
+      in_degree = Hash.new(0)
+
+      # Calculate in-degrees
+      @steps.keys.each do |step|
+        in_degree[step] = @dependencies[step]&.size || 0
+      end
+
+      # Process in levels
+      result = []
+      current_level = @steps.keys.select { |step| in_degree[step].zero? }
+
+      while current_level.any?
+        result << current_level.dup
+        next_level = []
+
+        current_level.each do |completed_step|
+          # Mark step as completed at this level
+          levels[completed_step] = result.size - 1
+
+          # Check dependent steps
+          dependents[completed_step].each do |dependent|
+            in_degree[dependent] -= 1
+            if in_degree[dependent].zero?
+              next_level << dependent
+            end
+          end
+        end
+
+        current_level = next_level.uniq
+      end
+
+      # Verify all steps processed
+      if result.flatten.size != @steps.size
+        unprocessed = @steps.keys - result.flatten
+        raise CyclicDependencyError, "Circular dependency detected involving: #{unprocessed.inspect}"
+      end
+
+      result
+    end
+
+    ##
+    # Execute the graph in parallel order
+    #
+    # @param initial_result [Result] The initial result to pass through
+    # @return [Result] The final result after all steps
+    #
     def execute(initial_result)
+      require_relative 'parallel_step'
+
       result = initial_result
+      execution_order = parallel_order
 
-      parallel_order.each do |level|
-        break unless result.continue?
-
-        if level.length == 1
-          # Single step - execute sequentially
+      execution_order.each do |level|
+        if level.size == 1
+          # Single step - execute directly
           step_name = level.first
           result = @steps[step_name].call(result)
+          return result unless result.respond_to?(:continue?) && result.continue?
         else
           # Multiple steps - execute in parallel
-          parallel_step = ParallelStep.new(level.map { |name| @steps[name] })
+          parallel_step = ParallelStep.new
+          level.each do |step_name|
+            parallel_step.add_step(@steps[step_name])
+          end
           result = parallel_step.call(result)
+          return result unless result.respond_to?(:continue?) && result.continue?
         end
       end
 
       result
     end
 
+    ##
     # Merge another dependency graph into this one
-    # @param other [DependencyGraph] Another dependency graph
+    #
+    # @param other [DependencyGraph] Another graph to merge
     # @return [DependencyGraph] A new merged graph
+    #
     def merge(other)
       merged = DependencyGraph.new
 
-      # Merge steps
-      @steps.each { |name, callable| merged.add_step(name, callable, depends_on: @dependencies[name] || []) }
+      # Add all steps from this graph
+      @steps.each do |name, callable|
+        merged.add_step(name, callable, depends_on: @dependencies[name] || [])
+      end
+
+      # Add all steps from other graph
       other.steps.each do |name, callable|
-        # Union dependencies if step exists in both
-        deps = (@dependencies[name] || []) | (other.dependencies[name] || [])
-        merged.add_step(name, callable, depends_on: deps)
+        if merged.steps.key?(name)
+          # Step already exists - merge dependencies
+          existing_deps = merged.dependencies[name] || []
+          new_deps = other.dependencies[name] || []
+          merged.dependencies[name] = (existing_deps + new_deps).uniq
+        else
+          merged.add_step(name, callable, depends_on: other.dependencies[name] || [])
+        end
       end
 
       merged
     end
 
-    # Create a subgraph containing only the specified step and its dependencies
-    # @param step_name [Symbol] The step to extract dependencies for
-    # @return [DependencyGraph] A new graph with only relevant steps
+    ##
+    # Extract a subgraph containing only the specified step and its dependencies
+    #
+    # @param step_name [Symbol] The step to extract
+    # @return [DependencyGraph] A new graph with only the subgraph
+    # @raise [ArgumentError] if step doesn't exist
+    #
     def subgraph(step_name)
-      raise ArgumentError, "Step #{step_name} not found" unless @steps.key?(step_name)
+      raise ArgumentError, "Step #{step_name} does not exist" unless @steps.key?(step_name)
 
-      # Find all recursive dependencies
-      required_steps = find_dependencies(step_name)
+      # Collect all dependencies recursively
+      collected = Set.new
+      to_process = [step_name]
 
-      # Create new graph with only required steps
+      while to_process.any?
+        current = to_process.shift
+        next if collected.include?(current)
+
+        collected.add(current)
+        deps = @dependencies[current] || []
+        to_process.concat(deps)
+      end
+
+      # Build new graph with collected steps
       sub = DependencyGraph.new
-      required_steps.each do |name|
-        # Only include dependencies that are also in the subgraph
-        deps = (@dependencies[name] || []) & required_steps
-        sub.add_step(name, @steps[name], depends_on: deps)
+      collected.each do |name|
+        sub.add_step(name, @steps[name], depends_on: @dependencies[name] || [])
       end
 
       sub
     end
-
-    private
-
-    # Recursively find all dependencies for a given step
-    # @param step_name [Symbol] The step name
-    # @param visited [Set] Already visited steps (for cycle detection)
-    # @return [Array<Symbol>] All required step names
-    def find_dependencies(step_name, visited = Set.new)
-      return [] if visited.include?(step_name)
-
-      visited.add(step_name)
-      deps = @dependencies[step_name] || []
-
-      # Recursively find dependencies of dependencies
-      all_deps = deps.flat_map { |dep| find_dependencies(dep, visited) }
-
-      ([step_name] + all_deps).uniq
-    end
   end
+
+  ##
+  # Error raised when a circular dependency is detected
+  #
+  class CyclicDependencyError < StandardError; end
 end

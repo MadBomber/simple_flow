@@ -376,7 +376,6 @@ rake
 
 - Ruby >= 2.7.0
 - async ~> 2.0 (for concurrent execution)
-- dagwood ~> 1.0 (for dependency graph management)
 
 ## Contributing
 
