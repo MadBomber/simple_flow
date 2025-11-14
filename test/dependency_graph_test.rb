@@ -190,5 +190,52 @@ module SimpleFlow
       assert graph.empty?
       assert_equal 0, graph.size
     end
+
+    def test_to_dot_basic
+      graph = DependencyGraph.new
+      graph.add_step(:step1, ->(r) { r.continue(r.value) })
+      graph.add_step(:step2, ->(r) { r.continue(r.value) }, depends_on: [:step1])
+      graph.add_step(:step3, ->(r) { r.continue(r.value) }, depends_on: [:step1])
+
+      dot = graph.to_dot(title: 'Test Graph')
+
+      assert_includes dot, 'digraph "Test Graph"'
+      assert_includes dot, 'rankdir=TB'
+      assert_includes dot, 'step1 [label="step1"]'
+      assert_includes dot, 'step2 [label="step2"]'
+      assert_includes dot, 'step3 [label="step3"]'
+      assert_includes dot, 'step1 -> step2'
+      assert_includes dot, 'step1 -> step3'
+    end
+
+    def test_to_dot_with_levels
+      graph = DependencyGraph.new
+      graph.add_step(:step1, ->(r) { r.continue(r.value) })
+      graph.add_step(:step2, ->(r) { r.continue(r.value) }, depends_on: [:step1])
+
+      dot = graph.to_dot(show_levels: true)
+
+      assert_includes dot, 'fillcolor=lightblue'
+      assert_includes dot, 'fillcolor=lightgreen'
+      assert_includes dot, 'style="rounded,filled"'
+    end
+
+    def test_to_dot_with_left_to_right
+      graph = DependencyGraph.new
+      graph.add_step(:step1, ->(r) { r.continue(r.value) })
+
+      dot = graph.to_dot(rankdir: 'LR')
+
+      assert_includes dot, 'rankdir=LR'
+    end
+
+    def test_to_dot_empty_graph
+      graph = DependencyGraph.new
+
+      dot = graph.to_dot
+
+      assert_includes dot, 'digraph'
+      refute_includes dot, 'label='
+    end
   end
 end

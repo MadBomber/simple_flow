@@ -246,6 +246,56 @@ module SimpleFlow
 
       sub
     end
+
+    ##
+    # Generate Graphviz DOT format for visualization
+    #
+    # @param title [String] Optional title for the graph
+    # @param options [Hash] Options for DOT generation
+    # @option options [Boolean] :show_levels (false) Highlight parallel execution levels
+    # @option options [String] :rankdir ('TB') Graph direction: TB (top-bottom), LR (left-right)
+    # @return [String] DOT format string
+    #
+    def to_dot(title: 'SimpleFlow Pipeline', **options)
+      show_levels = options.fetch(:show_levels, false)
+      rankdir = options.fetch(:rankdir, 'TB')
+
+      dot = []
+      dot << "digraph \"#{title}\" {"
+      dot << "  rankdir=#{rankdir};"
+      dot << "  node [shape=box, style=rounded];"
+      dot << ""
+
+      if show_levels && !empty?
+        # Group nodes by execution level and color them
+        levels = parallel_order
+        colors = %w[lightblue lightgreen lightyellow lightpink lightcyan]
+
+        levels.each_with_index do |level, idx|
+          color = colors[idx % colors.length]
+          level.each do |step_name|
+            dot << "  #{step_name} [label=\"#{step_name}\", fillcolor=#{color}, style=\"rounded,filled\"];"
+          end
+        end
+      else
+        # Simple node declarations
+        @steps.keys.each do |step_name|
+          dot << "  #{step_name} [label=\"#{step_name}\"];"
+        end
+      end
+
+      dot << ""
+
+      # Add edges for dependencies
+      @dependencies.each do |step, deps|
+        deps.each do |dep|
+          dot << "  #{dep} -> #{step};"
+        end
+      end
+
+      dot << "}"
+      dot.join("\n")
+    end
   end
 
   ##

@@ -209,5 +209,32 @@ module SimpleFlow
       sub_pipeline.instance_variable_set(:@middlewares, @middlewares.dup)
       sub_pipeline
     end
+
+    # Generate Graphviz DOT format for visualization
+    # Only works with dependency-based pipelines
+    # @param [String] title Title for the graph
+    # @param [Hash] options Options passed to DependencyGraph#to_dot
+    # @option options [Boolean] :show_levels (false) Highlight parallel execution levels with colors
+    # @option options [String] :rankdir ('TB') Graph direction: TB (top-bottom), LR (left-right)
+    # @return [String] DOT format string
+    # @raise [ArgumentError] if pipeline doesn't use dependency graph
+    #
+    # @example Generate DOT file
+    #   pipeline = SimpleFlow::Pipeline.new do
+    #     step :fetch_user, method(:fetch_user)
+    #     step :fetch_orders, method(:fetch_orders), depends_on: [:fetch_user]
+    #   end
+    #
+    #   File.write('pipeline.dot', pipeline.to_dot)
+    #   # Then run: dot -Tpng pipeline.dot -o pipeline.png
+    #
+    # @example With level highlighting
+    #   dot = pipeline.to_dot(show_levels: true, title: 'My Workflow')
+    #
+    def to_dot(title: 'SimpleFlow Pipeline', **options)
+      raise ArgumentError, "Cannot generate DOT: pipeline has no dependency graph" unless @dependency_graph
+
+      @dependency_graph.to_dot(title: title, **options)
+    end
   end
 end

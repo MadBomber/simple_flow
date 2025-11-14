@@ -53,4 +53,30 @@ class TestSimpleFlowPipeline < Minitest::Test
     assert_nil result.value, "Pipeline did not stop as expected"
     refute result.continue?, "Result should be halted"
   end
+
+  def test_to_dot_with_dependency_graph
+    pipeline = SimpleFlow::Pipeline.new do
+      step :step1, ->(result) { result.continue(result.value) }
+      step :step2, ->(result) { result.continue(result.value) }, depends_on: [:step1]
+    end
+
+    dot = pipeline.to_dot(title: 'Test Pipeline')
+
+    assert_includes dot, 'digraph "Test Pipeline"'
+    assert_includes dot, 'step1'
+    assert_includes dot, 'step2'
+    assert_includes dot, 'step1 -> step2'
+  end
+
+  def test_to_dot_raises_error_without_dependency_graph
+    pipeline = SimpleFlow::Pipeline.new do
+      step ->(result) { result.continue(result.value) }
+    end
+
+    error = assert_raises(ArgumentError) do
+      pipeline.to_dot
+    end
+
+    assert_includes error.message, "Cannot generate DOT"
+  end
 end

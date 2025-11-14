@@ -20,6 +20,13 @@
   - Inspired by Dagwood concepts but with custom implementation for SimpleFlow
   - Examples: `manual_vs_automatic_parallel.rb`, `dependency_graph_features.rb`
   - Comprehensive test suite for DependencyGraph (13 tests, 44 assertions)
+- **Workflow Visualization** 📈
+  - `to_dot` method for DependencyGraph and Pipeline classes
+  - Generate Graphviz DOT format for visual pipeline diagrams
+  - Options: custom titles, level highlighting with colors, layout direction (TB/LR)
+  - Example: `workflow_visualization.rb` with e-commerce, data processing, and ML pipelines
+  - 6 new tests for DOT generation (basic, levels, layout, empty graph)
+  - Visualize dependencies, parallelization, and execution flow
 - **Concurrent Execution Support** 🚀
   - `ParallelStep` class for executing multiple steps concurrently using Async gem
   - `parallel` DSL method in Pipeline for intuitive parallel execution blocks

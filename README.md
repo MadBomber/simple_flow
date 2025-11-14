@@ -16,6 +16,7 @@ A lightweight, modular Ruby framework for building composable data processing pi
 - **⚡ Flow Control**: Halt execution early or continue based on step outcomes
 - **📊 Built for Performance**: Fiber-based concurrency without threading overhead
 - **🧩 Dependency Graphs**: Topological sorting, cycle detection, subgraph extraction
+- **📈 Workflow Visualization**: Generate Graphviz DOT files to visualize pipeline structure
 - **🎯 Simple API**: Minimal surface area, maximum power
 
 ## Installation
@@ -239,6 +240,47 @@ pipeline = SimpleFlow::Pipeline.new do
 end
 ```
 
+## Workflow Visualization
+
+Visualize your pipelines using Graphviz DOT format:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :fetch_user, ->(result) { fetch_user(result) }
+  step :fetch_orders, ->(result) { fetch_orders(result) }, depends_on: [:fetch_user]
+  step :fetch_prefs, ->(result) { fetch_prefs(result) }, depends_on: [:fetch_user]
+  step :aggregate, ->(result) { aggregate(result) },
+    depends_on: [:fetch_orders, :fetch_prefs]
+end
+
+# Generate DOT file
+File.write('pipeline.dot', pipeline.to_dot)
+
+# With level highlighting (colors parallel execution levels)
+dot = pipeline.to_dot(show_levels: true, title: 'My Workflow')
+File.write('pipeline_levels.dot', dot)
+```
+
+Then generate images:
+
+```bash
+dot -Tpng pipeline.dot -o pipeline.png    # PNG image
+dot -Tsvg pipeline.dot -o pipeline.svg    # SVG image
+dot -Tpdf pipeline.dot -o pipeline.pdf    # PDF document
+```
+
+**Options:**
+- `title: 'My Pipeline'` - Graph title
+- `show_levels: true` - Color nodes by execution level
+- `rankdir: 'LR'` - Layout direction (TB=top-bottom, LR=left-right)
+
+**Benefits:**
+- Understand complex dependency graphs at a glance
+- Identify parallel execution opportunities
+- Debug workflow issues visually
+- Document pipeline architecture
+- Share workflow designs with your team
+
 ## Examples
 
 The `examples/` directory contains real-world use cases:
@@ -262,6 +304,16 @@ ruby examples/dependency_graph_features.rb
 ```
 
 Demonstrates subgraph extraction, graph merging, reverse order, and cycle detection.
+
+### Workflow Visualization
+
+Generate Graphviz DOT files for visual pipeline diagrams:
+
+```bash
+ruby examples/workflow_visualization.rb
+```
+
+Creates DOT files for e-commerce, data processing, and ML pipelines with visualization options.
 
 ### Parallel Data Fetching
 
