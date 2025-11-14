@@ -10,3 +10,10 @@ gem "rake", "~> 13.0"
 
 gem "minitest", "~> 5.16"
 gem "async", "~> 2.0"
+
+# Development dependencies
+gem "rubocop", "~> 1.50"
+gem "rubocop-minitest", "~> 0.31"
+gem "rubocop-performance", "~> 1.18"
+gem "simplecov", "~> 0.22"
+gem "benchmark-ips", "~> 2.12"

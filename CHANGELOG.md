@@ -12,21 +12,35 @@
   - `parallel` DSL method in Pipeline for intuitive parallel execution blocks
   - Automatic merging of results, contexts, and errors from parallel steps
   - Fiber-based concurrency for efficient resource usage
+- **Development Tools** 🛠️
+  - RuboCop for code style enforcement with custom configuration
+  - SimpleCov for code coverage tracking (90% line, 80% branch minimum)
+  - Benchmark-ips for performance measurement
+  - Enhanced Rakefile with coverage and linting tasks
+- **Examples Directory** 📚
+  - `examples/parallel_data_fetching.rb` - Concurrent API calls (4x speedup)
+  - `examples/parallel_validation.rb` - Concurrent validation checks
+  - `examples/error_handling.rb` - Error handling patterns and retry logic
+  - `examples/file_processing.rb` - Parallel file processing workflows
+  - `examples/complex_workflow.rb` - E-commerce order processing pipeline
+- **Benchmarks** ⚡
+  - `benchmarks/parallel_vs_sequential.rb` - Performance comparisons
+  - `benchmarks/pipeline_overhead.rb` - Overhead measurements
 - GitHub Actions CI workflow for automated testing across Ruby versions 2.7-3.3
 - Comprehensive test suite for all components including concurrent execution
 - frozen_string_literal comments to all Ruby files for performance
 - Proper gemspec metadata (summary, description, homepage, URLs)
 - Better test coverage for StepTracker functionality
-- **Examples directory** with real-world use cases:
-  - `examples/parallel_data_fetching.rb` - Demonstrates concurrent API calls
-  - `examples/parallel_validation.rb` - Demonstrates concurrent validation checks
 - Async gem dependency for fiber-based concurrency
+- Development dependencies: rubocop, rubocop-minitest, rubocop-performance, simplecov, benchmark-ips
 
 ### Changed
 - Updated gemspec required Ruby version to >= 2.7.0 (from >= 3.2.0) for broader compatibility
 - Improved file structure and require statements in lib/simple_flow.rb
 - Enhanced test reliability and maintainability
 - Pipeline now supports both sequential and parallel step execution
+- Completely rewritten README with comprehensive documentation
+- Enhanced CI workflow to include RuboCop linting
 
 ## [0.1.0] - 2025-11-13
 
