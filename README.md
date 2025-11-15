@@ -189,6 +189,126 @@ pipeline = SimpleFlow::Pipeline.new do
 end
 ```
 
+## Parallel Execution
+
+SimpleFlow supports both automatic parallel step discovery and explicit parallel blocks for concurrent execution.
+
+### Automatic Parallel Discovery
+
+Use named steps with dependencies. SimpleFlow automatically detects which steps can run in parallel:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :fetch_user, ->(result) {
+    user = fetch_from_db(:users, result.value)
+    result.with_context(:user, user).continue(result.value)
+  }, depends_on: []
+
+  # These two steps can run in parallel since they both only depend on :fetch_user
+  step :fetch_orders, ->(result) {
+    orders = fetch_from_db(:orders, result.context[:user])
+    result.with_context(:orders, orders).continue(result.value)
+  }, depends_on: [:fetch_user]
+
+  step :fetch_products, ->(result) {
+    products = fetch_from_db(:products, result.context[:user])
+    result.with_context(:products, products).continue(result.value)
+  }, depends_on: [:fetch_user]
+
+  # This step waits for both parallel steps to complete
+  step :calculate_total, ->(result) {
+    total = calculate(result.context[:orders], result.context[:products])
+    result.continue(total)
+  }, depends_on: [:fetch_orders, :fetch_products]
+end
+
+# Execute with automatic parallelism
+result = pipeline.call_parallel(SimpleFlow::Result.new(user_id))
+```
+
+**How it works:**
+1. SimpleFlow builds a dependency graph from your step declarations
+2. Steps with satisfied dependencies run in parallel (e.g., `fetch_orders` and `fetch_products`)
+3. Contexts and errors from parallel steps are automatically merged
+4. Execution halts if any parallel step calls `halt()`
+
+### Explicit Parallel Blocks
+
+Declare parallel execution explicitly using `parallel` blocks:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(result) {
+    result.continue(validate_input(result.value))
+  }
+
+  parallel do
+    step ->(result) {
+      result.with_context(:api_data, fetch_from_api).continue(result.value)
+    }
+    step ->(result) {
+      result.with_context(:cache_data, fetch_from_cache).continue(result.value)
+    }
+    step ->(result) {
+      result.with_context(:db_data, fetch_from_db).continue(result.value)
+    }
+  end
+
+  step ->(result) {
+    merged = merge_data(
+      result.context[:api_data],
+      result.context[:cache_data],
+      result.context[:db_data]
+    )
+    result.continue(merged)
+  }
+end
+
+# Execute normally - parallel blocks are detected automatically
+result = pipeline.call(SimpleFlow::Result.new(request))
+```
+
+### Async Gem Integration
+
+SimpleFlow uses the `async` gem for parallel execution when available:
+
+```ruby
+# Add to Gemfile
+gem 'async', '~> 2.0'
+
+# SimpleFlow automatically uses async for parallel execution
+pipeline.async_available?  # => true
+
+# Falls back to sequential execution if async is not available
+```
+
+**Performance Note:** Parallel execution is most beneficial for I/O-bound operations (API calls, database queries, file operations). For CPU-bound tasks, consider your Ruby implementation's GIL limitations.
+
+### Mixed Sequential and Parallel Steps
+
+You can mix named steps (with automatic parallelism) and unnamed steps (sequential):
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  # Sequential unnamed step
+  step ->(result) { result.continue(sanitize(result.value)) }
+
+  # Named steps with dependencies (automatic parallelism)
+  step :step_a, ->(result) { ... }, depends_on: []
+  step :step_b, ->(result) { ... }, depends_on: []
+  step :step_c, ->(result) { ... }, depends_on: [:step_a, :step_b]
+
+  # Explicit parallel block
+  parallel do
+    step ->(result) { ... }
+    step ->(result) { ... }
+  end
+
+  # Another sequential step
+  step ->(result) { result.continue(finalize(result.value)) }
+end
+```
+
 ## Architecture
 
 ```
@@ -241,17 +361,25 @@ Key test scenarios in `simple_flow_test.rb:5`:
 
 ## Dependencies
 
-- Ruby 2.7+ (uses `SimpleDelegator`)
-- Standard library only (no external gems)
+- Ruby 3.2+ (required)
+- Standard library: `delegate`, `logger`, `tsort`
+- Optional: `async` (~> 2.0) for parallel execution
 
 ## Files
 
-- `simple_flow.rb:1` - Main module file with overview
-- `result.rb:13` - Immutable result object
-- `pipeline.rb:19` - Pipeline orchestration
-- `middleware.rb:2` - Middleware implementations
-- `step_tracker.rb:43` - Step tracking decorator
-- `simple_flow_test.rb:5` - Test suite
+**Core:**
+- `simple_flow.rb` - Main module file with overview
+- `result.rb` - Immutable result object
+- `pipeline.rb` - Pipeline orchestration with parallel support
+- `middleware.rb` - Middleware implementations (Logging, Instrumentation)
+- `step_tracker.rb` - Step tracking decorator
+
+**Parallel Execution:**
+- `dependency_graph.rb` - Dependency graph analysis (adapted from dagwood gem)
+- `parallel_executor.rb` - Parallel execution using async gem
+
+**Tests:**
+- `test/*_test.rb` - Comprehensive test suite (34 tests, 87 assertions)
 
 ## License
 
