@@ -173,6 +173,47 @@ ruby examples/07_real_world_etl.rb --save
 
 ---
 
+### 8. Graph Visualization (`08_graph_visualization.rb`)
+
+**Demonstrates:**
+- Visualizing dependency graphs
+- ASCII art terminal output
+- Exporting to Graphviz DOT format
+- Exporting to Mermaid diagram format
+- Generating interactive HTML visualizations
+- Execution plan analysis
+- Graph analytics and statistics
+
+**Visualization formats:**
+- **ASCII** - Terminal-friendly text representation
+- **DOT** - Graphviz format for PNG/SVG/PDF generation
+- **Mermaid** - Modern diagram syntax for web
+- **HTML** - Interactive browser-based visualization
+- **Execution Plan** - Detailed performance analysis
+
+**Key concepts:**
+- Understanding dependency relationships
+- Identifying parallel execution opportunities
+- Visualizing pipeline structure
+- Analyzing graph performance characteristics
+- Exporting for documentation
+
+**Run time:** ~1 second
+
+**Generates files:**
+- `ecommerce_graph.dot` - For Graphviz
+- `ecommerce_graph.mmd` - For Mermaid
+- `ecommerce_graph.html` - Interactive visualization
+
+**To generate images:**
+```bash
+# Install Graphviz first (brew install graphviz / apt-get install graphviz)
+dot -Tpng ecommerce_graph.dot -o ecommerce_graph.png
+dot -Tsvg ecommerce_graph.dot -o ecommerce_graph.svg
+```
+
+---
+
 ## Async Gem Availability
 
 All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to sequential execution.

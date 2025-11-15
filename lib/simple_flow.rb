@@ -17,6 +17,7 @@ require_relative 'simple_flow/result'
 require_relative 'simple_flow/middleware'
 require_relative 'simple_flow/step_tracker'
 require_relative 'simple_flow/dependency_graph'
+require_relative 'simple_flow/dependency_graph_visualizer'
 require_relative 'simple_flow/parallel_executor'
 require_relative 'simple_flow/pipeline'
 

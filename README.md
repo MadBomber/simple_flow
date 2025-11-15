@@ -309,6 +309,94 @@ pipeline = SimpleFlow::Pipeline.new do
 end
 ```
 
+## Dependency Graph Visualization
+
+SimpleFlow includes powerful visualization tools to help you understand and debug your pipelines:
+
+### ASCII Art (Terminal Display)
+
+```ruby
+graph = SimpleFlow::DependencyGraph.new(
+  fetch_user: [],
+  fetch_orders: [:fetch_user],
+  fetch_products: [:fetch_user],
+  calculate: [:fetch_orders, :fetch_products]
+)
+
+visualizer = SimpleFlow::DependencyGraphVisualizer.new(graph)
+puts visualizer.to_ascii
+```
+
+Output:
+```
+Dependency Graph
+============================================================
+
+Dependencies:
+  :fetch_user
+    └─ depends on: (none)
+  :fetch_orders
+    └─ depends on: :fetch_user
+  :fetch_products
+    └─ depends on: :fetch_user
+  :calculate
+    └─ depends on: :fetch_orders, :fetch_products
+
+Parallel Execution Groups:
+  Group 1:
+    └─ :fetch_user (sequential)
+  Group 2:
+    ├─ Parallel execution of 2 steps:
+    ├─ :fetch_orders
+    └─ :fetch_products
+  Group 3:
+    └─ :calculate (sequential)
+```
+
+### Execution Plan
+
+```ruby
+puts visualizer.to_execution_plan
+```
+
+Shows detailed execution strategy with performance estimates:
+- Total steps and execution phases
+- Which steps run in parallel
+- Potential speedup vs sequential execution
+
+### Export Formats
+
+**Graphviz DOT:**
+```ruby
+File.write('graph.dot', visualizer.to_dot)
+# Generate image: dot -Tpng graph.dot -o graph.png
+```
+
+**Mermaid Diagram:**
+```ruby
+File.write('graph.mmd', visualizer.to_mermaid)
+# View at https://mermaid.live/
+```
+
+**Interactive HTML:**
+```ruby
+File.write('graph.html', visualizer.to_html(title: "My Pipeline"))
+# Open in browser for interactive visualization
+```
+
+### Visualize from Pipeline
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :load, ->(r) { ... }, depends_on: []
+  step :process, ->(r) { ... }, depends_on: [:load]
+end
+
+graph = SimpleFlow::DependencyGraph.new(pipeline.step_dependencies)
+visualizer = SimpleFlow::DependencyGraphVisualizer.new(graph)
+puts visualizer.to_ascii
+```
+
 ## Architecture
 
 ```
@@ -350,14 +438,19 @@ end
 Run the test suite:
 
 ```bash
-ruby workflow/simple_flow_test.rb
+bundle exec rake test
+# or
+ruby -Ilib:test -e 'Dir["test/*_test.rb"].each { |f| require_relative f }'
 ```
 
-Key test scenarios in `simple_flow_test.rb:5`:
-- Pipeline execution with multiple steps
+Test coverage:
+- **59 tests, 229 assertions** - All passing
+- Pipeline execution and flow control
+- Parallel execution (automatic and explicit)
 - Middleware integration
-- Context and error handling
-- Halt execution behavior
+- Dependency graph analysis
+- Graph visualization
+- Error handling and context management
 
 ## Dependencies
 
@@ -376,10 +469,15 @@ Key test scenarios in `simple_flow_test.rb:5`:
 
 **Parallel Execution:**
 - `dependency_graph.rb` - Dependency graph analysis (adapted from dagwood gem)
+- `dependency_graph_visualizer.rb` - Graph visualization (ASCII, DOT, Mermaid, HTML)
 - `parallel_executor.rb` - Parallel execution using async gem
 
+**Examples:**
+- `examples/` - 8 comprehensive examples demonstrating all features
+- `examples/08_graph_visualization.rb` - Graph visualization examples
+
 **Tests:**
-- `test/*_test.rb` - Comprehensive test suite (34 tests, 87 assertions)
+- `test/*_test.rb` - Comprehensive test suite (59 tests, 229 assertions)
 
 ## License
 
