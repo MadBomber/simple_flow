@@ -22,6 +22,25 @@ puts result.value
 
 ## Understanding the Basics
 
+### Sequential Execution
+
+**Steps execute in order, with each step automatically depending on the previous step's success.**
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(result) { puts "Step 1"; result.continue(result.value) }
+  step ->(result) { puts "Step 2"; result.halt("error") }  # Stops here
+  step ->(result) { puts "Step 3"; result.continue(result.value) }  # Never runs
+end
+
+result = pipeline.call(SimpleFlow::Result.new(nil))
+# Output: Step 1
+#         Step 2
+# (Step 3 is skipped because Step 2 halted)
+```
+
+When any step halts (returns `result.halt`), the pipeline stops immediately and subsequent steps are not executed.
+
 ### 1. Create a Result
 
 A `Result` wraps your data:

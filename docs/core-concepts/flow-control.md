@@ -2,6 +2,43 @@
 
 Flow control in SimpleFlow allows you to manage the execution path of your pipeline based on conditions, errors, or business logic.
 
+## Sequential Step Dependencies
+
+**In sequential pipelines, each unnamed step automatically depends on the previous step's success.**
+
+This means that steps execute in order, and the pipeline short-circuits (stops) as soon as any step halts:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(result) {
+    puts "Step 1: Running"
+    result.continue(result.value)
+  }
+
+  step ->(result) {
+    puts "Step 2: Halting"
+    result.halt("error occurred")
+  }
+
+  step ->(result) {
+    puts "Step 3: This never runs"
+    result.continue(result.value)
+  }
+end
+
+result = pipeline.call(SimpleFlow::Result.new(nil))
+# Output:
+# Step 1: Running
+# Step 2: Halting
+# (Step 3 is skipped)
+```
+
+**Key points:**
+- No need to explicitly define dependencies for sequential workflows
+- Each step receives the result from the previous step
+- Halting a step prevents all subsequent steps from executing
+- This is the default behavior for unnamed steps using `pipeline.call(result)`
+
 ## The Continue Flag
 
 Every `Result` has a `continue?` method that determines whether the pipeline should proceed:

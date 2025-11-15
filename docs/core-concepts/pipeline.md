@@ -6,11 +6,58 @@ The `Pipeline` class is the orchestrator that manages the execution of steps in 
 
 A Pipeline defines a sequence of operations (steps) that transform data, with support for:
 
-- Sequential execution
+- Sequential execution with automatic dependencies
 - Parallel execution (automatic and explicit)
 - Middleware integration
 - Short-circuit evaluation
-- Dependency management
+- Explicit dependency management
+
+## Execution Modes
+
+SimpleFlow pipelines support two distinct execution modes:
+
+### Sequential Execution (Default)
+
+**Unnamed steps execute in order, with each step automatically depending on the previous step's success.**
+
+When a step halts (returns `result.halt`), the pipeline immediately stops and subsequent steps are not executed.
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(result) { puts "Step 1"; result.continue(result.value) }
+  step ->(result) { puts "Step 2"; result.halt("stopped") }
+  step ->(result) { puts "Step 3"; result.continue(result.value) }  # NEVER EXECUTES
+end
+
+result = pipeline.call(SimpleFlow::Result.new(nil))
+# Output:
+# Step 1
+# Step 2
+# (Step 3 is skipped because Step 2 halted)
+```
+
+This automatic dependency chain means:
+- Steps execute one at a time in the order they were defined
+- Each step receives the result from the previous step
+- If any step halts, the entire pipeline stops immediately
+- No need to specify dependencies for sequential workflows
+
+### Parallel Execution
+
+**Named steps with explicit dependencies can run concurrently using `call_parallel`.**
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :validate, validator, depends_on: []
+  step :fetch_a, fetcher_a, depends_on: [:validate]  # Runs in parallel with fetch_b
+  step :fetch_b, fetcher_b, depends_on: [:validate]  # Runs in parallel with fetch_a
+  step :merge, merger, depends_on: [:fetch_a, :fetch_b]
+end
+
+result = pipeline.call_parallel(initial_data)
+```
+
+See [Parallel Execution](#parallel-execution) below for details.
 
 ## Basic Usage
 
@@ -123,19 +170,36 @@ end
 
 ## Short-Circuit Evaluation
 
-Pipelines automatically stop executing when a step halts:
+**Pipelines automatically stop executing when a step halts.** This is a core feature of sequential execution - each unnamed step implicitly depends on the previous step's success.
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   step ->(result) { result.continue("step 1") }
   step ->(result) { result.halt("stopped") }        # Execution stops here
-  step ->(result) { result.continue("step 3") }     # Not executed
+  step ->(result) { result.continue("step 3") }     # Never executed
 end
 
 result = pipeline.call(SimpleFlow::Result.new(nil))
 result.value      # => "stopped"
 result.continue?  # => false
 ```
+
+**Implementation detail:** The `call` method checks `result.continue?` after each step. If it returns `false`, the pipeline returns immediately without executing remaining steps:
+
+```ruby
+# Simplified view of Pipeline#call
+def call(result)
+  steps.reduce(result) do |res, step|
+    return res unless res.continue?  # Short-circuit on halt
+    step.call(res)
+  end
+end
+```
+
+This behavior ensures:
+- **Fail-fast**: Errors stop processing immediately
+- **Resource efficiency**: No wasted computation on already-failed results
+- **Predictable flow**: Clear execution path based on step outcomes
 
 ## Middleware
 

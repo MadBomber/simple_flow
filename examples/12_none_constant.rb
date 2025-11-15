@@ -20,11 +20,11 @@ puts "-" * 60
 puts
 
 pipeline = SimpleFlow::Pipeline.new do
-  # More readable: explicitly shows "no dependencies" using none
+  # More readable: explicitly shows "no dependencies" using :none
   step :validate, ->(result) {
     puts "  [Step 1] Validating input..."
     result.with_context(:validated, true).continue(result.value)
-  }, depends_on: none  # Much cleaner than []!
+  }, depends_on: :none  # Much cleaner than []!
 
   # These two steps run in parallel (both depend only on :validate)
   step :fetch_orders, ->(result) {
@@ -62,12 +62,12 @@ puts "\nExample 2: None Constant vs Empty Array"
 puts "-" * 60
 puts
 
-# Using none method (recommended for readability)
+# Using :none symbol (recommended for readability)
 pipeline_with_none = SimpleFlow::Pipeline.new do
   step :root, ->(result) {
-    puts "  [none syntax] Root step with no dependencies"
+    puts "  [:none syntax] Root step with no dependencies"
     result.continue(result.value + 1)
-  }, depends_on: none  # Clean and readable!
+  }, depends_on: :none  # Clean and readable!
 end
 
 # Using empty array (functionally equivalent)
@@ -91,21 +91,21 @@ puts "-" * 60
 puts
 
 complex_pipeline = SimpleFlow::Pipeline.new do
-  # Three independent root steps - all use none for clarity
+  # Three independent root steps - all use :none for clarity
   step :load_config, ->(result) {
     puts "  [Root A] Loading configuration..."
     result.with_context(:config, { timeout: 30 }).continue(result.value)
-  }, depends_on: none
+  }, depends_on: :none
 
   step :connect_database, ->(result) {
     puts "  [Root B] Connecting to database..."
     result.with_context(:db, :connected).continue(result.value)
-  }, depends_on: none
+  }, depends_on: :none
 
   step :authenticate_api, ->(result) {
     puts "  [Root C] Authenticating API..."
     result.with_context(:api_token, "abc123").continue(result.value)
-  }, depends_on: none
+  }, depends_on: :none
 
   # This step depends on all three independent root steps
   step :initialize_app, ->(result) {
@@ -119,31 +119,41 @@ puts "\nResult: #{result3.value}"
 puts "All independent steps ran in parallel!"
 puts
 
-# Example 4: About the none method
-puts "\nExample 4: About the 'none' Method"
+# Example 4: About the :none and :nothing symbols
+puts "\nExample 4: Reserved Dependency Symbols"
 puts "-" * 60
 puts
 
-pipeline = SimpleFlow::Pipeline.new
-puts "Value: #{pipeline.none.inspect}"
-puts "Same as []? #{pipeline.none == []}"
+puts "You can use :none or :nothing to indicate no dependencies:"
 puts
 
-puts "The 'none' method:"
-puts "  • Returns an empty array"
+pipeline_examples = SimpleFlow::Pipeline.new do
+  step :step_a, ->(result) { result.continue(1) }, depends_on: :none
+  step :step_b, ->(result) { result.continue(2) }, depends_on: :nothing
+  step :step_c, ->(result) { result.continue(3) }, depends_on: [:step_a, :none, :step_b]
+end
+
+graph = pipeline_examples.dependency_graph
+puts "  • :step_a dependencies: #{graph.dependencies[:step_a].inspect}"
+puts "  • :step_b dependencies: #{graph.dependencies[:step_b].inspect}"
+puts "  • :step_c dependencies: #{graph.dependencies[:step_c].inspect} (filtered!)"
+puts
+
+puts "Reserved symbols :none and :nothing:"
+puts "  • Automatically filtered from dependency arrays"
 puts "  • Functionally equivalent to []"
-puts "  • More semantically clear when reading code"
-puts "  • Available in pipeline DSL via instance_eval"
+puts "  • More semantically clear than empty array"
+puts "  • Cannot be used as step names (reserved)"
 puts "  • A signal to readers: 'this step has no dependencies'"
 puts
 
 puts "=" * 60
-puts "Pipeline 'none' method examples completed!"
+puts "Reserved dependency symbols examples completed!"
 puts "=" * 60
 puts
 puts "Key Takeaways:"
-puts "  • Use depends_on: none for better readability"
+puts "  • Use depends_on: :none for better readability"
 puts "  • Equivalent to [] but more semantic"
-puts "  • No namespace needed - works directly in pipeline blocks"
+puts "  • Can mix in arrays: [:step_a, :none] becomes [:step_a]"
 puts "  • Makes dependency graphs easier to understand"
 puts

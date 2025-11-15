@@ -80,27 +80,88 @@ end
 
 ## Anonymous vs Named Steps
 
-### Anonymous Steps
+### Anonymous Steps (Sequential Execution)
 
-Simple, sequential steps without explicit dependencies:
+**Anonymous steps execute sequentially with automatic dependencies on the previous step's success.**
+
+Each step implicitly depends on the previous step completing successfully (not halting). If any step halts, subsequent steps are skipped.
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  step ->(result) { result.continue(result.value * 2) }
-  step ->(result) { result.continue(result.value + 10) }
+  step ->(result) {
+    puts "Step 1"
+    result.continue(result.value * 2)
+  }
+
+  step ->(result) {
+    puts "Step 2"
+    result.continue(result.value + 10)
+  }
+
+  step ->(result) {
+    puts "Step 3"
+    result.continue(result.value.to_s)
+  }
 end
+
+result = pipeline.call(SimpleFlow::Result.new(5))
+# Output:
+# Step 1
+# Step 2
+# Step 3
+# result.value => "20"
 ```
 
-### Named Steps
+**Key characteristics:**
+- Execute in the order they were defined
+- Each step receives the result from the previous step
+- Pipeline short-circuits if any step halts (returns `result.halt`)
+- No need to specify dependencies explicitly
+- Use `pipeline.call(result)` to execute
 
-Steps with explicit names and dependencies for parallel execution:
+**Example with halting:**
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(result) { puts "Step 1"; result.continue(1) }
+  step ->(result) { puts "Step 2"; result.halt(2) }     # Halts here
+  step ->(result) { puts "Step 3"; result.continue(3) } # Never executes
+end
+
+result = pipeline.call(SimpleFlow::Result.new(0))
+# Output:
+# Step 1
+# Step 2
+# (Step 3 is skipped)
+```
+
+### Named Steps (Parallel Execution)
+
+**Named steps with explicit dependencies enable parallel execution based on a dependency graph.**
+
+Steps with the same satisfied dependencies run concurrently. No implicit ordering - you must specify all dependencies explicitly.
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   step :fetch_user, ->(result) { fetch_user(result) }, depends_on: []
+
+  # These two run in parallel (both depend only on :fetch_user)
   step :fetch_orders, ->(result) { fetch_orders(result) }, depends_on: [:fetch_user]
+  step :fetch_products, ->(result) { fetch_products(result) }, depends_on: [:fetch_user]
+
+  # Waits for both parallel steps
+  step :merge, ->(result) { merge_data(result) }, depends_on: [:fetch_orders, :fetch_products]
 end
+
+result = pipeline.call_parallel(SimpleFlow::Result.new(user_id))
 ```
+
+**Key characteristics:**
+- Execute based on dependency graph, not definition order
+- Steps with satisfied dependencies run in parallel
+- Must explicitly specify all dependencies with `depends_on:`
+- Use `pipeline.call_parallel(result)` to execute
+- Optimal for I/O-bound operations (API calls, database queries)
 
 ## Step Contract
 

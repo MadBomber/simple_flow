@@ -61,23 +61,30 @@ puts result.value  # => "Hello, WORLD!"
 
 ### Error Handling
 
+**Sequential steps automatically depend on the previous step's success.** When a step halts, the pipeline stops immediately and subsequent steps are not executed.
+
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   step ->(result) {
+    puts "Step 1: Validating..."
     if result.value < 18
       return result
         .with_error(:validation, 'Must be 18+')
-        .halt
+        .halt  # Pipeline stops here
     end
     result.continue(result.value)
   }
 
   step ->(result) {
+    puts "Step 2: Processing..."  # This never executes if validation fails
     result.continue("Age #{result.value} is valid")
   }
 end
 
 result = pipeline.call(SimpleFlow::Result.new(15))
+# Output: "Step 1: Validating..."
+# (Step 2 is skipped because Step 1 halted)
+
 puts result.continue?  # => false
 puts result.errors     # => {:validation=>["Must be 18+"]}
 ```
@@ -105,6 +112,51 @@ graph TB
     style MW fill:#e1f5ff
     style Output fill:#d4edda
 ```
+
+## Execution Modes
+
+SimpleFlow supports two execution modes:
+
+### Sequential Steps (Default)
+
+**Unnamed steps execute in order, with each step automatically depending on the previous step's success.**
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(result) { result.continue(result.value.strip) }
+  step ->(result) { result.continue(result.value.upcase) }
+  step ->(result) { result.continue("Hello, #{result.value}!") }
+end
+
+result = pipeline.call(SimpleFlow::Result.new("  world  "))
+```
+
+**Key behavior:**
+- Steps run one at a time in definition order
+- Each step receives the result from the previous step
+- If any step halts, the pipeline stops immediately
+- No explicit dependencies needed
+
+### Parallel Steps
+
+**Named steps with dependencies run concurrently based on a dependency graph.**
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :validate, validator, depends_on: None  # Or use []
+  step :fetch_a, fetcher_a, depends_on: [:validate]  # Parallel
+  step :fetch_b, fetcher_b, depends_on: [:validate]  # Parallel
+  step :merge, merger, depends_on: [:fetch_a, :fetch_b]
+end
+
+result = pipeline.call_parallel(SimpleFlow::Result.new(data))
+```
+
+**Key behavior:**
+- Steps run based on dependency graph, not definition order
+- Steps with satisfied dependencies run in parallel
+- Must explicitly specify all dependencies
+- Use `call_parallel` to execute
 
 ## Core Concepts
 
@@ -175,7 +227,7 @@ SimpleFlow automatically detects which steps can run in parallel based on depend
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  step :validate, ->(r) { validate(r) }, depends_on: []
+  step :validate, ->(r) { validate(r) }, depends_on: None
 
   # These run in parallel (both depend only on :validate)
   step :fetch_orders, ->(r) { fetch_orders(r) }, depends_on: [:validate]
@@ -187,6 +239,8 @@ end
 
 result = pipeline.call_parallel(SimpleFlow::Result.new(data))
 ```
+
+**Note:** For steps with no dependencies, you can use either `depends_on: None` (more readable) or `depends_on: []`.
 
 **Execution flow:**
 
@@ -399,6 +453,8 @@ Check out the `examples/` directory for comprehensive examples:
 8. `08_graph_visualization.rb` - Manual visualization
 9. `09_pipeline_visualization.rb` - Direct pipeline visualization
 10. `10_concurrency_control.rb` - Per-pipeline concurrency control
+11. `11_sequential_dependencies.rb` - Sequential step dependencies and halting
+12. `12_none_constant.rb` - Using the `none` helper for cleaner syntax
 
 ## Requirements
 

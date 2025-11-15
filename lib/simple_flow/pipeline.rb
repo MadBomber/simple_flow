@@ -18,13 +18,15 @@ module SimpleFlow
   #
   # Parallel Execution with Named Steps:
   # pipeline = SimpleFlow::Pipeline.new do
-  #   step :fetch_user, ->(result) { ... }, depends_on: []
+  #   step :fetch_user, ->(result) { ... }, depends_on: None
   #   step :fetch_orders, ->(result) { ... }, depends_on: [:fetch_user]
   #   step :fetch_products, ->(result) { ... }, depends_on: [:fetch_user]
   #   step :calculate, ->(result) { ... }, depends_on: [:fetch_orders, :fetch_products]
   # end
   #
   # result = pipeline.call_parallel(initial_data)  # Auto-detects parallelism
+  #
+  # Note: You can use either depends_on: [] or depends_on: None for clarity
   #
   # Explicit Parallel Blocks:
   # pipeline = SimpleFlow::Pipeline.new do
@@ -88,11 +90,18 @@ module SimpleFlow
         # Named step: step :name, ->(result) { ... }, depends_on: [...]
         name = name_or_callable
         callable ||= block
+
+        # Validate step name
+        if [:none, :nothing].include?(name)
+          raise ArgumentError, "Step name '#{name}' is reserved. Please use a different name."
+        end
+
         raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
 
         callable = apply_middleware(callable)
         @named_steps[name] = callable
-        @step_dependencies[name] = Array(depends_on)
+        # Filter out reserved dependency symbols :none and :nothing
+        @step_dependencies[name] = Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) }
         @steps << { name: name, callable: callable, type: :named }
       else
         # Unnamed step: step ->(result) { ... } or step { |result| ... }
