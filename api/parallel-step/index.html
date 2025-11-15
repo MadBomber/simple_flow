@@ -1,0 +1,2848 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution">
+      
+      
+        <meta name="author" content="Dewayne VanHoozer">
+      
+      
+        <link rel="canonical" href="https://madbomber.github.io/simple_flow/api/parallel-step/">
+      
+      
+        <link rel="prev" href="../pipeline/">
+      
+      
+        <link rel="next" href="../middleware/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>ParallelStep API - SimpleFlow Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#parallel-execution-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="SimpleFlow Documentation" class="md-header__button md-logo" aria-label="SimpleFlow Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SimpleFlow Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ParallelStep API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MadBomber/simple_flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MadBomber/simple_flow
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  🚀 Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../core-concepts/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📖 Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concurrent/introduction/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  ⚡ Concurrent Execution
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/error-handling/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📚 Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../result/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  🔌 API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  ⚙️ Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SimpleFlow Documentation" class="md-nav__button md-logo" aria-label="SimpleFlow Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SimpleFlow Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MadBomber/simple_flow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MadBomber/simple_flow
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🚀 Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📖 Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📖 Core Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/result/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/middleware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Middleware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/flow-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flow Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚡ Concurrent Execution
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ⚡ Concurrent Execution
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concurrent/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concurrent/parallel-steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parallel Steps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concurrent/performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concurrent/best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📚 Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/error-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validation-patterns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/choosing-concurrency-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Choosing Concurrency Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/data-fetching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Fetching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/file-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complex-workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complex Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔌 API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔌 API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../result/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ParallelStep API
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ParallelStep API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-simpleflowparallelexecutor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SimpleFlow::ParallelExecutor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SimpleFlow::ParallelExecutor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#class-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#execute_parallelsteps-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        execute_parallel(steps, result)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute_sequentialsteps-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        execute_sequential(steps, result)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        async_available?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#async-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequential-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequential Fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-simpleflowdependencygraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SimpleFlow::DependencyGraph
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SimpleFlow::DependencyGraph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constructor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constructor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constructor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#newdependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        new(dependencies)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instance Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Instance Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reverse_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reverse_order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallel_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parallel_order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subgraphnode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subgraph(node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mergeother" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge(other)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instance Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Instance Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-simpleflowpipelineparallelblock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SimpleFlow::Pipeline::ParallelBlock
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SimpleFlow::Pipeline::ParallelBlock">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stepname_or_callable-nil-callable-nil-depends_on-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        step(name_or_callable = nil, callable = nil, depends_on: [], &amp;block)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#direct-parallelexecutor-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct ParallelExecutor Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependency-graph-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency Graph Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-async-gem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing Async Gem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-async-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking Async Availability
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../middleware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Middleware API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ⚙️ Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/benchmarking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-simpleflowparallelexecutor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SimpleFlow::ParallelExecutor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SimpleFlow::ParallelExecutor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#class-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#execute_parallelsteps-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        execute_parallel(steps, result)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute_sequentialsteps-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        execute_sequential(steps, result)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        async_available?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#async-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequential-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequential Fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-simpleflowdependencygraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SimpleFlow::DependencyGraph
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SimpleFlow::DependencyGraph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constructor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constructor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constructor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#newdependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        new(dependencies)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instance Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Instance Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reverse_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reverse_order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallel_order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parallel_order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subgraphnode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subgraph(node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mergeother" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge(other)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instance Attributes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Instance Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-simpleflowpipelineparallelblock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SimpleFlow::Pipeline::ParallelBlock
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SimpleFlow::Pipeline::ParallelBlock">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stepname_or_callable-nil-callable-nil-depends_on-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        step(name_or_callable = nil, callable = nil, depends_on: [], &amp;block)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#direct-parallelexecutor-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct ParallelExecutor Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependency-graph-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency Graph Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-async-gem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing Async Gem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-async-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking Async Availability
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../result/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    🔌 API Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/MadBomber/simple_flow/edit/main/docs/api/parallel-step.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/MadBomber/simple_flow/raw/main/docs/api/parallel-step.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="parallel-execution-api-reference">Parallel Execution API Reference<a class="headerlink" href="#parallel-execution-api-reference" title="Permanent link">&para;</a></h1>
+<p>This document covers the APIs for parallel execution in SimpleFlow, including the ParallelExecutor class and dependency graph management.</p>
+<h2 id="class-simpleflowparallelexecutor">Class: <code>SimpleFlow::ParallelExecutor</code><a class="headerlink" href="#class-simpleflowparallelexecutor" title="Permanent link">&para;</a></h2>
+<p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/parallel_executor.rb</code></p>
+<p>Handles parallel execution of steps using the async gem, with automatic fallback to sequential execution.</p>
+<h3 id="class-methods">Class Methods<a class="headerlink" href="#class-methods" title="Permanent link">&para;</a></h3>
+<h4 id="execute_parallelsteps-result"><code>execute_parallel(steps, result)</code><a class="headerlink" href="#execute_parallelsteps-result" title="Permanent link">&para;</a></h4>
+<p>Executes a group of steps in parallel.</p>
+<p><strong>Parameters:</strong>
+- <code>steps</code> (Array<Proc>) - Array of callable steps
+- <code>result</code> (Result) - The input result to pass to each step</p>
+<p><strong>Returns:</strong> Array<Result> - Results from each step</p>
+<p><strong>Behavior:</strong>
+- Uses async gem for true parallel execution if available
+- Falls back to sequential execution if async is not available
+- Each step receives the same input result
+- Returns array of results in same order as input steps</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:a</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;data_a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:b</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;data_b&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:c</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;data_c&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="o">]</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">execute_parallel</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">results</span><span class="o">.</span><span class="n">size</span><span class="w">  </span><span class="c1"># =&gt; 3</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">results</span><span class="o">[</span><span class="mi">0</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:a</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_a&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">results</span><span class="o">[</span><span class="mi">1</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:b</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_b&quot;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">results</span><span class="o">[</span><span class="mi">2</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:c</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_c&quot;</span>
+</span></code></pre></div></p>
+<h4 id="execute_sequentialsteps-result"><code>execute_sequential(steps, result)</code><a class="headerlink" href="#execute_sequentialsteps-result" title="Permanent link">&para;</a></h4>
+<p>Executes steps sequentially (fallback implementation).</p>
+<p><strong>Parameters:</strong>
+- <code>steps</code> (Array<Proc>) - Array of callable steps
+- <code>result</code> (Result) - The input result</p>
+<p><strong>Returns:</strong> Array<Result></p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">execute_sequential</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">)</span>
+</span></code></pre></div></p>
+<h4 id="async_available"><code>async_available?</code><a class="headerlink" href="#async_available" title="Permanent link">&para;</a></h4>
+<p>Checks if the async gem is available.</p>
+<p><strong>Returns:</strong> Boolean</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">if</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">async_available?</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Async gem is installed - true parallel execution enabled&quot;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">else</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Async gem not found - will use sequential fallback&quot;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">end</span>
+</span></code></pre></div></p>
+<h3 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">&para;</a></h3>
+<h4 id="async-integration">Async Integration<a class="headerlink" href="#async-integration" title="Permanent link">&para;</a></h4>
+<p>When async gem is available:
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Uses Async::Barrier for concurrent execution</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="no">Async</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">barrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Async</span><span class="o">::</span><span class="no">Barrier</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[]</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">steps</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="n">tasks</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">barrier</span><span class="o">.</span><span class="n">async</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="k">end</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="n">barrier</span><span class="o">.</span><span class="n">wait</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tasks</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:result</span><span class="p">)</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="k">end</span>
+</span></code></pre></div></p>
+<h4 id="sequential-fallback">Sequential Fallback<a class="headerlink" href="#sequential-fallback" title="Permanent link">&para;</a></h4>
+<p>When async is not available:
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">steps</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span><span class="w"> </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div></p>
+<h2 id="class-simpleflowdependencygraph">Class: <code>SimpleFlow::DependencyGraph</code><a class="headerlink" href="#class-simpleflowdependencygraph" title="Permanent link">&para;</a></h2>
+<p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/dependency_graph.rb</code></p>
+<p>Manages dependencies between pipeline steps and determines which steps can execute in parallel.</p>
+<h3 id="constructor">Constructor<a class="headerlink" href="#constructor" title="Permanent link">&para;</a></h3>
+<h4 id="newdependencies"><code>new(dependencies)</code><a class="headerlink" href="#newdependencies" title="Permanent link">&para;</a></h4>
+<p>Creates a new dependency graph.</p>
+<p><strong>Parameters:</strong>
+- <code>dependencies</code> (Hash) - Hash mapping step names to their dependencies</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">graph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">DependencyGraph</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="ss">fetch_user</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="ss">fetch_orders</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="ss">fetch_products</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="ss">calculate_total</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_orders</span><span class="p">,</span><span class="w"> </span><span class="ss">:fetch_products</span><span class="o">]</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">)</span>
+</span></code></pre></div></p>
+<h3 id="instance-methods">Instance Methods<a class="headerlink" href="#instance-methods" title="Permanent link">&para;</a></h3>
+<h4 id="order"><code>order</code><a class="headerlink" href="#order" title="Permanent link">&para;</a></h4>
+<p>Returns steps in topological order (dependencies first).</p>
+<p><strong>Returns:</strong> Array - Ordered list of step names</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">graph</span><span class="o">.</span><span class="n">order</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># =&gt; [:fetch_user, :fetch_orders, :fetch_products, :calculate_total]</span>
+</span></code></pre></div></p>
+<h4 id="reverse_order"><code>reverse_order</code><a class="headerlink" href="#reverse_order" title="Permanent link">&para;</a></h4>
+<p>Returns steps in reverse topological order.</p>
+<p><strong>Returns:</strong> Array</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">graph</span><span class="o">.</span><span class="n">reverse_order</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># =&gt; [:calculate_total, :fetch_products, :fetch_orders, :fetch_user]</span>
+</span></code></pre></div></p>
+<h4 id="parallel_order"><code>parallel_order</code><a class="headerlink" href="#parallel_order" title="Permanent link">&para;</a></h4>
+<p>Groups steps that can be executed in parallel.</p>
+<p><strong>Returns:</strong> Array<Array> - Array of groups, where each group can run in parallel</p>
+<p><strong>Algorithm:</strong>
+Steps can run in parallel if:
+1. They have the exact same dependencies, OR
+2. All of a step's dependencies have been resolved in previous groups</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">graph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">DependencyGraph</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="ss">step_a</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span><span class="p">,</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="ss">step_b</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_a</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="ss">step_c</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_a</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="ss">step_d</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_b</span><span class="p">,</span><span class="w"> </span><span class="ss">:step_c</span><span class="o">]</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">)</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">graph</span><span class="o">.</span><span class="n">parallel_order</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># =&gt; [</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1">#      [:step_a],           # Group 1: step_a (no dependencies)</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="c1">#      [:step_b, :step_c],  # Group 2: parallel (both depend only on step_a)</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="c1">#      [:step_d]            # Group 3: step_d (waits for step_b and step_c)</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="c1">#    ]</span>
+</span></code></pre></div></p>
+<h4 id="subgraphnode"><code>subgraph(node)</code><a class="headerlink" href="#subgraphnode" title="Permanent link">&para;</a></h4>
+<p>Generates a subgraph starting at the given node.</p>
+<p><strong>Parameters:</strong>
+- <code>node</code> (Symbol) - The starting node</p>
+<p><strong>Returns:</strong> DependencyGraph - New graph containing only the node and its dependencies</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">graph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">DependencyGraph</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="ss">step_a</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="ss">step_b</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_a</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="ss">step_c</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_b</span><span class="o">]</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="n">subgraph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="ss">:step_c</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">subgraph</span><span class="o">.</span><span class="n">dependencies</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="c1"># =&gt; { step_c: [:step_b], step_b: [:step_a], step_a: [] }</span>
+</span></code></pre></div></p>
+<h4 id="mergeother"><code>merge(other)</code><a class="headerlink" href="#mergeother" title="Permanent link">&para;</a></h4>
+<p>Merges this graph with another graph.</p>
+<p><strong>Parameters:</strong>
+- <code>other</code> (DependencyGraph) - Another dependency graph</p>
+<p><strong>Returns:</strong> DependencyGraph - New merged graph</p>
+<p><strong>Behavior:</strong>
+- Combines all dependencies from both graphs
+- If both graphs depend on the same item, uses the union of dependencies</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">graph1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">DependencyGraph</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="ss">step_a</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span><span class="p">,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="ss">step_b</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_a</span><span class="o">]</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">)</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">graph2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">DependencyGraph</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="ss">step_c</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span><span class="p">,</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="ss">step_b</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:step_c</span><span class="o">]</span><span class="w">  </span><span class="c1"># Different dependency for step_b</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="p">)</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="n">merged</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graph1</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">graph2</span><span class="p">)</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="n">merged</span><span class="o">.</span><span class="n">dependencies</span><span class="o">[</span><span class="ss">:step_b</span><span class="o">]</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1"># =&gt; [:step_a, :step_c]  # Union of dependencies</span>
+</span></code></pre></div></p>
+<h3 id="instance-attributes">Instance Attributes<a class="headerlink" href="#instance-attributes" title="Permanent link">&para;</a></h3>
+<h4 id="dependencies"><code>dependencies</code><a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h4>
+<p>Hash of dependencies (read-only).</p>
+<p><strong>Type:</strong> Hash</p>
+<p><strong>Example:</strong>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">graph</span><span class="o">.</span><span class="n">dependencies</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1"># =&gt; {</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1">#      fetch_user: [],</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">#      fetch_orders: [:fetch_user],</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1">#      fetch_products: [:fetch_user],</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1">#      calculate_total: [:fetch_orders, :fetch_products]</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">#    }</span>
+</span></code></pre></div></p>
+<h2 id="class-simpleflowpipelineparallelblock">Class: <code>SimpleFlow::Pipeline::ParallelBlock</code><a class="headerlink" href="#class-simpleflowpipelineparallelblock" title="Permanent link">&para;</a></h2>
+<p>Internal helper class for building parallel blocks.</p>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
+<h4 id="stepname_or_callable-nil-callable-nil-depends_on-block"><code>step(name_or_callable = nil, callable = nil, depends_on: [], &amp;block)</code><a class="headerlink" href="#stepname_or_callable-nil-callable-nil-depends_on-block" title="Permanent link">&para;</a></h4>
+<p>Adds a step to the parallel block.</p>
+<p><strong>Note:</strong> This is used internally by the Pipeline DSL.</p>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<h3 id="direct-parallelexecutor-usage">Direct ParallelExecutor Usage<a class="headerlink" href="#direct-parallelexecutor-usage" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fetch_from_api_a</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:api_a</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fetch_from_api_b</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:api_b</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fetch_from_cache</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">    </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:cache</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="o">]</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="n">initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">request_id</span><span class="p">)</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">execute_parallel</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">)</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="c1"># Merge contexts</span>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="n">merged_context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">results</span><span class="o">.</span><span class="n">reduce</span><span class="p">({})</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">acc</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="o">|</span>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">  </span><span class="n">acc</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="k">end</span>
+</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="c1"># =&gt; { api_a: ..., api_b: ..., cache: ... }</span>
+</span></code></pre></div>
+<h3 id="dependency-graph-analysis">Dependency Graph Analysis<a class="headerlink" href="#dependency-graph-analysis" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Define dependencies</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="ss">validate_input</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="ss">check_inventory</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate_input</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="ss">check_pricing</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate_input</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span><span class="ss">check_shipping</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate_input</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="ss">calculate_discount</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:check_inventory</span><span class="p">,</span><span class="w"> </span><span class="ss">:check_pricing</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">  </span><span class="ss">finalize_order</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:calculate_discount</span><span class="p">,</span><span class="w"> </span><span class="ss">:check_shipping</span><span class="o">]</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="p">}</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="n">graph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">DependencyGraph</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">dependencies</span><span class="p">)</span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="c1"># Analyze execution order</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Sequential order:&quot;</span>
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="nb">puts</span><span class="w"> </span><span class="n">graph</span><span class="o">.</span><span class="n">order</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39; -&gt; &#39;</span><span class="p">)</span>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="c1"># =&gt; validate_input -&gt; check_inventory -&gt; check_pricing -&gt; check_shipping -&gt; calculate_discount -&gt; finalize_order</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Parallel execution groups:&quot;</span>
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="n">graph</span><span class="o">.</span><span class="n">parallel_order</span><span class="o">.</span><span class="n">each_with_index</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">group</span><span class="p">,</span><span class="w"> </span><span class="n">index</span><span class="o">|</span>
+</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Group </span><span class="si">#{</span><span class="n">index</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">group</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-13-21"><a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="k">end</span>
+</span><span id="__span-13-22"><a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="c1"># =&gt; Group 1: validate_input</span>
+</span><span id="__span-13-23"><a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="c1"># =&gt; Group 2: check_inventory, check_pricing, check_shipping</span>
+</span><span id="__span-13-24"><a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="c1"># =&gt; Group 3: calculate_discount</span>
+</span><span id="__span-13-25"><a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="c1"># =&gt; Group 4: finalize_order</span>
+</span><span id="__span-13-26"><a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a>
+</span><span id="__span-13-27"><a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="c1"># Calculate potential speedup</span>
+</span><span id="__span-13-28"><a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="n">total_steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graph</span><span class="o">.</span><span class="n">order</span><span class="o">.</span><span class="n">size</span>
+</span><span id="__span-13-29"><a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a><span class="n">total_groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graph</span><span class="o">.</span><span class="n">parallel_order</span><span class="o">.</span><span class="n">size</span>
+</span><span id="__span-13-30"><a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Potential speedup: </span><span class="si">#{</span><span class="n">total_steps</span><span class="o">.</span><span class="n">to_f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">total_groups</span><span class="si">}</span><span class="s2">x&quot;</span>
+</span><span id="__span-13-31"><a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a><span class="c1"># =&gt; Potential speedup: 1.5x</span>
+</span></code></pre></div>
+<h3 id="installing-async-gem">Installing Async Gem<a class="headerlink" href="#installing-async-gem" title="Permanent link">&para;</a></h3>
+<p>Add to your Gemfile:
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
+</span></code></pre></div></p>
+<p>Then run:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>bundle<span class="w"> </span>install
+</span></code></pre></div></p>
+<h3 id="checking-async-availability">Checking Async Availability<a class="headerlink" href="#checking-async-availability" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># In your application</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">if</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">async_available?</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Parallel execution enabled&quot;</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Using async gem for true concurrency&quot;</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="k">else</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Parallel execution disabled&quot;</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Add &#39;async&#39; gem to Gemfile for parallel support&quot;</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="k">end</span>
+</span></code></pre></div>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../pipeline/">Pipeline API</a> - Pipeline class reference</li>
+<li><a href="../../concurrent/parallel-steps/">Parallel Steps Guide</a> - Using parallel execution</li>
+<li><a href="../../concurrent/performance/">Performance Guide</a> - Performance characteristics</li>
+<li><a href="../../concurrent/best-practices/">Best Practices</a> - Concurrent execution best practices</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Dewayne VanHoozer
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/MadBomber/simple_flow" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.0.1"}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
