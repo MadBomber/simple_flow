@@ -1,65 +1,50 @@
+require 'minitest/autorun'
+require_relative '../lib/simple_flow/step_tracker'
+require_relative '../lib/simple_flow/result'
+
 module SimpleFlow
-  module MiddleWare
-
-    ##
-    # The Logging class is a middleware used for logging the beginning and ending of a method call.
-    # It can be used to wrap any callable object (an object that responds to `#call`),
-    # logging messages before and after the callable object is invoked.
-    # Optionally, a custom logger can be passed during initialization; otherwise, it defaults to STDOUT.
-    #
-    class Logging
-      
-      # Initializes a new instance of Logging middleware.
-      # @param callable [Object] An object that responds to `#call`, typically a lambda or Proc.
-      # @param logger [Logger, nil] An optional logger object for logging messages.
-      def initialize(callable, logger = nil)
-        @callable, @logger = callable, logger
-      end
-
-      # Invokes the callable object, logging before and after the call.
-      # @param result [Object] The initial argument to be passed to the callable.
-      # @return [Object] The result of the callable object's invocation.
-      def call(result)
-        logger.info("Before call")
-        result = @callable.call(result)
-        logger.info("After call")
-        result
-      end
-
-      private
-
-      # Accesses or initializes the logger object.
-      # Defaults to a new logger object outputting to STDOUT if none was provided during initialization.
-      # @return [Logger] The logger object.
-      def logger
-        @logger ||= Logger.new($stdout)
-      end
+  class StepTrackerTest < Minitest::Test
+    def setup
+      @step = ->(result) { result.continue(result.value * 2) }
+      @tracker = StepTracker.new(@step)
     end
 
-    ##
-    # The Instrumentation class is a middleware used for measuring the execution time of a method call.
-    # It wraps any callable object, recording the time before and after its invocation to calculate the duration.
-    # Optionally, an API key can be provided for identification purposes in instrumentation logs.
-    #
-    class Instrumentation
+    def test_tracks_successful_step
+      result = Result.new(5)
+      new_result = @tracker.call(result)
 
-      # Initializes a new instance of Instrumentation middleware.
-      # @param callable [Object] An object that responds to `#call`.
-      # @param api_key [String, nil] An optional API key for logging purposes.
-      def initialize(callable, api_key: nil)
-        @callable, @api_key = callable, api_key
-      end
+      assert_equal 10, new_result.value
+      assert new_result.continue?
+    end
 
-      # Invokes the callable object, measuring and outputting the duration of its execution.
-      # @param result [Object] The initial argument to be passed to the callable.
-      # @return [Object] The result of the callable object's invocation.
-      def call(result)
-        start_time = Time.now
-        result = @callable.call(result)
-        duration = Time.now - start_time
-        puts "Instrumentation: #{@api_key} took #{duration}s"
-        result
-      end
+    def test_tracks_halted_step
+      halting_step = ->(result) { result.halt(result.value + 1) }
+      tracker = StepTracker.new(halting_step)
+
+      result = Result.new(10)
+      new_result = tracker.call(result)
+
+      refute new_result.continue?
+      assert_equal 11, new_result.value
+      assert_equal halting_step, new_result.context[:halted_step]
+    end
+
+    def test_does_not_track_continuing_step
+      result = Result.new(3)
+      new_result = @tracker.call(result)
+
+      assert new_result.continue?
+      assert_nil new_result.context[:halted_step]
+    end
+
+    def test_delegates_to_wrapped_step
+      custom_step = ->(result) { result.continue("custom") }
+      tracker = StepTracker.new(custom_step)
+
+      result = Result.new("initial")
+      new_result = tracker.call(result)
+
+      assert_equal "custom", new_result.value
     end
   end
 end

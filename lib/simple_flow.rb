@@ -12,10 +12,14 @@
 require 'delegate'
 require 'logger'
 
-require_relative 'pipeline'
-require_relative 'result'
-require_relative 'middleware'
-require_relative 'step_tracker'
+require_relative 'simple_flow/version'
+require_relative 'simple_flow/result'
+require_relative 'simple_flow/middleware'
+require_relative 'simple_flow/step_tracker'
+require_relative 'simple_flow/dependency_graph'
+require_relative 'simple_flow/dependency_graph_visualizer'
+require_relative 'simple_flow/parallel_executor'
+require_relative 'simple_flow/pipeline'
 
 module SimpleFlow
 end

@@ -7,7 +7,13 @@ class TestSimpleFlow < Minitest::Test
     refute_nil ::SimpleFlow::VERSION
   end
 
-  def test_it_does_something_useful
-    assert false
+  def test_simple_pipeline_flow
+    pipeline = SimpleFlow::Pipeline.new do
+      step ->(result) { result.continue(result.value.upcase) }
+      step ->(result) { result.continue("Hello, #{result.value}!") }
+    end
+
+    result = pipeline.call(SimpleFlow::Result.new("world"))
+    assert_equal "Hello, WORLD!", result.value
   end
 end
