@@ -129,6 +129,7 @@ nav:
   - 📚 Guides:
     - Error Handling: guides/error-handling.md
     - Validation Patterns: guides/validation-patterns.md
+    - Choosing Concurrency Model: guides/choosing-concurrency-model.md
     - Data Fetching: guides/data-fetching.md
     - File Processing: guides/file-processing.md
     - Complex Workflows: guides/complex-workflows.md

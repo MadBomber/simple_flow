@@ -4,6 +4,13 @@
 require_relative '../lib/simple_flow'
 
 # Automatic parallel discovery using dependency graphs
+#
+# NOTE: You can control which concurrency model is used with the concurrency parameter:
+#   pipeline = SimpleFlow::Pipeline.new(concurrency: :threads) do ... end  # Force threads
+#   pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do ... end    # Force async
+#   pipeline = SimpleFlow::Pipeline.new(concurrency: :auto) do ... end     # Auto-detect (default)
+#
+# See examples/10_concurrency_control.rb for detailed examples
 
 puts "=" * 60
 puts "Automatic Parallel Discovery"
@@ -12,9 +19,9 @@ puts
 
 # Check if async is available
 if SimpleFlow::Pipeline.new.async_available?
-  puts "✓ Async gem is available - true parallel execution enabled"
+  puts "✓ Async gem is available - will use fiber-based concurrency"
 else
-  puts "⚠ Async gem not available - falling back to sequential execution"
+  puts "⚠ Async gem not available - will use thread-based parallelism"
 end
 puts
 

@@ -37,16 +37,24 @@ module SimpleFlow
   # end
   #
   class Pipeline
-    attr_reader :steps, :middlewares, :named_steps, :step_dependencies
+    attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency
 
     # Initializes a new Pipeline object. A block can be provided to dynamically configure the pipeline,
     # allowing the addition of steps and middleware.
-    def initialize(&config)
+    # @param concurrency [Symbol] concurrency model to use (:auto, :threads, :async)
+    #   - :auto (default) - uses async if available, falls back to threads
+    #   - :threads - always uses Ruby threads
+    #   - :async - uses async gem (raises error if not available)
+    def initialize(concurrency: :auto, &config)
       @steps = []
       @middlewares = []
       @named_steps = {}
       @step_dependencies = {}
       @parallel_groups = []
+      @concurrency = concurrency
+
+      validate_concurrency!
+
       instance_eval(&config) if block_given?
     end
 
@@ -213,6 +221,17 @@ module SimpleFlow
 
     private
 
+    def validate_concurrency!
+      valid_options = [:auto, :threads, :async]
+      unless valid_options.include?(@concurrency)
+        raise ArgumentError, "Invalid concurrency option: #{@concurrency.inspect}. Valid options: #{valid_options.inspect}"
+      end
+
+      if @concurrency == :async && !ParallelExecutor.async_available?
+        raise ArgumentError, "Concurrency set to :async but async gem is not available. Install with: gem 'async', '~> 2.0'"
+      end
+    end
+
     def has_named_steps?
       @named_steps.any?
     end
@@ -228,7 +247,7 @@ module SimpleFlow
 
     def execute_parallel_group(steps, result)
       callables = steps.map { |s| s[:callable] }
-      results = ParallelExecutor.execute_parallel(callables, result)
+      results = ParallelExecutor.execute_parallel(callables, result, concurrency: @concurrency)
 
       # Return the first halted result, or the last result if all continued
       results.find { |r| r.respond_to?(:continue?) && !r.continue? } || results.last
@@ -253,7 +272,7 @@ module SimpleFlow
         else
           # Multiple steps, execute in parallel
           callables = group.map { |name| @named_steps[name] }
-          results = ParallelExecutor.execute_parallel(callables, current_result)
+          results = ParallelExecutor.execute_parallel(callables, current_result, concurrency: @concurrency)
 
           # Check if any step halted
           halted_result = results.find { |r| r.respond_to?(:continue?) && !r.continue? }

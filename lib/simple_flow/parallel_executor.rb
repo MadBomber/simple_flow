@@ -10,17 +10,36 @@ end
 
 module SimpleFlow
   ##
-  # ParallelExecutor handles parallel execution of steps using the async gem.
-  # Falls back to sequential execution if async gem is not available.
+  # ParallelExecutor handles parallel execution of steps.
+  # Uses the async gem for fiber-based concurrency if available,
+  # falls back to Ruby threads otherwise.
   #
   class ParallelExecutor
     # Execute a group of steps in parallel
     # @param steps [Array<Proc>] array of callable steps
     # @param result [Result] the input result
+    # @param concurrency [Symbol] concurrency model (:auto, :threads, :async)
     # @return [Array<Result>] array of results from each step
-    def self.execute_parallel(steps, result)
-      return execute_sequential(steps, result) unless ASYNC_AVAILABLE
+    def self.execute_parallel(steps, result, concurrency: :auto)
+      case concurrency
+      when :auto
+        # Auto-detect: use async if available, otherwise threads
+        ASYNC_AVAILABLE ? execute_with_async(steps, result) : execute_with_threads(steps, result)
+      when :threads
+        execute_with_threads(steps, result)
+      when :async
+        raise ArgumentError, "Async gem not available" unless ASYNC_AVAILABLE
+        execute_with_async(steps, result)
+      else
+        raise ArgumentError, "Invalid concurrency option: #{concurrency.inspect}"
+      end
+    end
 
+    # Execute steps with async gem (fiber-based concurrency)
+    # @param steps [Array<Proc>] array of callable steps
+    # @param result [Result] the input result
+    # @return [Array<Result>] array of results from each step
+    def self.execute_with_async(steps, result)
       results = []
 
       Async do
@@ -40,12 +59,16 @@ module SimpleFlow
       results
     end
 
-    # Execute steps sequentially (fallback)
+    # Execute steps with Ruby threads (fallback for true parallelism)
     # @param steps [Array<Proc>] array of callable steps
     # @param result [Result] the input result
     # @return [Array<Result>] array of results from each step
-    def self.execute_sequential(steps, result)
-      steps.map { |step| step.call(result) }
+    def self.execute_with_threads(steps, result)
+      threads = steps.map do |step|
+        Thread.new { step.call(result) }
+      end
+
+      threads.map(&:value)
     end
 
     # Check if async is available

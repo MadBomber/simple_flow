@@ -1,506 +1,425 @@
 # SimpleFlow
 
-A lightweight, modular Ruby framework for building composable data processing pipelines with middleware support and flow control.
+[![Ruby Version](https://img.shields.io/badge/ruby-3.2%2B-ruby.svg)](https://www.ruby-lang.org)
+[![Test Coverage](https://img.shields.io/badge/coverage-95.57%25-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Tests](https://img.shields.io/badge/tests-134%20passing-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://madbomber.github.io/simple_flow)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+A lightweight, modular Ruby framework for building composable data processing pipelines with middleware support, flow control, and parallel execution.
+
+📚 **[Full Documentation](https://madbomber.github.io/simple_flow)** | 🚀 **[Getting Started](https://madbomber.github.io/simple_flow/getting-started/quick-start/)** | 📖 **[API Reference](https://madbomber.github.io/simple_flow/api/result/)**
 
 ## Overview
 
-SimpleFlow provides a clean and flexible architecture for orchestrating multi-step workflows. It emphasizes:
+SimpleFlow provides a clean architecture for orchestrating multi-step workflows with:
 
-- **Immutability**: Results are immutable, promoting safer concurrent operations
-- **Composability**: Steps and middleware can be easily combined and reused
-- **Flow Control**: Built-in mechanisms to halt or continue execution based on step outcomes
-- **Middleware Support**: Cross-cutting concerns (logging, instrumentation, etc.) via decorator pattern
-- **Simplicity**: Minimal API surface with powerful capabilities
+- **Immutable Results** - Thread-safe value objects
+- **Composable Steps** - Mix and match processing units
+- **Flow Control** - Built-in halt/continue mechanisms
+- **Middleware Support** - Cross-cutting concerns via decorator pattern
+- **Parallel Execution** - Automatic and explicit concurrency
+- **Visualization** - Export pipelines to Graphviz, Mermaid, HTML
 
-## Core Components
+## Installation
 
-### Result (`result.rb:13`)
-
-An immutable value object representing the outcome of a workflow step.
-
-```ruby
-result = SimpleFlow::Result.new(initial_value)
-  .with_context(:user_id, 123)
-  .with_error(:validation, "Invalid input")
-```
-
-**Key Methods:**
-- `continue(new_value)` - Proceeds to next step with updated value
-- `halt(new_value = nil)` - Stops pipeline execution
-- `with_context(key, value)` - Adds contextual metadata
-- `with_error(key, message)` - Accumulates error messages
-- `continue?` - Checks if pipeline should proceed
-
-### Pipeline (`pipeline.rb:19`)
-
-Orchestrates step execution with middleware integration.
+Add to your `Gemfile`:
 
 ```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  use_middleware SimpleFlow::MiddleWare::Logging
-  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: 'xyz'
+gem 'simple_flow'
 
-  step ->(result) { result.continue(result.value + 10) }
-  step ->(result) { result.continue(result.value * 2) }
-end
-
-initial = SimpleFlow::Result.new(5)
-final = pipeline.call(initial)  # => Result with value 30
+# Optional: for fiber-based concurrency (recommended for I/O-bound tasks)
+gem 'async', '~> 2.0'
 ```
 
-**Features:**
-- DSL for pipeline configuration
-- Automatic middleware application to all steps
-- Short-circuit evaluation when `result.continue?` is false
-- Steps are any callable object (`#call`)
+Then run:
 
-### Middleware (`middleware.rb`)
-
-Wraps steps with cross-cutting functionality using the decorator pattern.
-
-**Built-in Middleware:**
-
-- **Logging** (`middleware.rb:3`) - Logs before/after step execution
-- **Instrumentation** (`middleware.rb:22`) - Measures step duration
-
-**Custom Middleware:**
-
-```ruby
-class AuthMiddleware
-  def initialize(callable, required_role:)
-    @callable = callable
-    @required_role = required_role
-  end
-
-  def call(result)
-    return result.halt.with_error(:auth, "Unauthorized") unless authorized?(result)
-    @callable.call(result)
-  end
-
-  private
-
-  def authorized?(result)
-    result.context[:user_role] == @required_role
-  end
-end
-
-# Usage
-pipeline = SimpleFlow::Pipeline.new do
-  use_middleware AuthMiddleware, required_role: :admin
-  step ->(result) { result.continue("Sensitive operation") }
-end
+```bash
+bundle install
 ```
 
-### StepTracker (`step_tracker.rb:43`)
+**Note on Parallel Execution:**
+- **Without** `async` gem: Uses Ruby threads for parallel execution
+- **With** `async` gem: Uses fiber-based concurrency (more efficient for I/O-bound operations)
 
-A `SimpleDelegator` that enriches halted results with context about where execution stopped.
-
-```ruby
-tracked_step = SimpleFlow::StepTracker.new(my_step)
-result = tracked_step.call(input)
-result.context[:halted_step]  # => my_step (if halted)
-```
-
-## Usage Examples
+## Quick Start
 
 ### Basic Pipeline
 
 ```ruby
-require_relative 'simple_flow'
+require 'simple_flow'
 
 pipeline = SimpleFlow::Pipeline.new do
-  step ->(result) {
-    result.continue(result.value.strip.downcase)
-  }
-  step ->(result) {
-    result.continue("Hello, #{result.value}!")
-  }
+  step ->(result) { result.continue(result.value.strip) }
+  step ->(result) { result.continue(result.value.upcase) }
+  step ->(result) { result.continue("Hello, #{result.value}!") }
 end
 
-result = pipeline.call(SimpleFlow::Result.new("  WORLD  "))
-puts result.value  # => "Hello, world!"
+result = pipeline.call(SimpleFlow::Result.new("  world  "))
+puts result.value  # => "Hello, WORLD!"
 ```
 
 ### Error Handling
 
 ```ruby
-validate_age = ->(result) {
-  age = result.value
-  if age < 0
-    result.halt.with_error(:validation, "Age cannot be negative")
-  elsif age < 18
-    result.halt.with_error(:validation, "Must be 18 or older")
-  else
-    result.continue(age)
-  end
-}
-
-check_eligibility = ->(result) {
-  result.continue("Eligible at age #{result.value}")
-}
-
 pipeline = SimpleFlow::Pipeline.new do
-  step validate_age
-  step check_eligibility  # Won't execute if validation fails
+  step ->(result) {
+    if result.value < 18
+      return result
+        .with_error(:validation, 'Must be 18+')
+        .halt
+    end
+    result.continue(result.value)
+  }
+
+  step ->(result) {
+    result.continue("Age #{result.value} is valid")
+  }
 end
 
 result = pipeline.call(SimpleFlow::Result.new(15))
 puts result.continue?  # => false
-puts result.errors     # => {:validation=>["Must be 18 or older"]}
+puts result.errors     # => {:validation=>["Must be 18+"]}
 ```
-
-### Context Propagation
-
-```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  step ->(result) {
-    result
-      .with_context(:started_at, Time.now)
-      .continue(result.value)
-  }
-
-  step ->(result) {
-    result
-      .with_context(:processed_by, "step_2")
-      .continue(result.value.upcase)
-  }
-end
-
-result = pipeline.call(SimpleFlow::Result.new("data"))
-puts result.value    # => "DATA"
-puts result.context  # => {:started_at=>..., :processed_by=>"step_2"}
-```
-
-### Conditional Flow
-
-```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  step ->(result) {
-    if result.value > 100
-      result.halt(result.value).with_error(:limit, "Value exceeds maximum")
-    else
-      result.continue(result.value)
-    end
-  }
-
-  step ->(result) {
-    result.continue(result.value * 2)  # Only runs if value <= 100
-  }
-end
-```
-
-## Parallel Execution
-
-SimpleFlow supports both automatic parallel step discovery and explicit parallel blocks for concurrent execution.
-
-### Automatic Parallel Discovery
-
-Use named steps with dependencies. SimpleFlow automatically detects which steps can run in parallel:
-
-```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  step :fetch_user, ->(result) {
-    user = fetch_from_db(:users, result.value)
-    result.with_context(:user, user).continue(result.value)
-  }, depends_on: []
-
-  # These two steps can run in parallel since they both only depend on :fetch_user
-  step :fetch_orders, ->(result) {
-    orders = fetch_from_db(:orders, result.context[:user])
-    result.with_context(:orders, orders).continue(result.value)
-  }, depends_on: [:fetch_user]
-
-  step :fetch_products, ->(result) {
-    products = fetch_from_db(:products, result.context[:user])
-    result.with_context(:products, products).continue(result.value)
-  }, depends_on: [:fetch_user]
-
-  # This step waits for both parallel steps to complete
-  step :calculate_total, ->(result) {
-    total = calculate(result.context[:orders], result.context[:products])
-    result.continue(total)
-  }, depends_on: [:fetch_orders, :fetch_products]
-end
-
-# Execute with automatic parallelism
-result = pipeline.call_parallel(SimpleFlow::Result.new(user_id))
-```
-
-**How it works:**
-1. SimpleFlow builds a dependency graph from your step declarations
-2. Steps with satisfied dependencies run in parallel (e.g., `fetch_orders` and `fetch_products`)
-3. Contexts and errors from parallel steps are automatically merged
-4. Execution halts if any parallel step calls `halt()`
-
-### Explicit Parallel Blocks
-
-Declare parallel execution explicitly using `parallel` blocks:
-
-```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  step ->(result) {
-    result.continue(validate_input(result.value))
-  }
-
-  parallel do
-    step ->(result) {
-      result.with_context(:api_data, fetch_from_api).continue(result.value)
-    }
-    step ->(result) {
-      result.with_context(:cache_data, fetch_from_cache).continue(result.value)
-    }
-    step ->(result) {
-      result.with_context(:db_data, fetch_from_db).continue(result.value)
-    }
-  end
-
-  step ->(result) {
-    merged = merge_data(
-      result.context[:api_data],
-      result.context[:cache_data],
-      result.context[:db_data]
-    )
-    result.continue(merged)
-  }
-end
-
-# Execute normally - parallel blocks are detected automatically
-result = pipeline.call(SimpleFlow::Result.new(request))
-```
-
-### Async Gem Integration
-
-SimpleFlow uses the `async` gem for parallel execution when available:
-
-```ruby
-# Add to Gemfile
-gem 'async', '~> 2.0'
-
-# SimpleFlow automatically uses async for parallel execution
-pipeline.async_available?  # => true
-
-# Falls back to sequential execution if async is not available
-```
-
-**Performance Note:** Parallel execution is most beneficial for I/O-bound operations (API calls, database queries, file operations). For CPU-bound tasks, consider your Ruby implementation's GIL limitations.
-
-### Mixed Sequential and Parallel Steps
-
-You can mix named steps (with automatic parallelism) and unnamed steps (sequential):
-
-```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  # Sequential unnamed step
-  step ->(result) { result.continue(sanitize(result.value)) }
-
-  # Named steps with dependencies (automatic parallelism)
-  step :step_a, ->(result) { ... }, depends_on: []
-  step :step_b, ->(result) { ... }, depends_on: []
-  step :step_c, ->(result) { ... }, depends_on: [:step_a, :step_b]
-
-  # Explicit parallel block
-  parallel do
-    step ->(result) { ... }
-    step ->(result) { ... }
-  end
-
-  # Another sequential step
-  step ->(result) { result.continue(finalize(result.value)) }
-end
-```
-
-## Dependency Graph Visualization
-
-SimpleFlow includes powerful visualization tools to help you understand and debug your pipelines:
-
-### ASCII Art (Terminal Display)
-
-```ruby
-graph = SimpleFlow::DependencyGraph.new(
-  fetch_user: [],
-  fetch_orders: [:fetch_user],
-  fetch_products: [:fetch_user],
-  calculate: [:fetch_orders, :fetch_products]
-)
-
-visualizer = SimpleFlow::DependencyGraphVisualizer.new(graph)
-puts visualizer.to_ascii
-```
-
-Output:
-```
-Dependency Graph
-============================================================
-
-Dependencies:
-  :fetch_user
-    └─ depends on: (none)
-  :fetch_orders
-    └─ depends on: :fetch_user
-  :fetch_products
-    └─ depends on: :fetch_user
-  :calculate
-    └─ depends on: :fetch_orders, :fetch_products
-
-Parallel Execution Groups:
-  Group 1:
-    └─ :fetch_user (sequential)
-  Group 2:
-    ├─ Parallel execution of 2 steps:
-    ├─ :fetch_orders
-    └─ :fetch_products
-  Group 3:
-    └─ :calculate (sequential)
-```
-
-### Execution Plan
-
-```ruby
-puts visualizer.to_execution_plan
-```
-
-Shows detailed execution strategy with performance estimates:
-- Total steps and execution phases
-- Which steps run in parallel
-- Potential speedup vs sequential execution
-
-### Export Formats
-
-**Graphviz DOT:**
-```ruby
-File.write('graph.dot', visualizer.to_dot)
-# Generate image: dot -Tpng graph.dot -o graph.png
-```
-
-**Mermaid Diagram:**
-```ruby
-File.write('graph.mmd', visualizer.to_mermaid)
-# View at https://mermaid.live/
-```
-
-**Interactive HTML:**
-```ruby
-File.write('graph.html', visualizer.to_html(title: "My Pipeline"))
-# Open in browser for interactive visualization
-```
-
-### Visualize from Pipeline (Recommended)
-
-Pipelines with named steps can be visualized directly without manually creating dependency graphs:
-
-```ruby
-pipeline = SimpleFlow::Pipeline.new do
-  step :load, ->(r) { ... }, depends_on: []
-  step :process, ->(r) { ... }, depends_on: [:load]
-  step :finalize, ->(r) { ... }, depends_on: [:process]
-end
-
-# Direct visualization - no manual graph creation needed!
-puts pipeline.visualize_ascii
-puts pipeline.visualize_ascii(show_groups: false)  # Hide parallel groups
-
-# Export to different formats
-File.write('pipeline.dot', pipeline.visualize_dot)
-File.write('pipeline.dot', pipeline.visualize_dot(orientation: 'LR'))  # Left-to-right
-File.write('pipeline.mmd', pipeline.visualize_mermaid)
-
-# Get execution plan analysis
-puts pipeline.execution_plan
-```
-
-**Available methods:**
-- `pipeline.visualize_ascii(show_groups: true)` - Terminal-friendly ASCII art
-- `pipeline.visualize_dot(include_groups: true, orientation: 'TB')` - Graphviz DOT format
-- `pipeline.visualize_mermaid()` - Mermaid diagram format
-- `pipeline.execution_plan()` - Performance analysis and execution strategy
-
-**Note:** Visualization only works with pipelines that use named steps (with `depends_on`). Returns `nil` for pipelines with only unnamed steps.
-
-See `examples/09_pipeline_visualization.rb` for complete examples.
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────┐
-│                   Pipeline                      │
-│  ┌───────────────────────────────────────────┐  │
-│  │ Middleware Stack (applied in reverse)    │  │
-│  │  - Instrumentation                       │  │
-│  │  - Logging                               │  │
-│  │  - Custom...                             │  │
-│  └───────────────────────────────────────────┘  │
-│                      ↓                          │
-│  ┌───────────────────────────────────────────┐  │
-│  │ Steps (executed sequentially)            │  │
-│  │  1. Step → Result                        │  │
-│  │  2. Step → Result (if continue?)         │  │
-│  │  3. Step → Result (if continue?)         │  │
-│  └───────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────┘
-                       ↓
-              ┌────────────────┐
-              │ Final Result   │
-              │  - value       │
-              │  - context     │
-              │  - errors      │
-              └────────────────┘
+```mermaid
+graph TB
+    subgraph Pipeline
+        MW[Middleware Stack]
+        S1[Step 1]
+        S2[Step 2]
+        S3[Step 3]
+    end
+
+    Input[Input Result] --> MW
+    MW --> S1
+    S1 -->|continue?| S2
+    S2 -->|continue?| S3
+    S3 --> Output[Output Result]
+
+    S1 -.->|halt| Output
+    S2 -.->|halt| Output
+
+    style MW fill:#e1f5ff
+    style Output fill:#d4edda
 ```
 
-## Design Patterns
+## Core Concepts
 
-1. **Pipeline Pattern**: Sequential processing with short-circuit capability
-2. **Decorator Pattern**: Middleware wraps steps to add behavior
-3. **Immutable Value Object**: Results are never modified, only copied
-4. **Builder Pattern**: DSL for pipeline configuration
-5. **Chain of Responsibility**: Each step can handle or pass along the result
+### Result Object
+
+Immutable value object that carries data, context, and errors through the pipeline:
+
+```ruby
+result = SimpleFlow::Result.new({ user: 'alice' })
+  .with_context(:timestamp, Time.now)
+  .with_error(:validation, 'Email required')
+  .continue({ user: 'alice', processed: true })
+```
+
+**[Learn more →](https://madbomber.github.io/simple_flow/core-concepts/result/)**
+
+### Pipeline
+
+Orchestrates step execution with short-circuit evaluation:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  use SimpleFlow::MiddleWare::Logging
+  use SimpleFlow::MiddleWare::Instrumentation, api_key: 'app'
+
+  step ->(result) { validate(result) }
+  step ->(result) { process(result) }
+  step ->(result) { save(result) }
+end
+```
+
+**[Learn more →](https://madbomber.github.io/simple_flow/core-concepts/pipeline/)**
+
+### Middleware
+
+Add cross-cutting concerns without modifying steps:
+
+```ruby
+class CachingMiddleware
+  def initialize(callable, cache:)
+    @callable = callable
+    @cache = cache
+  end
+
+  def call(result)
+    cached = @cache.get(cache_key(result))
+    return result.continue(cached) if cached
+
+    result = @callable.call(result)
+    @cache.set(cache_key(result), result.value)
+    result
+  end
+end
+
+pipeline = SimpleFlow::Pipeline.new do
+  use CachingMiddleware, cache: Redis.new
+  step ->(result) { expensive_operation(result) }
+end
+```
+
+**[Learn more →](https://madbomber.github.io/simple_flow/core-concepts/middleware/)**
+
+## Parallel Execution
+
+### Automatic Parallelization
+
+SimpleFlow automatically detects which steps can run in parallel based on dependencies:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :validate, ->(r) { validate(r) }, depends_on: []
+
+  # These run in parallel (both depend only on :validate)
+  step :fetch_orders, ->(r) { fetch_orders(r) }, depends_on: [:validate]
+  step :fetch_products, ->(r) { fetch_products(r) }, depends_on: [:validate]
+
+  # Waits for both parallel steps
+  step :calculate, ->(r) { calculate(r) }, depends_on: [:fetch_orders, :fetch_products]
+end
+
+result = pipeline.call_parallel(SimpleFlow::Result.new(data))
+```
+
+**Execution flow:**
+
+```mermaid
+graph TD
+    V[validate] --> O[fetch_orders]
+    V --> P[fetch_products]
+    O --> C[calculate]
+    P --> C
+
+    style V fill:#e1f5ff
+    style O fill:#fff3cd
+    style P fill:#fff3cd
+    style C fill:#d4edda
+
+    classDef parallel fill:#fff3cd,stroke:#ffc107
+    class O,P parallel
+```
+
+### Explicit Parallel Blocks
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step ->(r) { validate(r) }
+
+  parallel do
+    step ->(r) { r.with_context(:api, fetch_api).continue(r.value) }
+    step ->(r) { r.with_context(:db, fetch_db).continue(r.value) }
+    step ->(r) { r.with_context(:cache, fetch_cache).continue(r.value) }
+  end
+
+  step ->(r) { merge_results(r) }
+end
+```
+
+### Concurrency Control
+
+Choose the concurrency model per pipeline:
+
+```ruby
+# Auto-detect (default): uses async if available, otherwise threads
+pipeline = SimpleFlow::Pipeline.new do
+  # steps...
+end
+
+# Force threads (even if async gem is installed)
+user_pipeline = SimpleFlow::Pipeline.new(concurrency: :threads) do
+  step :fetch_profile, profile_fetcher, depends_on: []
+  step :fetch_settings, settings_fetcher, depends_on: []
+end
+
+# Require async (raises error if async gem not available)
+batch_pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do
+  step :load_batch, batch_loader, depends_on: []
+  step :process_batch, batch_processor, depends_on: [:load_batch]
+end
+
+# Mix concurrency models in the same application!
+user_result = user_pipeline.call_parallel(user_data)    # Uses threads
+batch_result = batch_pipeline.call_parallel(batch_data) # Uses async
+```
+
+**Concurrency options:**
+- `:auto` (default) - Auto-detects best option (async if available, otherwise threads)
+- `:threads` - Always uses Ruby threads (simpler, works with any gems)
+- `:async` - Requires async gem (efficient for high-concurrency workloads)
+
+**[Learn more →](https://madbomber.github.io/simple_flow/guides/choosing-concurrency-model/)**
+
+**[Parallel execution →](https://madbomber.github.io/simple_flow/concurrent/parallel-steps/)**
+
+## Visualization
+
+Visualize your pipelines to understand execution flow:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :load, loader, depends_on: []
+  step :transform, transformer, depends_on: [:load]
+  step :validate, validator, depends_on: [:transform]
+  step :save, saver, depends_on: [:validate]
+end
+
+# ASCII visualization
+puts pipeline.visualize_ascii
+
+# Export to Graphviz
+File.write('pipeline.dot', pipeline.visualize_dot)
+
+# Export to Mermaid
+File.write('pipeline.mmd', pipeline.visualize_mermaid)
+
+# View execution plan
+puts pipeline.execution_plan
+```
+
+**Generated Mermaid diagram:**
+
+```mermaid
+graph TB
+    load --> transform
+    transform --> validate
+    validate --> save
+
+    style load fill:#e1f5ff
+    style transform fill:#fff3cd
+    style validate fill:#fce4ec
+    style save fill:#d4edda
+```
+
+**[Learn more →](https://madbomber.github.io/simple_flow/getting-started/examples/)**
+
+## Real-World Example
+
+E-commerce order processing pipeline:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  use SimpleFlow::MiddleWare::Logging
+  use SimpleFlow::MiddleWare::Instrumentation, api_key: 'orders'
+
+  step :validate_order, ->(r) {
+    # Validation logic
+    r.continue(r.value)
+  }, depends_on: []
+
+  # Run in parallel
+  step :check_inventory, ->(r) {
+    inventory = InventoryService.check(r.value[:items])
+    r.with_context(:inventory, inventory).continue(r.value)
+  }, depends_on: [:validate_order]
+
+  step :calculate_shipping, ->(r) {
+    shipping = ShippingService.calculate(r.value[:address])
+    r.with_context(:shipping, shipping).continue(r.value)
+  }, depends_on: [:validate_order]
+
+  # Wait for parallel steps
+  step :process_payment, ->(r) {
+    payment = PaymentService.charge(r.value, r.context)
+    r.with_context(:payment, payment).continue(r.value)
+  }, depends_on: [:check_inventory, :calculate_shipping]
+
+  step :send_confirmation, ->(r) {
+    EmailService.send_confirmation(r.value, r.context)
+    r.continue(r.value)
+  }, depends_on: [:process_payment]
+end
+```
+
+**Execution flow:**
+
+```mermaid
+graph TB
+    V[validate_order] --> I[check_inventory]
+    V --> S[calculate_shipping]
+    I --> P[process_payment]
+    S --> P
+    P --> C[send_confirmation]
+
+    style V fill:#e1f5ff
+    style I fill:#fff3cd
+    style S fill:#fff3cd
+    style P fill:#fce4ec
+    style C fill:#d4edda
+
+    classDef parallel fill:#fff3cd,stroke:#ffc107,stroke-width:3px
+    class I,S parallel
+```
 
 ## Testing
 
-Run the test suite:
+SimpleFlow has excellent test coverage:
 
 ```bash
 bundle exec rake test
-# or
-ruby -Ilib:test -e 'Dir["test/*_test.rb"].each { |f| require_relative f }'
 ```
 
-Test coverage:
-- **77 tests, 296 assertions** - All passing
-- Pipeline execution and flow control
-- Parallel execution (automatic and explicit)
-- Middleware integration
-- Dependency graph analysis
-- Graph visualization (manual and direct from pipeline)
-- Error handling and context management
+**Test Results:**
+- ✅ 134 tests passing
+- ✅ 480 assertions
+- ✅ 95.57% line coverage
 
-## Dependencies
+**[Testing Guide →](https://madbomber.github.io/simple_flow/development/testing/)**
 
-- Ruby 3.2+ (required)
-- Standard library: `delegate`, `logger`, `tsort`
-- Optional: `async` (~> 2.0) for parallel execution
+## Documentation
 
-## Files
+📚 **Comprehensive documentation available at [madbomber.github.io/simple_flow](https://madbomber.github.io/simple_flow)**
 
-**Core:**
-- `simple_flow.rb` - Main module file with overview
-- `result.rb` - Immutable result object
-- `pipeline.rb` - Pipeline orchestration with parallel support
-- `middleware.rb` - Middleware implementations (Logging, Instrumentation)
-- `step_tracker.rb` - Step tracking decorator
+### Key Resources
 
-**Parallel Execution:**
-- `dependency_graph.rb` - Dependency graph analysis (adapted from dagwood gem)
-- `dependency_graph_visualizer.rb` - Graph visualization (ASCII, DOT, Mermaid, HTML)
-- `parallel_executor.rb` - Parallel execution using async gem
+- [Getting Started Guide](https://madbomber.github.io/simple_flow/getting-started/quick-start/) - Quick introduction
+- [Core Concepts](https://madbomber.github.io/simple_flow/core-concepts/overview/) - Understanding the fundamentals
+- [Parallel Execution](https://madbomber.github.io/simple_flow/concurrent/parallel-steps/) - Concurrent processing
+- [Guides](https://madbomber.github.io/simple_flow/guides/error-handling/) - Error handling, validation, workflows
+- [API Reference](https://madbomber.github.io/simple_flow/api/result/) - Complete API documentation
+- [Contributing](https://madbomber.github.io/simple_flow/development/contributing/) - How to contribute
 
-**Examples:**
-- `examples/` - 9 comprehensive examples demonstrating all features
-- `examples/08_graph_visualization.rb` - Manual graph visualization examples
-- `examples/09_pipeline_visualization.rb` - Direct pipeline visualization (recommended)
+## Examples
 
-**Tests:**
-- `test/*_test.rb` - Comprehensive test suite (77 tests, 296 assertions)
+Check out the `examples/` directory for comprehensive examples:
+
+1. `01_basic_pipeline.rb` - Basic sequential processing
+2. `02_error_handling.rb` - Error handling patterns
+3. `03_middleware.rb` - Middleware usage
+4. `04_parallel_automatic.rb` - Automatic parallel discovery
+5. `05_parallel_explicit.rb` - Explicit parallel blocks
+6. `06_real_world_ecommerce.rb` - Complete e-commerce workflow
+7. `07_real_world_etl.rb` - ETL pipeline example
+8. `08_graph_visualization.rb` - Manual visualization
+9. `09_pipeline_visualization.rb` - Direct pipeline visualization
+10. `10_concurrency_control.rb` - Per-pipeline concurrency control
+
+## Requirements
+
+- Ruby 3.2 or higher
+- Optional: `async` gem (~> 2.0) for parallel execution
 
 ## License
 
-Experimental code - use at your own discretion.
+MIT License - See [LICENSE](LICENSE) file for details
+
+## Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](https://madbomber.github.io/simple_flow/development/contributing/) for guidelines.
+
+## Links
+
+- 🏠 [Homepage](https://github.com/MadBomber/simple_flow)
+- 📚 [Documentation](https://madbomber.github.io/simple_flow)
+- 🐛 [Issue Tracker](https://github.com/MadBomber/simple_flow/issues)
+- 📝 [Changelog](CHANGELOG.md)
+
+---
+
+**Made with ❤️ by [Dewayne VanHoozer](https://github.com/MadBomber)**
