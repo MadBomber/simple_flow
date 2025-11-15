@@ -126,9 +126,9 @@ puts mermaid_output.lines.take(15).join
 puts "... (truncated)"
 puts
 
-# Example 6: Creating a graph from a pipeline
+# Example 6: Visualizing a Pipeline (Direct Method - RECOMMENDED)
 puts "\n" + "=" * 60
-puts "Example 6: Visualizing a Pipeline"
+puts "Example 6: Visualizing a Pipeline Directly"
 puts "=" * 60
 puts
 
@@ -154,14 +154,16 @@ pipeline = SimpleFlow::Pipeline.new do
   }, depends_on: [:validate_schema, :enrich_data]
 end
 
-# Extract the dependency graph from the pipeline
-pipeline_graph = SimpleFlow::DependencyGraph.new(pipeline.step_dependencies)
-pipeline_visualizer = SimpleFlow::DependencyGraphVisualizer.new(pipeline_graph)
-
+# RECOMMENDED: Visualize directly from the pipeline
 puts "Pipeline Dependency Graph:"
 puts
-puts pipeline_visualizer.to_ascii
+puts pipeline.visualize_ascii
 puts
+
+# Alternative (manual approach - not recommended):
+# pipeline_graph = SimpleFlow::DependencyGraph.new(pipeline.step_dependencies)
+# pipeline_visualizer = SimpleFlow::DependencyGraphVisualizer.new(pipeline_graph)
+# puts pipeline_visualizer.to_ascii
 
 # Example 7: Comparing different graph structures
 puts "\n" + "=" * 60

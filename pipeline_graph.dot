@@ -1,0 +1,51 @@
+digraph DependencyGraph {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Group 1
+  validate_order [fillcolor=lightblue, style="rounded,filled"];
+  // Group 2
+  calculate_shipping [fillcolor=lightgreen, style="rounded,filled"];
+  check_inventory [fillcolor=lightgreen, style="rounded,filled"];
+  // Group 3
+  calculate_totals [fillcolor=lightyellow, style="rounded,filled"];
+  // Group 4
+  process_payment [fillcolor=lightpink, style="rounded,filled"];
+  // Group 5
+  reserve_inventory [fillcolor=lightgray, style="rounded,filled"];
+  // Group 6
+  create_shipment [fillcolor=lightblue, style="rounded,filled"];
+  // Group 7
+  send_email [fillcolor=lightgreen, style="rounded,filled"];
+  send_sms [fillcolor=lightgreen, style="rounded,filled"];
+  // Group 8
+  finalize_order [fillcolor=lightyellow, style="rounded,filled"];
+
+  // Dependencies
+  validate_order;
+  validate_order -> check_inventory;
+  validate_order -> calculate_shipping;
+  calculate_shipping -> calculate_totals;
+  check_inventory -> calculate_totals;
+  calculate_totals -> process_payment;
+  process_payment -> reserve_inventory;
+  reserve_inventory -> create_shipment;
+  create_shipment -> send_email;
+  create_shipment -> send_sms;
+  send_email -> finalize_order;
+  send_sms -> finalize_order;
+
+  // Legend
+  subgraph cluster_legend {
+    label="Parallel Groups";
+    style=dashed;
+    legend_0 [label="Group 1 (1 step)", fillcolor=lightblue, style="rounded,filled"];
+    legend_1 [label="Group 2 (2 steps)", fillcolor=lightgreen, style="rounded,filled"];
+    legend_2 [label="Group 3 (1 step)", fillcolor=lightyellow, style="rounded,filled"];
+    legend_3 [label="Group 4 (1 step)", fillcolor=lightpink, style="rounded,filled"];
+    legend_4 [label="Group 5 (1 step)", fillcolor=lightgray, style="rounded,filled"];
+    legend_5 [label="Group 6 (1 step)", fillcolor=lightblue, style="rounded,filled"];
+    legend_6 [label="Group 7 (2 steps)", fillcolor=lightgreen, style="rounded,filled"];
+    legend_7 [label="Group 8 (1 step)", fillcolor=lightyellow, style="rounded,filled"];
+  }
+}
