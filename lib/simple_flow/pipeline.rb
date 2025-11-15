@@ -161,6 +161,56 @@ module SimpleFlow
       ParallelExecutor.async_available?
     end
 
+    # Get the dependency graph for this pipeline
+    # @return [DependencyGraph, nil] dependency graph if pipeline has named steps
+    def dependency_graph
+      return nil unless has_named_steps?
+      DependencyGraph.new(@step_dependencies)
+    end
+
+    # Create a visualizer for this pipeline's dependency graph
+    # @return [DependencyGraphVisualizer, nil] visualizer if pipeline has named steps
+    def visualize
+      graph = dependency_graph
+      return nil unless graph
+      DependencyGraphVisualizer.new(graph)
+    end
+
+    # Print ASCII visualization of the pipeline's dependency graph
+    # @param show_groups [Boolean] whether to show parallel execution groups
+    # @return [String, nil] ASCII visualization or nil if no named steps
+    def visualize_ascii(show_groups: true)
+      visualizer = visualize
+      return nil unless visualizer
+      visualizer.to_ascii(show_groups: show_groups)
+    end
+
+    # Export pipeline visualization to DOT format
+    # @param include_groups [Boolean] whether to color-code parallel groups
+    # @param orientation [String] graph orientation: 'TB' or 'LR'
+    # @return [String, nil] DOT format or nil if no named steps
+    def visualize_dot(include_groups: true, orientation: 'TB')
+      visualizer = visualize
+      return nil unless visualizer
+      visualizer.to_dot(include_groups: include_groups, orientation: orientation)
+    end
+
+    # Export pipeline visualization to Mermaid format
+    # @return [String, nil] Mermaid format or nil if no named steps
+    def visualize_mermaid
+      visualizer = visualize
+      return nil unless visualizer
+      visualizer.to_mermaid
+    end
+
+    # Get execution plan for this pipeline
+    # @return [String, nil] execution plan or nil if no named steps
+    def execution_plan
+      visualizer = visualize
+      return nil unless visualizer
+      visualizer.to_execution_plan
+    end
+
     private
 
     def has_named_steps?

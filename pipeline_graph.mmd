@@ -1,0 +1,19 @@
+graph TD
+  validate_order[validate_order]
+  validate_order[validate_order] --> check_inventory[check_inventory]
+  validate_order[validate_order] --> calculate_shipping[calculate_shipping]
+  calculate_shipping[calculate_shipping] --> calculate_totals[calculate_totals]
+  check_inventory[check_inventory] --> calculate_totals[calculate_totals]
+  calculate_totals[calculate_totals] --> process_payment[process_payment]
+  process_payment[process_payment] --> reserve_inventory[reserve_inventory]
+  reserve_inventory[reserve_inventory] --> create_shipment[create_shipment]
+  create_shipment[create_shipment] --> send_email[send_email]
+  create_shipment[create_shipment] --> send_sms[send_sms]
+  send_email[send_email] --> finalize_order[finalize_order]
+  send_sms[send_sms] --> finalize_order[finalize_order]
+  classDef group1 fill:#9f9
+  class calculate_shipping group1
+  class check_inventory group1
+  classDef group6 fill:#9f9
+  class send_email group6
+  class send_sms group6
