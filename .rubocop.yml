@@ -1,0 +1,57 @@
+require:
+  - rubocop-minitest
+  - rubocop-performance
+
+AllCops:
+  TargetRubyVersion: 2.7
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'vendor/**/*'
+    - 'bin/**/*'
+    - 'tmp/**/*'
+    - 'node_modules/**/*'
+
+# Metrics
+Metrics/MethodLength:
+  Max: 20
+  Exclude:
+    - 'test/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'test/**/*'
+    - 'simple_flow.gemspec'
+
+Metrics/ClassLength:
+  Max: 150
+
+Metrics/AbcSize:
+  Max: 20
+
+# Layout
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns: ['\A#']
+
+# Style
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19
+
+# Minitest
+Minitest/MultipleAssertions:
+  Max: 10
+
+# Performance
+Performance/CollectionLiteralInLoop:
+  Enabled: true

@@ -10,3 +10,7 @@ gem "rake", "~> 13.0"
 
 gem "minitest", "~> 5.16"
 gem "async", "~> 2.0"
+
+# Development and quality tools
+gem "rubocop", "~> 1.50"
+gem "benchmark-ips", "~> 2.10"
