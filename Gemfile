@@ -14,3 +14,4 @@ gem "async", "~> 2.0"
 # Development and quality tools
 gem "rubocop", "~> 1.50"
 gem "benchmark-ips", "~> 2.10"
+gem "simplecov", "~> 0.22", require: false
