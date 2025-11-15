@@ -214,6 +214,33 @@ dot -Tsvg ecommerce_graph.dot -o ecommerce_graph.svg
 
 ---
 
+### 9. Pipeline Visualization (Direct) (`09_pipeline_visualization.rb`) ⭐ RECOMMENDED
+
+**Demonstrates:**
+- **Direct visualization from pipelines** (no manual graph creation!)
+- Calling `pipeline.visualize_ascii` directly
+- Exporting with `pipeline.visualize_dot`, `pipeline.visualize_mermaid`
+- Getting execution plan with `pipeline.execution_plan`
+- Checking if pipeline can be visualized
+- Comparing different pipeline structures
+
+**Key advantage:**
+This example shows the **recommended approach** - visualizing pipelines directly without manually recreating dependency structures. The pipeline already knows its dependencies, so you can simply call visualization methods on it.
+
+**API methods:**
+- `pipeline.visualize_ascii()` - Terminal visualization
+- `pipeline.visualize_dot()` - Graphviz export
+- `pipeline.visualize_mermaid()` - Mermaid export
+- `pipeline.execution_plan()` - Performance analysis
+- `pipeline.dependency_graph()` - Get graph object
+- `pipeline.visualize()` - Get visualizer object
+
+**Run time:** ~1 second
+
+**Note:** Only works with pipelines that have named steps (using `step :name, callable, depends_on: [...]`). Unnamed steps cannot be auto-visualized.
+
+---
+
 ## Async Gem Availability
 
 All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to sequential execution.
