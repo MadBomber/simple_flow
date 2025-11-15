@@ -1,0 +1,145 @@
+site_name: SimpleFlow Documentation
+site_description: "A lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution"
+site_author: "Dewayne VanHoozer"
+site_url: "https://madbomber.github.io/simple_flow/"
+
+repo_name: "MadBomber/simple_flow"
+repo_url: "https://github.com/MadBomber/simple_flow"
+edit_uri: "edit/main/docs/"
+
+theme:
+  name: material
+  language: en
+  favicon: assets/logo.png
+
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep-purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep-purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - header.autohide
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    - content.action.edit
+    - content.action.view
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"\`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: MadBomber
+      repo: simple_flow
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  version: 0.0.1
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MadBomber/simple_flow
+      name: GitHub Repository
+  generator: false
+
+nav:
+  - Home: index.md
+  - 🚀 Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Examples: getting-started/examples.md
+  - 📖 Core Concepts:
+    - Overview: core-concepts/overview.md
+    - Result: core-concepts/result.md
+    - Pipeline: core-concepts/pipeline.md
+    - Steps: core-concepts/steps.md
+    - Middleware: core-concepts/middleware.md
+    - Flow Control: core-concepts/flow-control.md
+  - ⚡ Concurrent Execution:
+    - Introduction: concurrent/introduction.md
+    - Parallel Steps: concurrent/parallel-steps.md
+    - Performance: concurrent/performance.md
+    - Best Practices: concurrent/best-practices.md
+  - 📚 Guides:
+    - Error Handling: guides/error-handling.md
+    - Validation Patterns: guides/validation-patterns.md
+    - Data Fetching: guides/data-fetching.md
+    - File Processing: guides/file-processing.md
+    - Complex Workflows: guides/complex-workflows.md
+  - 🔌 API Reference:
+    - Result API: api/result.md
+    - Pipeline API: api/pipeline.md
+    - ParallelStep API: api/parallel-step.md
+    - Middleware API: api/middleware.md
+  - ⚙️ Development:
+    - Contributing: development/contributing.md
+    - Testing: development/testing.md
+    - Benchmarking: development/benchmarking.md
+
+copyright: Copyright &copy; 2025 Dewayne VanHoozer
