@@ -36,7 +36,9 @@ module SimpleFlow
     # @param value [Object] the value to store.
     # @return [Result] a new Result instance with updated context.
     def with_context(key, value)
-      self.class.new(@value, context: @context.merge(key => value), errors: @errors)
+      result = self.class.new(@value, context: @context.merge(key => value), errors: @errors)
+      result.instance_variable_set(:@continue, @continue)
+      result
     end
 
     # Adds an error message under a specific key.
@@ -45,15 +47,18 @@ module SimpleFlow
     # @param message [String] the error message.
     # @return [Result] a new Result instance with updated errors.
     def with_error(key, message)
-      self.class.new(@value, context: @context, errors: @errors.merge(key => [*@errors[key], message]))
+      result = self.class.new(@value, context: @context, errors: @errors.merge(key => [*@errors[key], message]))
+      result.instance_variable_set(:@continue, @continue)
+      result
     end
 
     # Halts the flow, optionally updating the result's value.
     # @param new_value [Object, nil] the new value to set, if any.
-    # @return [Result] a new Result instance or self if no new value is provided.
+    # @return [Result] a new Result instance with continue set to false.
     def halt(new_value = nil)
-      @continue = false
-      new_value ? with_value(new_value) : self
+      result = new_value ? with_value(new_value) : self.class.new(@value, context: @context, errors: @errors)
+      result.instance_variable_set(:@continue, false)
+      result
     end
 
     # Continues the flow, updating the result's value.
@@ -75,7 +80,9 @@ module SimpleFlow
     # @param new_value [Object] the new value for the result.
     # @return [Result] a new Result instance.
     def with_value(new_value)
-      self.class.new(new_value, context: @context, errors: @errors)
+      result = self.class.new(new_value, context: @context, errors: @errors)
+      result.instance_variable_set(:@continue, @continue)
+      result
     end
   end
 end

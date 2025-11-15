@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require_relative 'result' # Update with actual path
+require_relative '../lib/simple_flow/result'
 
 module SimpleFlow
   class ResultTest < Minitest::Test

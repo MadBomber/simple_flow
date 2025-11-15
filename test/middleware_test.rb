@@ -1,6 +1,6 @@
 require 'minitest/autorun'
 require 'logger'
-require_relative 'middleware'
+require_relative '../lib/simple_flow/middleware'
 
 module SimpleFlow
   module MiddleWare
