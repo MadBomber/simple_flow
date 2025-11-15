@@ -384,18 +384,39 @@ File.write('graph.html', visualizer.to_html(title: "My Pipeline"))
 # Open in browser for interactive visualization
 ```
 
-### Visualize from Pipeline
+### Visualize from Pipeline (Recommended)
+
+Pipelines with named steps can be visualized directly without manually creating dependency graphs:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   step :load, ->(r) { ... }, depends_on: []
   step :process, ->(r) { ... }, depends_on: [:load]
+  step :finalize, ->(r) { ... }, depends_on: [:process]
 end
 
-graph = SimpleFlow::DependencyGraph.new(pipeline.step_dependencies)
-visualizer = SimpleFlow::DependencyGraphVisualizer.new(graph)
-puts visualizer.to_ascii
+# Direct visualization - no manual graph creation needed!
+puts pipeline.visualize_ascii
+puts pipeline.visualize_ascii(show_groups: false)  # Hide parallel groups
+
+# Export to different formats
+File.write('pipeline.dot', pipeline.visualize_dot)
+File.write('pipeline.dot', pipeline.visualize_dot(orientation: 'LR'))  # Left-to-right
+File.write('pipeline.mmd', pipeline.visualize_mermaid)
+
+# Get execution plan analysis
+puts pipeline.execution_plan
 ```
+
+**Available methods:**
+- `pipeline.visualize_ascii(show_groups: true)` - Terminal-friendly ASCII art
+- `pipeline.visualize_dot(include_groups: true, orientation: 'TB')` - Graphviz DOT format
+- `pipeline.visualize_mermaid()` - Mermaid diagram format
+- `pipeline.execution_plan()` - Performance analysis and execution strategy
+
+**Note:** Visualization only works with pipelines that use named steps (with `depends_on`). Returns `nil` for pipelines with only unnamed steps.
+
+See `examples/09_pipeline_visualization.rb` for complete examples.
 
 ## Architecture
 
@@ -444,12 +465,12 @@ ruby -Ilib:test -e 'Dir["test/*_test.rb"].each { |f| require_relative f }'
 ```
 
 Test coverage:
-- **59 tests, 229 assertions** - All passing
+- **77 tests, 296 assertions** - All passing
 - Pipeline execution and flow control
 - Parallel execution (automatic and explicit)
 - Middleware integration
 - Dependency graph analysis
-- Graph visualization
+- Graph visualization (manual and direct from pipeline)
 - Error handling and context management
 
 ## Dependencies
@@ -473,11 +494,12 @@ Test coverage:
 - `parallel_executor.rb` - Parallel execution using async gem
 
 **Examples:**
-- `examples/` - 8 comprehensive examples demonstrating all features
-- `examples/08_graph_visualization.rb` - Graph visualization examples
+- `examples/` - 9 comprehensive examples demonstrating all features
+- `examples/08_graph_visualization.rb` - Manual graph visualization examples
+- `examples/09_pipeline_visualization.rb` - Direct pipeline visualization (recommended)
 
 **Tests:**
-- `test/*_test.rb` - Comprehensive test suite (59 tests, 229 assertions)
+- `test/*_test.rb` - Comprehensive test suite (77 tests, 296 assertions)
 
 ## License
 
