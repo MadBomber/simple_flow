@@ -23,7 +23,7 @@ Logs before and after each step execution:
 require 'simple_flow'
 
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::MiddleWare::Logging
+  use_middleware SimpleFlow::MiddleWare::Logging
 
   step ->(result) { result.continue(process_data(result.value)) }
   step ->(result) { result.continue(validate_data(result.value)) }
@@ -44,7 +44,7 @@ Measures execution time and tracks API usage:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::MiddleWare::Instrumentation, api_key: 'my-app-key'
+  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: 'my-app-key'
 
   step ->(result) { result.continue(fetch_data(result.value)) }
   step ->(result) { result.continue(process_data(result.value)) }
@@ -119,7 +119,7 @@ end
 
 # Usage
 pipeline = SimpleFlow::Pipeline.new do
-  use RetryMiddleware, max_retries: 5, backoff: 2.0
+  use_middleware RetryMiddleware, max_retries: 5, backoff: 2.0
 
   step ->(result) {
     # This will be retried up to 5 times
@@ -159,7 +159,7 @@ end
 
 # Usage
 pipeline = SimpleFlow::Pipeline.new do
-  use AuthenticationMiddleware, required_role: :admin
+  use_middleware AuthenticationMiddleware, required_role: :admin
 
   step ->(result) {
     # This only runs if user is authenticated and has admin role
@@ -206,7 +206,7 @@ end
 
 # Usage
 pipeline = SimpleFlow::Pipeline.new do
-  use CachingMiddleware, cache: Redis.new, ttl: 1800
+  use_middleware CachingMiddleware, cache: Redis.new, ttl: 1800
 
   step ->(result) {
     # Expensive operation that will be cached
@@ -222,9 +222,9 @@ Middleware is applied in reverse order (last declared = innermost wrapper):
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use MiddlewareA  # Applied third (outermost)
-  use MiddlewareB  # Applied second
-  use MiddlewareC  # Applied first (innermost)
+  use_middleware MiddlewareA  # Applied third (outermost)
+  use_middleware MiddlewareB  # Applied second
+  use_middleware MiddlewareC  # Applied first (innermost)
 
   step ->(result) { result.continue('data') }
 end
@@ -246,19 +246,19 @@ MiddlewareA after
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   # Logging (outermost)
-  use SimpleFlow::MiddleWare::Logging
+  use_middleware SimpleFlow::MiddleWare::Logging
 
   # Authentication
-  use AuthenticationMiddleware, required_role: :user
+  use_middleware AuthenticationMiddleware, required_role: :user
 
   # Caching
-  use CachingMiddleware, cache: Rails.cache
+  use_middleware CachingMiddleware, cache: Rails.cache
 
   # Retry logic
-  use RetryMiddleware, max_retries: 3
+  use_middleware RetryMiddleware, max_retries: 3
 
   # Instrumentation (innermost)
-  use SimpleFlow::MiddleWare::Instrumentation, api_key: 'app'
+  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: 'app'
 
   step ->(result) { result.continue(process(result.value)) }
 end
@@ -270,8 +270,8 @@ Apply middleware based on conditions:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::MiddleWare::Logging if ENV['DEBUG']
-  use CachingMiddleware, cache: cache if Rails.env.production?
+  use_middleware SimpleFlow::MiddleWare::Logging if ENV['DEBUG']
+  use_middleware CachingMiddleware, cache: cache if Rails.env.production?
 
   step ->(result) { result.continue(process(result.value)) }
 end

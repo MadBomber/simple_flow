@@ -143,7 +143,7 @@ result = pipeline.call(SimpleFlow::Result.new("  world  "))
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  step :validate, validator, depends_on: None  # Or use []
+  step :validate, validator, depends_on: :none  # Or use []
   step :fetch_a, fetcher_a, depends_on: [:validate]  # Parallel
   step :fetch_b, fetcher_b, depends_on: [:validate]  # Parallel
   step :merge, merger, depends_on: [:fetch_a, :fetch_b]
@@ -179,8 +179,8 @@ Orchestrates step execution with short-circuit evaluation:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::MiddleWare::Logging
-  use SimpleFlow::MiddleWare::Instrumentation, api_key: 'app'
+  use_middleware SimpleFlow::MiddleWare::Logging
+  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: 'app'
 
   step ->(result) { validate(result) }
   step ->(result) { process(result) }
@@ -227,7 +227,7 @@ SimpleFlow automatically detects which steps can run in parallel based on depend
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  step :validate, ->(r) { validate(r) }, depends_on: None
+  step :validate, ->(r) { validate(r) }, depends_on: :none
 
   # These run in parallel (both depend only on :validate)
   step :fetch_orders, ->(r) { fetch_orders(r) }, depends_on: [:validate]
@@ -240,7 +240,7 @@ end
 result = pipeline.call_parallel(SimpleFlow::Result.new(data))
 ```
 
-**Note:** For steps with no dependencies, you can use either `depends_on: None` (more readable) or `depends_on: []`.
+**Note:** For steps with no dependencies, you can use either `depends_on: :none` (more readable) or `depends_on: []`.
 
 **Execution flow:**
 
@@ -454,7 +454,7 @@ Check out the `examples/` directory for comprehensive examples:
 9. `09_pipeline_visualization.rb` - Direct pipeline visualization
 10. `10_concurrency_control.rb` - Per-pipeline concurrency control
 11. `11_sequential_dependencies.rb` - Sequential step dependencies and halting
-12. `12_none_constant.rb` - Using the `none` helper for cleaner syntax
+12. `12_none_constant.rb` - Using reserved dependency symbols `:none` and `:nothing`
 
 ## Requirements
 

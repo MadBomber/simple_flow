@@ -237,7 +237,64 @@ This example shows the **recommended approach** - visualizing pipelines directly
 
 **Run time:** ~1 second
 
-**Note:** Only works with pipelines that have named steps (using `step :name, callable, depends_on: [...]`). Unnamed steps cannot be auto-visualized.
+**Note:** Only works with pipelines that have named steps (using `step :name, callable, depends_on: [...]` or `depends_on: :none`). Unnamed steps cannot be auto-visualized.
+
+---
+
+### 10. Concurrency Control (`10_concurrency_control.rb`)
+
+**Demonstrates:**
+- Per-pipeline concurrency model selection
+- Forcing threads vs async for different pipelines
+- Mixing concurrency models in the same application
+- Auto-detection behavior
+- Error handling for unavailable concurrency models
+
+**Key concepts:**
+- `Pipeline.new(concurrency: :threads)` - Force thread-based execution
+- `Pipeline.new(concurrency: :async)` - Require async gem (raises if unavailable)
+- `Pipeline.new(concurrency: :auto)` - Auto-detect (default)
+- Different pipelines can use different models in the same app
+
+**Run time:** ~1-2 seconds
+
+---
+
+### 11. Sequential Dependencies (`11_sequential_dependencies.rb`)
+
+**Demonstrates:**
+- Sequential step execution with automatic dependencies
+- Pipeline short-circuiting when a step halts
+- How unnamed steps depend on previous step's success
+- Error propagation through the pipeline
+- Comparison with parallel execution
+
+**Key concepts:**
+- Unnamed steps automatically depend on previous step
+- `result.halt` stops the entire pipeline immediately
+- Subsequent steps are never executed after a halt
+- Errors accumulate and propagate through the result
+
+**Run time:** ~1 second
+
+---
+
+### 12. Reserved Dependency Symbols (`12_none_constant.rb`)
+
+**Demonstrates:**
+- Using `:none` symbol for cleaner "no dependencies" syntax
+- Using `:nothing` as an alternative
+- Comparison with empty array `[]` syntax
+- Multiple independent root steps
+- Filtering reserved symbols from dependency arrays
+
+**Key concepts:**
+- `depends_on: :none` is equivalent to `depends_on: []`
+- More readable and semantic than empty array
+- `:none` and `:nothing` are reserved symbols (cannot be step names)
+- Symbols are automatically filtered from dependency arrays
+
+**Run time:** ~1 second
 
 ---
 

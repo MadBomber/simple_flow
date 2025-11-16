@@ -18,7 +18,7 @@ module SimpleFlow
   #
   # Parallel Execution with Named Steps:
   # pipeline = SimpleFlow::Pipeline.new do
-  #   step :fetch_user, ->(result) { ... }, depends_on: None
+  #   step :fetch_user, ->(result) { ... }, depends_on: :none
   #   step :fetch_orders, ->(result) { ... }, depends_on: [:fetch_user]
   #   step :fetch_products, ->(result) { ... }, depends_on: [:fetch_user]
   #   step :calculate, ->(result) { ... }, depends_on: [:fetch_orders, :fetch_products]
@@ -26,7 +26,7 @@ module SimpleFlow
   #
   # result = pipeline.call_parallel(initial_data)  # Auto-detects parallelism
   #
-  # Note: You can use either depends_on: [] or depends_on: None for clarity
+  # Note: You can use either depends_on: [] or depends_on: :none for clarity
   #
   # Explicit Parallel Blocks:
   # pipeline = SimpleFlow::Pipeline.new do

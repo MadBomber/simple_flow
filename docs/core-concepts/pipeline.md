@@ -207,8 +207,8 @@ Apply cross-cutting concerns using middleware:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::Middleware::Logging
-  use SimpleFlow::Middleware::Instrumentation, api_key: 'my-key'
+  use_middleware SimpleFlow::MiddleWare::Logging
+  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: 'my-key'
 
   step ->(result) { process(result) }
 end
@@ -262,7 +262,7 @@ puts pipeline.execution_plan
 | `step(callable)` | Add anonymous step |
 | `step(name, callable, depends_on: [])` | Add named step with dependencies |
 | `parallel(&block)` | Define explicit parallel block |
-| `use(middleware, **options)` | Add middleware |
+| `use_middleware(middleware, **options)` | Add middleware |
 
 ## Best Practices
 
@@ -277,13 +277,13 @@ puts pipeline.execution_plan
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::Middleware::Logging
-  use SimpleFlow::Middleware::Instrumentation
+  use_middleware SimpleFlow::MiddleWare::Logging
+  use_middleware SimpleFlow::MiddleWare::Instrumentation
 
   step :validate, ->(result) {
     # Validate order
     result.continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :check_inventory, ->(result) {
     # Check stock
