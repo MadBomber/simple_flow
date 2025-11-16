@@ -2,11 +2,7 @@
 
 <div align="center">
 
-![SimpleFlow](https://img.shields.io/badge/SimpleFlow-Pipeline%20Framework-indigo?style=for-the-badge)
-
-[![Gem Version](https://badge.fury.io/rb/simple_flow.svg)](https://badge.fury.io/rb/simple_flow)
-[![CI](https://github.com/MadBomber/simple_flow/workflows/CI/badge.svg)](https://github.com/MadBomber/simple_flow/actions)
-[![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.2.0-red.svg)](https://www.ruby-lang.org/)
+![SimpleFlow Logo](assets/logo.svg)
 
 **A lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution.**
 
