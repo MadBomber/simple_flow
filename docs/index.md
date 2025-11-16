@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![SimpleFlow Logo](assets/logo.svg)
+![SimpleFlow Logo](images/logo.svg)
 
 **A lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution.**
 
