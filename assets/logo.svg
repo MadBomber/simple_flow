@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <!-- Transparent background -->
+
+  <!-- Input circle (Blue) -->
+  <circle cx="60" cy="100" r="35" fill="#3b82f6" opacity="0.9"/>
+  <text x="60" y="108" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">IN</text>
+
+  <!-- Arrow from Input to Process -->
+  <path d="M 100 100 L 140 100" stroke="#64748b" stroke-width="4" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Process circle (Green) -->
+  <circle cx="180" cy="100" r="35" fill="#22c55e" opacity="0.9"/>
+  <text x="180" y="108" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">STEP</text>
+
+  <!-- Parallel branch arrows -->
+  <path d="M 220 100 L 250 60" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 220 100 L 250 140" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Parallel step 1 (Red) -->
+  <circle cx="280" cy="55" r="30" fill="#ef4444" opacity="0.9"/>
+  <text x="280" y="62" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">TASK</text>
+
+  <!-- Parallel step 2 (Red) -->
+  <circle cx="280" cy="145" r="30" fill="#ef4444" opacity="0.9"/>
+  <text x="280" y="152" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">TASK</text>
+
+  <!-- Converging arrows -->
+  <path d="M 310 60 L 340 100" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 310 140 L 340 100" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Output circle (Blue) -->
+  <circle cx="370" cy="100" r="25" fill="#3b82f6" opacity="0.9"/>
+  <text x="370" y="106" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">OUT</text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Flow label -->
+  <text x="200" y="185" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="16" font-weight="bold" letter-spacing="2">SIMPLE FLOW</text>
+</svg>
