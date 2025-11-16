@@ -1,8 +1,7 @@
 # SimpleFlow
 
 <div align="center">
-
-![SimpleFlow Logo](images/logo.svg)
+  <img src="assets/images/logo.svg" alt="placehold image of a DAG" />
 
 **A lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution.**
 
