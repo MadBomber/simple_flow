@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Sequential Step Dependencies Example
 #
@@ -210,7 +212,7 @@ parallel = SimpleFlow::Pipeline.new do
   step :step_a, ->(result) {
     puts "  [Parallel] Step A (no dependencies)"
     result.continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :step_b, ->(result) {
     puts "  [Parallel] Step B (depends on A)"

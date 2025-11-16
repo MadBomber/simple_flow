@@ -1,0 +1,58 @@
+============================================================
+Real-World Example: Data ETL Pipeline
+============================================================
+
+
+Starting ETL pipeline...
+============================================================
+
+  📥 Extracting orders from JSON...
+  📥 Extracting products from API...
+  📥 Extracting users from CSV...
+  🔄 Transforming order data...
+  🔄 Transforming product data...
+  🔄 Transforming user data...
+  📊 Aggregating category statistics...
+  📊 Aggregating user statistics...
+  ✅ Validating data quality...
+  💾 Preparing output...
+
+============================================================
+✅ ETL Pipeline completed successfully!
+============================================================
+
+Metadata:
+  Processed at: 2001-09-11 07:00:00 -0500
+  Pipeline version: 1.0
+
+Data Summary:
+  Users processed: 3
+  Orders processed: 3
+  Products processed: 3
+  Total revenue: $459.54
+
+User Statistics:
+  Alice Johnson (alice@example.com)
+    Orders: 2, Spent: $378.0, Avg: $189.0
+  Bob Smith (bob@example.com)
+    Orders: 1, Spent: $81.54, Avg: $81.54
+  Charlie Brown (charlie@example.com)
+    Orders: 0, Spent: $0, Avg: $0
+
+Category Statistics:
+  tools: 2 products (Widget, Doohickey)
+  electronics: 1 products (Gadget)
+
+Processing time: 101.43ms
+
+Execution Flow:
+  Phase 1 (Extract): users, orders, products (parallel)
+  Phase 2 (Transform): transform_users, transform_orders, transform_products (parallel)
+  Phase 3 (Aggregate): user_stats, category_stats (parallel after transforms)
+  Phase 4 (Validate): data validation
+  Phase 5 (Load): prepare output
+
+============================================================
+ETL example completed!
+Run with --save flag to save output to JSON file
+============================================================

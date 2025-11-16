@@ -1,0 +1,96 @@
+============================================================
+Per-Pipeline Concurrency Control
+============================================================
+
+Async gem available: ✓ Yes
+
+Example 1: Auto-Detect Concurrency (Default)
+------------------------------------------------------------
+
+Pipeline concurrency setting: auto
+Will use: Async (fiber-based)
+
+
+Example 2: Force Threads
+------------------------------------------------------------
+
+Pipeline concurrency setting: threads
+Will use: Ruby Threads (even if async is available)
+  [Thread-based] Task A running...
+  [Thread-based] Task B running...
+  [Thread-based] Task C running...
+Result context: {task_c: :done}
+
+
+Example 3: Force Async
+------------------------------------------------------------
+
+Pipeline concurrency setting: async
+Will use: Async (fiber-based concurrency)
+  [Async] Validating...
+  [Async] Fetching A...
+  [Async] Fetching B...
+  [Async] Merging results...
+Result: Complete
+Context: {a: :done, b: :done}
+
+
+Example 4: Mixed Concurrency in Same Application
+------------------------------------------------------------
+
+User pipeline uses: threads
+Batch pipeline uses: async
+
+Running user pipeline...
+  [User/Threads] Validating user...
+  [User/Threads] Fetching profile...
+  [User/Threads] Fetching settings...
+User result: {profile: {name: "John"}, settings: {theme: "dark"}}
+
+Running batch pipeline...
+  [Batch/Async] Loading batch...
+  [Batch/Async] Processing batch 1...
+  [Batch/Async] Processing batch 2...
+Batch result: {batch_1: :done, batch_2: :done}
+
+
+Example 5: Error Handling
+------------------------------------------------------------
+
+Valid options: :auto, :threads, :async
+
+✓ Caught expected error for invalid concurrency:
+  Invalid concurrency option: :invalid. Valid options: [:auto, :threads, :async]
+
+
+
+Example 6: Inspecting Concurrency Settings
+------------------------------------------------------------
+
+Pipeline 1:
+  Concurrency: auto
+  Async available: true
+
+Pipeline 2:
+  Concurrency: auto
+  Async available: true
+
+Pipeline 3:
+  Concurrency: threads
+  Async available: true
+
+Pipeline 4:
+  Concurrency: async
+  Async available: true
+
+============================================================
+Concurrency control examples completed!
+============================================================
+
+Key Takeaways:
+  • concurrency: :auto (default) - auto-detects best option
+  • concurrency: :threads - always uses Ruby threads
+  • concurrency: :async - requires async gem, uses fibers
+  • Different pipelines can use different concurrency models
+  • Choose based on your specific workload requirements
+

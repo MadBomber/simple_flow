@@ -15,3 +15,4 @@ gem "async", "~> 2.0"
 gem "rubocop", "~> 1.50"
 gem "benchmark-ips", "~> 2.10"
 gem "simplecov", "~> 0.22", require: false
+gem "timecop", "~> 0.9"

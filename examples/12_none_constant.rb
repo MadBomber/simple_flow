@@ -2,20 +2,22 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
-# Using the Pipeline::None Constant for Better Readability
+# Using Reserved Dependency Symbols for Better Readability
 #
-# This example demonstrates the use of SimpleFlow::Pipeline::None constant
+# This example demonstrates the use of :none and :nothing reserved symbols
 # for defining steps with no dependencies, providing better readability
 # compared to using an empty array.
 
 puts "=" * 60
-puts "Pipeline::None Constant Usage"
+puts "Reserved Dependency Symbols Usage"
 puts "=" * 60
 puts
 
-# Example 1: Using None constant for clarity
-puts "Example 1: Using Pipeline::None for Better Readability"
+# Example 1: Using :none symbol for clarity
+puts "Example 1: Using :none Symbol for Better Readability"
 puts "-" * 60
 puts
 
@@ -58,7 +60,7 @@ puts "Context: validated=#{result.context[:validated]}"
 puts
 
 # Example 2: Comparison with empty array syntax
-puts "\nExample 2: None Constant vs Empty Array"
+puts "\nExample 2: :none Symbol vs Empty Array"
 puts "-" * 60
 puts
 
@@ -82,7 +84,7 @@ result1 = pipeline_with_none.call_parallel(SimpleFlow::Result.new(5))
 result2 = pipeline_with_array.call_parallel(SimpleFlow::Result.new(5))
 
 puts "\nBoth produce the same result: #{result1.value} == #{result2.value}"
-puts "The None constant is simply more readable!"
+puts "The :none symbol is simply more readable!"
 puts
 
 # Example 3: Multiple independent root steps

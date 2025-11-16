@@ -1,0 +1,53 @@
+============================================================
+Real-World Example: E-commerce Order Processing
+============================================================
+
+
+Processing order: ORD-712
+Items: 2 items totaling $109.97
+
+  ✓ Validating order...
+  ✓ Calculating shipping...
+  ✓ Checking inventory...
+  ✓ Calculating totals...
+  ✓ Processing payment...
+  ✓ Reserving inventory...
+  ✓ Creating shipment...
+  ✓ Sending email confirmation...
+  ✓ Sending SMS confirmation...
+    📧 Email sent to customer@example.com: Order Confirmed
+    📱 SMS sent to +1-555-0123: Order confirmed! Tracking: TRACK-8767
+  ✓ Finalizing order...
+
+============================================================
+✅ Order processed successfully!
+============================================================
+
+Order Details:
+  Order ID: ORD-712
+  Status: confirmed
+  Total: $128.77
+  Transaction: TXN-9615
+  Tracking: TRACK-8767
+  Estimated Delivery: 3 days
+
+Processing time: 339.24ms
+
+
+============================================================
+Testing with invalid order (missing payment)...
+============================================================
+
+  ✓ Validating order...
+  ✓ Calculating shipping...
+  ✓ Checking inventory...
+  ✓ Calculating totals...
+  ✓ Processing payment...
+❌ Order failed (as expected)
+
+Errors:
+  payment: Invalid card token
+
+============================================================
+E-commerce example completed!
+============================================================

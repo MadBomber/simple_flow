@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Controlling Concurrency Model Per Pipeline
 
@@ -75,7 +77,7 @@ if async_available
     step :validate, ->(result) {
       puts "  [Async] Validating..."
       result.continue(result.value)
-    }, depends_on: []
+    }, depends_on: :none
 
     step :fetch_a, ->(result) {
       puts "  [Async] Fetching A..."
@@ -117,7 +119,7 @@ user_pipeline = SimpleFlow::Pipeline.new(concurrency: :threads) do
   step :validate, ->(result) {
     puts "  [User/Threads] Validating user..."
     result.continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :fetch_profile, ->(result) {
     puts "  [User/Threads] Fetching profile..."
@@ -138,7 +140,7 @@ batch_pipeline = SimpleFlow::Pipeline.new(concurrency: batch_concurrency) do
   step :load, ->(result) {
     puts "  [Batch/#{batch_concurrency.to_s.capitalize}] Loading batch..."
     result.continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :process_batch_1, ->(result) {
     puts "  [Batch/#{batch_concurrency.to_s.capitalize}] Processing batch 1..."

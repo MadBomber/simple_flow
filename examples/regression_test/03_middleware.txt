@@ -1,0 +1,61 @@
+============================================================
+Middleware Examples
+============================================================
+
+Example 1: Logging Middleware
+------------------------------------------------------------
+Executing pipeline with logging middleware:
+I, [2001-09-11T07:00:00.000051 #62312]  INFO -- : Before call
+I, [2001-09-11T07:00:00.000083 #62312]  INFO -- : After call
+I, [2001-09-11T07:00:00.000099 #62312]  INFO -- : Before call
+I, [2001-09-11T07:00:00.000109 #62312]  INFO -- : After call
+Final result: 20
+
+
+Example 2: Instrumentation Middleware
+------------------------------------------------------------
+Executing pipeline with instrumentation middleware:
+Instrumentation: demo-key-123 took 0.012575s
+Instrumentation: demo-key-123 took 0.022543s
+Final result: Processed: DATA
+
+
+Example 3: Stacked Middleware
+------------------------------------------------------------
+Executing pipeline with multiple middleware:
+I, [2001-09-11T07:00:00.035360 #62312]  INFO -- : Before call
+I, [2001-09-11T07:00:00.035377 #62312]  INFO -- : After call
+Instrumentation: stacked-demo took 4.3e-05s
+I, [2001-09-11T07:00:00.035405 #62312]  INFO -- : Before call
+I, [2001-09-11T07:00:00.035414 #62312]  INFO -- : After call
+Instrumentation: stacked-demo took 2.4e-05s
+Final result: 45
+
+
+Example 4: Custom Retry Middleware
+------------------------------------------------------------
+Executing pipeline with retry middleware:
+    Attempt 1 of 3
+    Failed (Temporary failure), retrying...
+    Attempt 2 of 3
+Final result: Success on attempt 2
+
+
+Example 5: Custom Authentication Middleware
+------------------------------------------------------------
+
+Test 1: Admin user
+    Access granted for admin
+Continue? true
+Result: Sensitive admin operation completed
+Errors: {}
+
+Test 2: Regular user
+    Access denied: requires admin, got user
+Continue? false
+Result: {role: :user}
+Errors: {auth: ["Unauthorized: requires admin role"]}
+
+============================================================
+Middleware examples completed!
+============================================================

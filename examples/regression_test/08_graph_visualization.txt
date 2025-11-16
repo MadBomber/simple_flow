@@ -1,0 +1,429 @@
+============================================================
+Dependency Graph Visualization
+============================================================
+
+Example 1: Simple Dependency Graph
+------------------------------------------------------------
+
+Dependency Graph
+============================================================
+
+Dependencies:
+  :step_a
+    └─ depends on: (none)
+  :step_b
+    └─ depends on: :step_a
+  :step_c
+    └─ depends on: :step_a
+  :step_d
+    └─ depends on: :step_b, :step_c
+
+Execution Order (sequential):
+  :step_a
+  ↓ :step_b
+  ↓ :step_c
+  ↓ :step_d
+
+Parallel Execution Groups:
+  Group 1:
+    └─ :step_a (sequential)
+  Group 2:
+    ├─ Parallel execution of 2 steps:
+    ├─ :step_b
+    └─ :step_c
+  Group 3:
+    └─ :step_d (sequential)
+
+Execution Tree:
+  ├─ :step_a
+  ├─ [Parallel]
+  │  ├─ :step_b
+  │  └─ :step_c
+  └─ :step_d
+
+
+============================================================
+Example 2: E-commerce Order Processing Graph
+============================================================
+
+Dependency Graph
+============================================================
+
+Dependencies:
+  :validate_order
+    └─ depends on: (none)
+  :check_inventory
+    └─ depends on: :validate_order
+  :calculate_shipping
+    └─ depends on: :validate_order
+  :calculate_totals
+    └─ depends on: :calculate_shipping, :check_inventory
+  :process_payment
+    └─ depends on: :calculate_totals
+  :reserve_inventory
+    └─ depends on: :process_payment
+  :create_shipment
+    └─ depends on: :reserve_inventory
+  :send_email
+    └─ depends on: :create_shipment
+  :send_sms
+    └─ depends on: :create_shipment
+  :finalize_order
+    └─ depends on: :send_email, :send_sms
+
+Execution Order (sequential):
+  :validate_order
+  ↓ :check_inventory
+  ↓ :calculate_shipping
+  ↓ :calculate_totals
+  ↓ :process_payment
+  ↓ :reserve_inventory
+  ↓ :create_shipment
+  ↓ :send_email
+  ↓ :send_sms
+  ↓ :finalize_order
+
+Parallel Execution Groups:
+  Group 1:
+    └─ :validate_order (sequential)
+  Group 2:
+    ├─ Parallel execution of 2 steps:
+    ├─ :calculate_shipping
+    └─ :check_inventory
+  Group 3:
+    └─ :calculate_totals (sequential)
+  Group 4:
+    └─ :process_payment (sequential)
+  Group 5:
+    └─ :reserve_inventory (sequential)
+  Group 6:
+    └─ :create_shipment (sequential)
+  Group 7:
+    ├─ Parallel execution of 2 steps:
+    ├─ :send_email
+    └─ :send_sms
+  Group 8:
+    └─ :finalize_order (sequential)
+
+Execution Tree:
+  ├─ :validate_order
+  ├─ [Parallel]
+  │  ├─ :calculate_shipping
+  │  └─ :check_inventory
+  ├─ :calculate_totals
+  ├─ :process_payment
+  ├─ :reserve_inventory
+  ├─ :create_shipment
+  ├─ [Parallel]
+  │  ├─ :send_email
+  │  └─ :send_sms
+  └─ :finalize_order
+
+
+============================================================
+Example 3: Execution Plan
+============================================================
+
+Execution Plan
+============================================================
+
+Total Steps: 10
+Execution Phases: 8
+
+Phase 1:
+  → Execute :validate_order
+
+Phase 2:
+  ⚡ Execute in parallel:
+     • :calculate_shipping (after :validate_order)
+     • :check_inventory (after :validate_order)
+
+Phase 3:
+  → Execute :calculate_totals
+
+Phase 4:
+  → Execute :process_payment
+
+Phase 5:
+  → Execute :reserve_inventory
+
+Phase 6:
+  → Execute :create_shipment
+
+Phase 7:
+  ⚡ Execute in parallel:
+     • :send_email (after :create_shipment)
+     • :send_sms (after :create_shipment)
+
+Phase 8:
+  → Execute :finalize_order
+
+Performance Estimate:
+  Sequential execution: 10 time units
+  Parallel execution: 8 time units
+  Potential speedup: 1.25x
+
+
+============================================================
+Example 4: ETL Pipeline Graph
+============================================================
+
+Execution Plan
+============================================================
+
+Total Steps: 10
+Execution Phases: 5
+
+Phase 1:
+  ⚡ Execute in parallel:
+     • :extract_orders (no dependencies)
+     • :extract_products (no dependencies)
+     • :extract_users (no dependencies)
+
+Phase 2:
+  ⚡ Execute in parallel:
+     • :transform_orders (after :extract_orders)
+     • :transform_products (after :extract_products)
+     • :transform_users (after :extract_users)
+
+Phase 3:
+  ⚡ Execute in parallel:
+     • :aggregate_category_stats (after :transform_products)
+     • :aggregate_user_stats (after :transform_orders, :transform_users)
+
+Phase 4:
+  → Execute :validate_data
+
+Phase 5:
+  → Execute :prepare_output
+
+Performance Estimate:
+  Sequential execution: 10 time units
+  Parallel execution: 5 time units
+  Potential speedup: 2.0x
+
+
+============================================================
+Example 5: Exporting to Different Formats
+============================================================
+
+✓ Exported to Graphviz DOT format: ecommerce_graph.dot
+  To generate PNG: dot -Tpng ecommerce_graph.dot -o ecommerce_graph.png
+  To generate SVG: dot -Tsvg ecommerce_graph.dot -o ecommerce_graph.svg
+
+✓ Exported to Mermaid format: ecommerce_graph.mmd
+  View at: https://mermaid.live/
+
+✓ Exported to interactive HTML: ecommerce_graph.html
+  Open in browser to view interactive graph
+
+
+Graphviz DOT Format Preview:
+------------------------------------------------------------
+digraph DependencyGraph {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Group 1
+  validate_order [fillcolor=lightblue, style="rounded,filled"];
+  // Group 2
+  calculate_shipping [fillcolor=lightgreen, style="rounded,filled"];
+  check_inventory [fillcolor=lightgreen, style="rounded,filled"];
+  // Group 3
+  calculate_totals [fillcolor=lightyellow, style="rounded,filled"];
+  // Group 4
+  process_payment [fillcolor=lightpink, style="rounded,filled"];
+  // Group 5
+  reserve_inventory [fillcolor=lightgray, style="rounded,filled"];
+  // Group 6
+  create_shipment [fillcolor=lightblue, style="rounded,filled"];
+  // Group 7
+  send_email [fillcolor=lightgreen, style="rounded,filled"];
+  send_sms [fillcolor=lightgreen, style="rounded,filled"];
+... (truncated)
+
+
+Mermaid Format Preview:
+------------------------------------------------------------
+graph TD
+  validate_order[validate_order]
+  validate_order[validate_order] --> check_inventory[check_inventory]
+  validate_order[validate_order] --> calculate_shipping[calculate_shipping]
+  calculate_shipping[calculate_shipping] --> calculate_totals[calculate_totals]
+  check_inventory[check_inventory] --> calculate_totals[calculate_totals]
+  calculate_totals[calculate_totals] --> process_payment[process_payment]
+  process_payment[process_payment] --> reserve_inventory[reserve_inventory]
+  reserve_inventory[reserve_inventory] --> create_shipment[create_shipment]
+  create_shipment[create_shipment] --> send_email[send_email]
+  create_shipment[create_shipment] --> send_sms[send_sms]
+  send_email[send_email] --> finalize_order[finalize_order]
+  send_sms[send_sms] --> finalize_order[finalize_order]
+  classDef group1 fill:#9f9
+  class calculate_shipping group1
+... (truncated)
+
+
+============================================================
+Example 6: Visualizing a Pipeline Directly
+============================================================
+
+Pipeline Dependency Graph:
+
+Dependency Graph
+============================================================
+
+Dependencies:
+  :fetch_config
+    └─ depends on: (none)
+  :load_data
+    └─ depends on: :fetch_config
+  :validate_schema
+    └─ depends on: :load_data
+  :enrich_data
+    └─ depends on: :load_data
+  :save_results
+    └─ depends on: :enrich_data, :validate_schema
+
+Execution Order (sequential):
+  :fetch_config
+  ↓ :load_data
+  ↓ :validate_schema
+  ↓ :enrich_data
+  ↓ :save_results
+
+Parallel Execution Groups:
+  Group 1:
+    └─ :fetch_config (sequential)
+  Group 2:
+    └─ :load_data (sequential)
+  Group 3:
+    ├─ Parallel execution of 2 steps:
+    ├─ :enrich_data
+    └─ :validate_schema
+  Group 4:
+    └─ :save_results (sequential)
+
+Execution Tree:
+  ├─ :fetch_config
+  ├─ :load_data
+  ├─ [Parallel]
+  │  ├─ :enrich_data
+  │  └─ :validate_schema
+  └─ :save_results
+
+
+============================================================
+Example 7: Graph Structure Comparison
+============================================================
+
+Linear Pipeline (Sequential):
+Execution Plan
+============================================================
+
+Total Steps: 5
+Execution Phases: 5
+
+Phase 1:
+  → Execute :step1
+
+Phase 2:
+  → Execute :step2
+
+Phase 3:
+  → Execute :step3
+
+Phase 4:
+  → Execute :step4
+
+Phase 5:
+  → Execute :step5
+
+Performance Estimate:
+  Sequential execution: 5 time units
+  Parallel execution: 5 time units
+  Potential speedup: 1.0x
+
+
+Fan-out/Fan-in Pipeline (Parallel):
+Execution Plan
+============================================================
+
+Total Steps: 6
+Execution Phases: 3
+
+Phase 1:
+  → Execute :start
+
+Phase 2:
+  ⚡ Execute in parallel:
+     • :task1 (after :start)
+     • :task2 (after :start)
+     • :task3 (after :start)
+     • :task4 (after :start)
+
+Phase 3:
+  → Execute :end
+
+Performance Estimate:
+  Sequential execution: 6 time units
+  Parallel execution: 3 time units
+  Potential speedup: 2.0x
+
+
+============================================================
+Example 8: Graph Analytics
+============================================================
+
+Simple Graph:
+  Total steps: 4
+  Execution phases: 3
+  Max parallel steps: 2
+  Theoretical speedup: 1.33x
+  Parallelization ratio: 50.0%
+
+E-commerce Graph:
+  Total steps: 10
+  Execution phases: 8
+  Max parallel steps: 2
+  Theoretical speedup: 1.25x
+  Parallelization ratio: 20.0%
+
+ETL Graph:
+  Total steps: 10
+  Execution phases: 5
+  Max parallel steps: 3
+  Theoretical speedup: 2.0x
+  Parallelization ratio: 30.0%
+
+Linear Graph:
+  Total steps: 5
+  Execution phases: 5
+  Max parallel steps: 1
+  Theoretical speedup: 1.0x
+  Parallelization ratio: 20.0%
+
+Fan-out/Fan-in Graph:
+  Total steps: 6
+  Execution phases: 3
+  Max parallel steps: 4
+  Theoretical speedup: 2.0x
+  Parallelization ratio: 66.7%
+
+============================================================
+Graph visualization examples completed!
+
+Generated files:
+  - ecommerce_graph.dot (Graphviz format)
+  - ecommerce_graph.mmd (Mermaid format)
+  - ecommerce_graph.html (Interactive HTML)
+
+To generate images with Graphviz:
+  $ dot -Tpng ecommerce_graph.dot -o ecommerce_graph.png
+  $ dot -Tsvg ecommerce_graph.dot -o ecommerce_graph.svg
+  $ dot -Tpdf ecommerce_graph.dot -o ecommerce_graph.pdf
+
+To view Mermaid diagram:
+  1. Visit https://mermaid.live/
+  2. Paste contents of ecommerce_graph.mmd
+  3. Or use Mermaid CLI: mmdc -i ecommerce_graph.mmd -o graph.png
+============================================================

@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Explicit parallel blocks
 #
@@ -158,7 +160,7 @@ mixed_pipeline = SimpleFlow::Pipeline.new do
     puts "  [Named] Fetching configuration..."
     sleep 0.05
     result.with_context(:config, { timeout: 30 }).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   # Explicit parallel block
   parallel do

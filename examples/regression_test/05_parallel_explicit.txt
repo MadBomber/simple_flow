@@ -1,0 +1,80 @@
+============================================================
+Explicit Parallel Blocks
+============================================================
+
+✓ Async gem is available - will use fiber-based concurrency
+
+Example 1: Basic Parallel Block
+------------------------------------------------------------
+
+  [Sequential] Pre-processing input...
+  [Parallel A] Fetching from API...
+  [Parallel B] Fetching from cache...
+  [Parallel C] Fetching from database...
+  [Sequential] Post-processing results...
+
+Result: {api: nil, cache: nil, db: {records: 10}}
+Execution time: 101.17ms
+(Should be ~100ms with parallel, ~300ms sequential)
+
+
+Example 2: Multiple Parallel Blocks
+------------------------------------------------------------
+
+  [Step 1] Initialize
+  [Block 1.A] Validate email
+  [Block 1.B] Validate phone
+  [Step 2] Process validations
+  [Block 2.A] Send email notification
+  [Block 2.B] Send SMS notification
+  [Block 2.C] Log to database
+  [Step 3] Finalize
+
+Result: All notifications sent
+Context: {phone_valid: true, logged: true}
+Execution time: 102.68ms
+
+
+Example 3: Mixed Execution Styles
+------------------------------------------------------------
+
+  [Unnamed] Starting workflow...
+  [Named] Fetching configuration...
+  [Parallel] Processing batch 1...
+  [Parallel] Processing batch 2...
+  [Unnamed] Finalizing...
+
+Result: Workflow complete
+Context: {config: {timeout: 30}, batch2: :done}
+
+
+Example 4: Error Handling in Parallel Blocks
+------------------------------------------------------------
+
+  [Pre] Starting operations...
+  [Parallel A] Running successfully...
+  [Parallel B] Encountering error...
+  [Parallel C] Running successfully...
+
+Result:
+  Continue? false
+  Value: 
+  Errors: {task_b: ["Failed to process batch"]}
+  Context: {}
+  Note: Pipeline halted due to error in parallel block
+
+
+Example 5: Performance Comparison
+------------------------------------------------------------
+
+Running sequential pipeline (4 steps @ 100ms each)...
+Running parallel pipeline (4 steps @ 100ms each in parallel)...
+
+Results:
+  Sequential: 418.79ms (expected ~400ms)
+  Parallel:   101.32ms (expected ~100ms)
+  Speedup:    4.13x
+
+============================================================
+Explicit parallel blocks examples completed!
+============================================================

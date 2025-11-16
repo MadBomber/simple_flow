@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Direct pipeline visualization - no need to recreate dependency structure!
 
@@ -18,7 +20,7 @@ puts
 pipeline = SimpleFlow::Pipeline.new do
   step :validate, ->(result) {
     result.with_context(:validated, true).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :fetch_data, ->(result) {
     result.with_context(:data, [1, 2, 3]).continue(result.value)
@@ -42,7 +44,7 @@ puts
 ecommerce_pipeline = SimpleFlow::Pipeline.new do
   step :validate_order, ->(result) {
     result.continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   # These will run in parallel
   step :check_inventory, ->(result) {
@@ -132,15 +134,15 @@ etl_pipeline = SimpleFlow::Pipeline.new do
   # Extract phase - all run in parallel
   step :extract_users, ->(result) {
     result.with_context(:users, []).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :extract_orders, ->(result) {
     result.with_context(:orders, []).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :extract_products, ->(result) {
     result.with_context(:products, []).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   # Transform phase - all run in parallel after extraction
   step :transform_users, ->(result) {
@@ -186,7 +188,7 @@ puts
 
 # Pipeline with named steps - can be visualized
 named_pipeline = SimpleFlow::Pipeline.new do
-  step :step_a, ->(r) { r.continue(r.value) }, depends_on: []
+  step :step_a, ->(r) { r.continue(r.value) }, depends_on: :none
   step :step_b, ->(r) { r.continue(r.value) }, depends_on: [:step_a]
 end
 
@@ -227,7 +229,7 @@ puts
 
 # Linear pipeline
 linear = SimpleFlow::Pipeline.new do
-  step :step1, ->(r) { r.continue(r.value) }, depends_on: []
+  step :step1, ->(r) { r.continue(r.value) }, depends_on: :none
   step :step2, ->(r) { r.continue(r.value) }, depends_on: [:step1]
   step :step3, ->(r) { r.continue(r.value) }, depends_on: [:step2]
   step :step4, ->(r) { r.continue(r.value) }, depends_on: [:step3]
@@ -235,7 +237,7 @@ end
 
 # Parallel pipeline
 parallel = SimpleFlow::Pipeline.new do
-  step :start, ->(r) { r.continue(r.value) }, depends_on: []
+  step :start, ->(r) { r.continue(r.value) }, depends_on: :none
   step :task1, ->(r) { r.continue(r.value) }, depends_on: [:start]
   step :task2, ->(r) { r.continue(r.value) }, depends_on: [:start]
   step :task3, ->(r) { r.continue(r.value) }, depends_on: [:start]

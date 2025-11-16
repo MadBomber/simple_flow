@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Automatic parallel discovery using dependency graphs
 #
@@ -36,7 +38,7 @@ pipeline = SimpleFlow::Pipeline.new do
     puts "  [#{Time.now.strftime('%H:%M:%S.%L')}] Fetching user..."
     sleep 0.1  # Simulate API call
     result.with_context(:user, { id: result.value, name: "John Doe" }).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   # These two steps both depend on :fetch_user, so they can run in parallel
   step :fetch_orders, ->(result) {
@@ -83,7 +85,7 @@ complex_pipeline = SimpleFlow::Pipeline.new do
     puts "  [Level 1] Validating input..."
     sleep 0.05
     result.with_context(:validated, true).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   # Level 2: Depends on validation (can run in parallel with each other)
   step :check_inventory, ->(result) {
@@ -185,20 +187,20 @@ error_pipeline = SimpleFlow::Pipeline.new do
     puts "  Task A: Processing..."
     sleep 0.05
     result.with_context(:task_a, :success).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :task_b, ->(result) {
     puts "  Task B: Processing..."
     sleep 0.05
     # Simulate a failure
     result.halt.with_error(:task_b, "Task B encountered an error")
-  }, depends_on: []
+  }, depends_on: :none
 
   step :task_c, ->(result) {
     puts "  Task C: Processing..."
     sleep 0.05
     result.with_context(:task_c, :success).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :final_step, ->(result) {
     puts "  Final step: This should not execute"

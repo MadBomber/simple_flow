@@ -1,0 +1,64 @@
+============================================================
+Reserved Dependency Symbols Usage
+============================================================
+
+Example 1: Using :none Symbol for Better Readability
+------------------------------------------------------------
+
+  [Step 1] Validating input...
+  [Step 2a] Fetching orders in parallel...
+  [Step 2b] Fetching products in parallel...
+  [Step 3] Merging results...
+
+Result: {orders: [1, 2, 3], products: [:a, :b, :c], total: 6}
+Context: validated=true
+
+
+Example 2: :none Symbol vs Empty Array
+------------------------------------------------------------
+
+  [:none syntax] Root step with no dependencies
+  [Array syntax] Root step with no dependencies
+
+Both produce the same result: 6 == 6
+The :none symbol is simply more readable!
+
+
+Example 3: Multiple Independent Root Steps
+------------------------------------------------------------
+
+  [Root C] Authenticating API...
+  [Root B] Connecting to database...
+  [Root A] Loading configuration...
+  [Final] Initializing application with all resources...
+
+Result: Application ready
+All independent steps ran in parallel!
+
+
+Example 4: Reserved Dependency Symbols
+------------------------------------------------------------
+
+You can use :none or :nothing to indicate no dependencies:
+
+  • :step_a dependencies: []
+  • :step_b dependencies: []
+  • :step_c dependencies: [:step_a, :step_b] (filtered!)
+
+Reserved symbols :none and :nothing:
+  • Automatically filtered from dependency arrays
+  • Functionally equivalent to []
+  • More semantically clear than empty array
+  • Cannot be used as step names (reserved)
+  • A signal to readers: 'this step has no dependencies'
+
+============================================================
+Reserved dependency symbols examples completed!
+============================================================
+
+Key Takeaways:
+  • Use depends_on: :none for better readability
+  • Equivalent to [] but more semantic
+  • Can mix in arrays: [:step_a, :none] becomes [:step_a]
+  • Makes dependency graphs easier to understand
+

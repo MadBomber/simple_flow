@@ -1,0 +1,86 @@
+============================================================
+Sequential Step Dependencies
+============================================================
+
+Example 1: All Steps Succeed
+------------------------------------------------------------
+
+  [Step 1] Starting workflow...
+  [Step 2] Processing data...
+  [Step 3] Finalizing...
+
+Final result: 22
+Continue? true
+Expected: ((5 + 1) * 2) + 10 = 22
+
+
+Example 2: Pipeline Halts on Error
+------------------------------------------------------------
+
+  [Step 1] Validating input...
+  [Step 2] Checking business rules...
+
+Final result: -5
+Continue? false
+Errors: {business_rule: ["Value must be positive"]}
+Note: Step 3 never executed because Step 2 halted
+
+
+Example 3: Early Validation Pattern
+------------------------------------------------------------
+
+Scenario A: System in maintenance mode
+  [Pre-flight] Checking system health...
+Continue? false
+Errors: {system: ["Maintenance mode active"]}
+
+
+Scenario B: System healthy
+  [Pre-flight] Checking system health...
+  [Pre-flight] System healthy, proceeding...
+  [Step 1] Processing order...
+  [Step 2] Charging payment...
+  [Step 3] Sending confirmation...
+Continue? true
+All steps executed successfully!
+
+
+Example 4: Error Accumulation Before Halting
+------------------------------------------------------------
+
+  [Step 1] Collecting validation errors...
+  [Step 1] Found 2 validation error(s)
+
+Continue? false
+Errors found: 2
+All errors: ["Email required", "Must be 18+"]
+Note: Step 2 didn't execute because validation failed
+
+
+Example 5: Sequential vs Parallel Behavior
+------------------------------------------------------------
+
+Sequential execution order:
+  [Sequential 1] Step A
+  [Sequential 2] Step B (depends on A)
+  [Sequential 3] Step C (depends on B)
+
+Parallel execution (for comparison):
+  [Parallel] Step A (no dependencies)
+  [Parallel] Step B (depends on A)
+  [Parallel] Step C (depends on A, runs parallel with B)
+
+Note: Sequential steps have implicit dependencies
+      Parallel steps require explicit depends_on declarations
+
+============================================================
+Sequential dependencies examples completed!
+============================================================
+
+Key Takeaways:
+  • Unnamed steps execute sequentially in definition order
+  • Each step implicitly depends on the previous step's success
+  • Pipeline halts immediately when any step returns result.halt
+  • Subsequent steps after a halt are never executed
+  • Use named steps with depends_on for parallel execution
+

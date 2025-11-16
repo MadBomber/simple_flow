@@ -39,7 +39,7 @@ module SimpleFlow
   # end
   #
   class Pipeline
-    attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency
+    attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency, :parallel_groups
 
     # Initializes a new Pipeline object. A block can be provided to dynamically configure the pipeline,
     # allowing the addition of steps and middleware.
@@ -52,7 +52,7 @@ module SimpleFlow
       @middlewares = []
       @named_steps = {}
       @step_dependencies = {}
-      @parallel_groups = []
+      @parallel_groups = {}
       @concurrency = concurrency
 
       validate_concurrency!
@@ -100,8 +100,8 @@ module SimpleFlow
 
         callable = apply_middleware(callable)
         @named_steps[name] = callable
-        # Filter out reserved dependency symbols :none and :nothing
-        @step_dependencies[name] = Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) }
+        # Filter out reserved dependency symbols :none and :nothing, and expand parallel group names
+        @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
         @steps << { name: name, callable: callable, type: :named }
       else
         # Unnamed step: step ->(result) { ... } or step { |result| ... }
@@ -116,12 +116,44 @@ module SimpleFlow
     end
 
     # Defines a parallel execution block. Steps within this block will execute concurrently.
+    # @param name [Symbol, nil] optional name for the parallel group
+    # @param depends_on [Symbol, Array] dependencies for this parallel group
     # @param block [Block] block containing step definitions
     # @return [self]
-    def parallel(&block)
+    # @example Named parallel group with dependencies
+    #   parallel :fetch_data, depends_on: :validate do
+    #     step :fetch_orders, ->(result) { ... }
+    #     step :fetch_products, ->(result) { ... }
+    #   end
+    #   step :process, ->(result) { ... }, depends_on: :fetch_data
+    def parallel(name = nil, depends_on: :none, &block)
+      # Validate name if provided
+      if name && [:none, :nothing].include?(name)
+        raise ArgumentError, "Parallel group name '#{name}' is reserved. Please use a different name."
+      end
+
+      # Filter and expand dependencies
+      filtered_deps = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+
+      # Create and evaluate the parallel block
       group = ParallelBlock.new(self)
       group.instance_eval(&block)
-      @steps << { steps: group.steps, type: :parallel }
+
+      if name
+        # Named parallel group - track it for dependency resolution
+        step_names = group.steps.map { |s| s[:name] }.compact
+        @parallel_groups[name] = {
+          steps: step_names,
+          dependencies: filtered_deps
+        }
+
+        # Add dependencies from the parallel group to its contained steps
+        step_names.each do |step_name|
+          @step_dependencies[step_name] = filtered_deps
+        end
+      end
+
+      @steps << { steps: group.steps, type: :parallel, name: name }
       self
     end
 
@@ -229,6 +261,21 @@ module SimpleFlow
     end
 
     private
+
+    # Expands parallel group names in dependencies to all steps in those groups
+    # @param deps [Array<Symbol>] array of dependency symbols
+    # @return [Array<Symbol>] expanded array with parallel groups replaced by their steps
+    def expand_dependencies(deps)
+      deps.flat_map do |dep|
+        if @parallel_groups.key?(dep)
+          # This is a parallel group name - expand to all steps in the group
+          @parallel_groups[dep][:steps]
+        else
+          # Regular step name
+          dep
+        end
+      end
+    end
 
     def validate_concurrency!
       valid_options = [:auto, :threads, :async]
@@ -340,6 +387,8 @@ module SimpleFlow
           callable ||= block
           raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
           callable = @pipeline.send(:apply_middleware, callable)
+          # Register the step in the pipeline's named_steps
+          @pipeline.instance_variable_get(:@named_steps)[name] = callable
           @steps << { name: name, callable: callable, type: :named }
         else
           callable = name_or_callable || block

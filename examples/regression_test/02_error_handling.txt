@@ -1,0 +1,92 @@
+============================================================
+Error Handling and Flow Control
+============================================================
+
+Example 1: Input Validation with Halt
+------------------------------------------------------------
+
+Test 1: Valid age (21)
+  Step 1: Validating age is numeric
+  Step 2: Validating age is positive
+  Step 3: Checking minimum age
+  Step 4: Processing valid age
+Continue? true
+Result: Approved for age 21
+Errors: {}
+
+Test 2: Invalid age (15)
+  Step 1: Validating age is numeric
+  Step 2: Validating age is positive
+  Step 3: Checking minimum age
+Continue? false
+Result: 15
+Errors: {validation: ["Must be 18 or older"]}
+
+Test 3: Negative age (-5)
+  Step 1: Validating age is numeric
+  Step 2: Validating age is positive
+Continue? false
+Result: -5
+Errors: {validation: ["Age cannot be negative"]}
+
+
+Example 2: Error Accumulation
+------------------------------------------------------------
+
+Test 1: Weak password
+  Step 1: Checking password length
+  Step 2: Checking for uppercase letters
+  Step 3: Checking for numbers
+  Step 4: Final validation
+Continue? false
+Result: {username: "john", password: "weak"}
+Errors: {password: ["Password must be at least 8 characters", "Password must contain uppercase letters", "Password must contain numbers"]}
+
+Test 2: Strong password
+  Step 1: Checking password length
+  Step 2: Checking for uppercase letters
+  Step 3: Checking for numbers
+  Step 4: Final validation
+  Step 5: Creating account (only runs if valid)
+Continue? true
+Result: Account created for jane
+Errors: {}
+
+
+Example 3: Conditional Processing
+------------------------------------------------------------
+
+Testing role: admin
+  Step 1: Checking user role
+  Step 2: Role-based processing
+  Step 3: Generating access token
+  Continue? true
+  Result: Token granted with permissions: read, write, delete
+  Permissions: [:read, :write, :delete]
+
+Testing role: editor
+  Step 1: Checking user role
+  Step 2: Role-based processing
+  Step 3: Generating access token
+  Continue? true
+  Result: Token granted with permissions: read, write
+  Permissions: [:read, :write]
+
+Testing role: viewer
+  Step 1: Checking user role
+  Step 2: Role-based processing
+  Step 3: Generating access token
+  Continue? true
+  Result: Token granted with permissions: read
+  Permissions: [:read]
+
+Testing role: unknown
+  Step 1: Checking user role
+  Step 2: Role-based processing
+  Continue? false
+  Result: {role: :unknown}
+  Errors: {auth: ["Unknown role: unknown"]}
+
+============================================================
+Error handling examples completed!
+============================================================

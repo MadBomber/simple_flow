@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require_relative '../lib/simple_flow'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Graph visualization examples
 
@@ -135,7 +137,7 @@ puts
 pipeline = SimpleFlow::Pipeline.new do
   step :fetch_config, ->(result) {
     result.with_context(:config, {}).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :load_data, ->(result) {
     result.with_context(:data, []).continue(result.value)

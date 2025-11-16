@@ -1,0 +1,86 @@
+============================================================
+Automatic Parallel Discovery
+============================================================
+
+✓ Async gem is available - will use fiber-based concurrency
+
+Example 1: Basic Parallel Execution
+------------------------------------------------------------
+
+  [07:00:00.000] Fetching user...
+  [07:00:00.105] Fetching orders...
+  [07:00:00.105] Fetching products...
+  [07:00:00.206] Calculating total...
+
+Result: Total: 3 orders, 3 products
+User: {id: 123, name: "John Doe"}
+Orders: [1, 2, 3]
+Products: [:a, :b, :c]
+Execution time: 206.3ms
+(Should be ~200ms with parallel, ~400ms sequential)
+
+
+Example 2: Complex Dependency Graph
+------------------------------------------------------------
+
+Dependency graph structure:
+  Level 1: validate_input
+  Level 2: check_inventory, check_pricing, check_shipping (parallel)
+  Level 3: calculate_discount
+  Level 4: finalize_order
+
+  [Level 1] Validating input...
+  [Level 2] Checking inventory...
+  [Level 2] Checking pricing...
+  [Level 2] Checking shipping...
+  [Level 3] Calculating discount...
+  [Level 4] Finalizing order...
+
+Result: Order total: $100.0
+Context: {validated: true, inventory: :available, price: 100, shipping: 10, discount: 10.0}
+Execution time: 160.32ms
+
+
+Example 3: Dependency Graph Analysis
+------------------------------------------------------------
+
+Dependencies:
+  fetch_user: (none)
+  fetch_orders: fetch_user
+  fetch_products: fetch_user
+  fetch_reviews: fetch_user
+  calculate_stats: fetch_orders, fetch_products
+  generate_report: calculate_stats, fetch_reviews
+
+Sequential order:
+  fetch_user → fetch_orders → fetch_products → fetch_reviews → calculate_stats → generate_report
+
+Parallel execution groups:
+  Group 1: fetch_user
+  Group 2: fetch_orders, fetch_products, fetch_reviews
+  Group 3: calculate_stats
+  Group 4: generate_report
+
+Execution strategy:
+  • fetch_user runs first (no dependencies)
+  • fetch_orders, fetch_products, fetch_reviews run in parallel
+  • calculate_stats waits for orders and products
+  • generate_report waits for stats and reviews
+
+
+Example 4: Error Handling in Parallel Execution
+------------------------------------------------------------
+
+  Task A: Processing...
+  Task B: Processing...
+  Task C: Processing...
+
+Result:
+  Continue? false
+  Errors: {task_b: ["Task B encountered an error"]}
+  Context: {}
+  Note: Pipeline halted when task_b failed, preventing final_step
+
+============================================================
+Automatic parallel discovery examples completed!
+============================================================

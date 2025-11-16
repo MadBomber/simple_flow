@@ -3,6 +3,8 @@
 
 require_relative '../lib/simple_flow'
 require 'json'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Real-world example: E-commerce order processing pipeline
 
@@ -79,7 +81,7 @@ order_pipeline = SimpleFlow::Pipeline.new do
     end
 
     result.with_context(:validated_at, Time.now).continue(order)
-  }, depends_on: []
+  }, depends_on: :none
 
   # Step 2 & 3: Run in parallel - check inventory and calculate shipping
   step :check_inventory, ->(result) {

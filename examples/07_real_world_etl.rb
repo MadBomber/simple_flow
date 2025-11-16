@@ -3,6 +3,8 @@
 
 require_relative '../lib/simple_flow'
 require 'json'
+require 'timecop'
+Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Real-world example: Data ETL (Extract, Transform, Load) pipeline
 
@@ -49,19 +51,19 @@ etl_pipeline = SimpleFlow::Pipeline.new do
     puts "  📥 Extracting users from CSV..."
     users = DataSource.fetch_users_csv
     result.with_context(:raw_users, users).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :extract_orders, ->(result) {
     puts "  📥 Extracting orders from JSON..."
     orders = DataSource.fetch_orders_json
     result.with_context(:raw_orders, orders).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   step :extract_products, ->(result) {
     puts "  📥 Extracting products from API..."
     products = DataSource.fetch_products_api
     result.with_context(:raw_products, products).continue(result.value)
-  }, depends_on: []
+  }, depends_on: :none
 
   # Transform Phase: Clean and normalize data in parallel
   step :transform_users, ->(result) {

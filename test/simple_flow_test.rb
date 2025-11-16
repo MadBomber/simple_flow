@@ -2,7 +2,7 @@ require 'minitest/autorun'
 require_relative '../lib/simple_flow'
 
 module SimpleFlow
-  class TestSimpleFlow < Minitest::Test
+  class SimpleFlowTest < Minitest::Test
     def setup
       @pipeline = Pipeline.new do
         use_middleware MiddleWare::Instrumentation, api_key: 'test_key'
@@ -43,7 +43,7 @@ module SimpleFlow
     def test_result_with_context_and_error
       result = @initial_result.with_context(:key, 'value')
                                .with_error(:error_key, 'An error occurred')
-      
+
       assert_equal 'value', result.context[:key], "Context should include the new key-value pair"
       assert_includes result.errors[:error_key], 'An error occurred', "Errors should include the new error message"
     end

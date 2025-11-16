@@ -1,0 +1,305 @@
+============================================================
+Direct Pipeline Visualization
+============================================================
+
+Example 1: Simple Pipeline Visualization
+------------------------------------------------------------
+
+Dependency Graph
+============================================================
+
+Dependencies:
+  :validate
+    └─ depends on: (none)
+  :fetch_data
+    └─ depends on: :validate
+  :process_data
+    └─ depends on: :fetch_data
+
+Execution Order (sequential):
+  :validate
+  ↓ :fetch_data
+  ↓ :process_data
+
+Parallel Execution Groups:
+  Group 1:
+    └─ :validate (sequential)
+  Group 2:
+    └─ :fetch_data (sequential)
+  Group 3:
+    └─ :process_data (sequential)
+
+Execution Tree:
+  ├─ :validate
+  ├─ :fetch_data
+  └─ :process_data
+
+
+============================================================
+Example 2: E-commerce Pipeline (Automatic Visualization)
+============================================================
+
+Dependency Graph
+============================================================
+
+Dependencies:
+  :validate_order
+    └─ depends on: (none)
+  :check_inventory
+    └─ depends on: :validate_order
+  :calculate_shipping
+    └─ depends on: :validate_order
+  :calculate_totals
+    └─ depends on: :calculate_shipping, :check_inventory
+  :process_payment
+    └─ depends on: :calculate_totals
+  :reserve_inventory
+    └─ depends on: :process_payment
+  :create_shipment
+    └─ depends on: :reserve_inventory
+  :send_email
+    └─ depends on: :create_shipment
+  :send_sms
+    └─ depends on: :create_shipment
+  :finalize_order
+    └─ depends on: :send_email, :send_sms
+
+Execution Order (sequential):
+  :validate_order
+  ↓ :check_inventory
+  ↓ :calculate_shipping
+  ↓ :calculate_totals
+  ↓ :process_payment
+  ↓ :reserve_inventory
+  ↓ :create_shipment
+  ↓ :send_email
+  ↓ :send_sms
+  ↓ :finalize_order
+
+Parallel Execution Groups:
+  Group 1:
+    └─ :validate_order (sequential)
+  Group 2:
+    ├─ Parallel execution of 2 steps:
+    ├─ :calculate_shipping
+    └─ :check_inventory
+  Group 3:
+    └─ :calculate_totals (sequential)
+  Group 4:
+    └─ :process_payment (sequential)
+  Group 5:
+    └─ :reserve_inventory (sequential)
+  Group 6:
+    └─ :create_shipment (sequential)
+  Group 7:
+    ├─ Parallel execution of 2 steps:
+    ├─ :send_email
+    └─ :send_sms
+  Group 8:
+    └─ :finalize_order (sequential)
+
+Execution Tree:
+  ├─ :validate_order
+  ├─ [Parallel]
+  │  ├─ :calculate_shipping
+  │  └─ :check_inventory
+  ├─ :calculate_totals
+  ├─ :process_payment
+  ├─ :reserve_inventory
+  ├─ :create_shipment
+  ├─ [Parallel]
+  │  ├─ :send_email
+  │  └─ :send_sms
+  └─ :finalize_order
+
+
+============================================================
+Example 3: Execution Plan (Direct from Pipeline)
+============================================================
+
+Execution Plan
+============================================================
+
+Total Steps: 10
+Execution Phases: 8
+
+Phase 1:
+  → Execute :validate_order
+
+Phase 2:
+  ⚡ Execute in parallel:
+     • :calculate_shipping (after :validate_order)
+     • :check_inventory (after :validate_order)
+
+Phase 3:
+  → Execute :calculate_totals
+
+Phase 4:
+  → Execute :process_payment
+
+Phase 5:
+  → Execute :reserve_inventory
+
+Phase 6:
+  → Execute :create_shipment
+
+Phase 7:
+  ⚡ Execute in parallel:
+     • :send_email (after :create_shipment)
+     • :send_sms (after :create_shipment)
+
+Phase 8:
+  → Execute :finalize_order
+
+Performance Estimate:
+  Sequential execution: 10 time units
+  Parallel execution: 8 time units
+  Potential speedup: 1.25x
+
+
+============================================================
+Example 4: Export Formats (Direct from Pipeline)
+============================================================
+
+✓ Exported to Graphviz DOT: pipeline_graph.dot
+  Generate image: dot -Tpng pipeline_graph.dot -o pipeline.png
+
+✓ Exported to Mermaid: pipeline_graph.mmd
+  View at: https://mermaid.live/
+
+✓ Exported to HTML: pipeline_graph.html
+  Open in browser for interactive visualization
+
+
+============================================================
+Example 5: ETL Pipeline Visualization
+============================================================
+
+Execution Plan
+============================================================
+
+Total Steps: 10
+Execution Phases: 5
+
+Phase 1:
+  ⚡ Execute in parallel:
+     • :extract_orders (no dependencies)
+     • :extract_products (no dependencies)
+     • :extract_users (no dependencies)
+
+Phase 2:
+  ⚡ Execute in parallel:
+     • :transform_orders (after :extract_orders)
+     • :transform_products (after :extract_products)
+     • :transform_users (after :extract_users)
+
+Phase 3:
+  ⚡ Execute in parallel:
+     • :aggregate_category_stats (after :transform_products)
+     • :aggregate_user_stats (after :transform_orders, :transform_users)
+
+Phase 4:
+  → Execute :validate_data
+
+Phase 5:
+  → Execute :prepare_output
+
+Performance Estimate:
+  Sequential execution: 10 time units
+  Parallel execution: 5 time units
+  Potential speedup: 2.0x
+
+
+============================================================
+Example 6: Checking Visualization Availability
+============================================================
+
+Named pipeline has dependency graph? true
+Unnamed pipeline has dependency graph? false
+
+Note: Only pipelines with named steps and dependencies can be auto-visualized
+
+
+============================================================
+Example 7: Advanced - Access Dependency Graph
+============================================================
+
+Pipeline dependency information:
+  Total steps: 10
+  Execution phases: 8
+  Parallel groups:
+    Phase 1: validate_order
+    Phase 2: calculate_shipping, check_inventory
+    Phase 3: calculate_totals
+    Phase 4: process_payment
+    Phase 5: reserve_inventory
+    Phase 6: create_shipment
+    Phase 7: send_email, send_sms
+    Phase 8: finalize_order
+
+
+============================================================
+Example 8: Pipeline Structure Comparison
+============================================================
+
+Linear Pipeline:
+Execution Plan
+============================================================
+
+Total Steps: 4
+Execution Phases: 4
+
+Phase 1:
+  → Execute :step1
+
+Phase 2:
+  → Execute :step2
+
+Phase 3:
+  → Execute :step3
+
+Phase 4:
+  → Execute :step4
+
+Performance Estimate:
+  Sequential execution: 4 time units
+  Parallel execution: 4 time units
+  Potential speedup: 1.0x
+
+
+Parallel Pipeline:
+Execution Plan
+============================================================
+
+Total Steps: 5
+Execution Phases: 3
+
+Phase 1:
+  → Execute :start
+
+Phase 2:
+  ⚡ Execute in parallel:
+     • :task1 (after :start)
+     • :task2 (after :start)
+     • :task3 (after :start)
+
+Phase 3:
+  → Execute :end
+
+Performance Estimate:
+  Sequential execution: 5 time units
+  Parallel execution: 3 time units
+  Potential speedup: 1.67x
+
+============================================================
+Direct pipeline visualization completed!
+
+Key Takeaway:
+  No need to manually recreate dependency structures!
+  Just call pipeline.visualize_ascii, pipeline.visualize_dot, etc.
+
+Generated files:
+  - pipeline_graph.dot
+  - pipeline_graph.mmd
+  - pipeline_graph.html
+============================================================
