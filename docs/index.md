@@ -2,19 +2,16 @@
 
 <div align="center">
   <img src="assets/images/logo.svg" alt="placehold image of a DAG" />
-
-**A lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution.**
-
-[Get Started](getting-started/quick-start.md){ .md-button .md-button--primary }
-[View on GitHub](https://github.com/MadBomber/simple_flow){ .md-button }
-
+  <br/><br/>
+  <a href="getting-started/quick-start.md" class="md-button md-button--primary">Get Started</a>
+  <a href="https://github.com/MadBomber/simple_flow" class="md-button">View on GitHub</a>
 </div>
 
 ---
 
 ## Overview
 
-SimpleFlow provides a clean and flexible architecture for orchestrating multi-step workflows. It emphasizes simplicity, composability, and performance through fiber-based concurrent execution.
+SimpleFlow is a lightweight, modular Ruby framework for building composable data processing pipelines with concurrent execution. It provides a clean and flexible architecture for orchestrating multi-step workflows. It emphasizes simplicity, composability, and performance through fiber-based concurrent execution.
 
 ## Key Features
 
