@@ -22,20 +22,3 @@ require_relative 'simple_flow/pipeline'
 
 module SimpleFlow
 end
-
-__END__
-
-require_relative './simple_flow'
-
-# Usage example
-pipeline = SimpleFlow::Pipeline.new do
-  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: '1234'
-  use_middleware SimpleFlow::MiddleWare::Logging
-  step ->(result) { puts "Processing: #{result.value}"; result }
-  step ->(result) { result.continue(result.value + 1) }
-end
-
-initial_result = SimpleFlow::Result.new(0)
-result = pipeline.call(initial_result)
-puts "Final Result: #{result.value}"
-
