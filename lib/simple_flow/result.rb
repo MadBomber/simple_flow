@@ -20,14 +20,19 @@ module SimpleFlow
     # Errors occurred during the operation.
     attr_reader :errors
 
+    # Steps that have been activated for dynamic execution.
+    attr_reader :activated_steps
+
     # Initializes a new Result instance.
     # @param value [Object] the outcome of the operation.
     # @param context [Hash, optional] contextual data related to the operation.
     # @param errors [Hash, optional] errors occurred during the operation.
-    def initialize(value, context: {}, errors: {})
+    # @param activated_steps [Array<Symbol>, optional] steps activated for dynamic execution.
+    def initialize(value, context: {}, errors: {}, activated_steps: [])
       @value = value
       @context = context
       @errors = errors
+      @activated_steps = activated_steps
       @continue = true
     end
 
@@ -36,7 +41,7 @@ module SimpleFlow
     # @param value [Object] the value to store.
     # @return [Result] a new Result instance with updated context.
     def with_context(key, value)
-      result = self.class.new(@value, context: @context.merge(key => value), errors: @errors)
+      result = self.class.new(@value, context: @context.merge(key => value), errors: @errors, activated_steps: @activated_steps)
       result.instance_variable_set(:@continue, @continue)
       result
     end
@@ -47,7 +52,7 @@ module SimpleFlow
     # @param message [String] the error message.
     # @return [Result] a new Result instance with updated errors.
     def with_error(key, message)
-      result = self.class.new(@value, context: @context, errors: @errors.merge(key => [*@errors[key], message]))
+      result = self.class.new(@value, context: @context, errors: @errors.merge(key => [*@errors[key], message]), activated_steps: @activated_steps)
       result.instance_variable_set(:@continue, @continue)
       result
     end
@@ -56,7 +61,7 @@ module SimpleFlow
     # @param new_value [Object, nil] the new value to set, if any.
     # @return [Result] a new Result instance with continue set to false.
     def halt(new_value = nil)
-      result = new_value ? with_value(new_value) : self.class.new(@value, context: @context, errors: @errors)
+      result = new_value ? with_value(new_value) : self.class.new(@value, context: @context, errors: @errors, activated_steps: @activated_steps)
       result.instance_variable_set(:@continue, false)
       result
     end
@@ -74,13 +79,23 @@ module SimpleFlow
       @continue
     end
 
+    # Activates optional steps for dynamic execution.
+    # @param step_names [Symbol, Array<Symbol>] one or more step names to activate.
+    # @return [Result] a new Result instance with the steps added to activated_steps.
+    def activate(*step_names)
+      new_activated = @activated_steps + step_names.flatten
+      result = self.class.new(@value, context: @context, errors: @errors, activated_steps: new_activated)
+      result.instance_variable_set(:@continue, @continue)
+      result
+    end
+
     private
 
     # Creates a new Result instance with updated value.
     # @param new_value [Object] the new value for the result.
     # @return [Result] a new Result instance.
     def with_value(new_value)
-      result = self.class.new(new_value, context: @context, errors: @errors)
+      result = self.class.new(new_value, context: @context, errors: @errors, activated_steps: @activated_steps)
       result.instance_variable_set(:@continue, @continue)
       result
     end

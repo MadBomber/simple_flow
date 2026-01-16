@@ -163,6 +163,59 @@ result = pipeline.call_parallel(SimpleFlow::Result.new(user_id))
 - Use `pipeline.call_parallel(result)` to execute
 - Optimal for I/O-bound operations (API calls, database queries)
 
+### Optional Steps (Dynamic Execution)
+
+**Optional steps are declared with `depends_on: :optional` and only execute when explicitly activated at runtime.**
+
+This enables dynamic pipelines where the execution path is determined by the data being processed.
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  # Router decides which processor to activate
+  step :router, ->(result) {
+    case result.value[:type]
+    when :pdf
+      result.continue(result.value).activate(:process_pdf)
+    when :image
+      result.continue(result.value).activate(:process_image)
+    else
+      result.continue(result.value).activate(:process_default)
+    end
+  }, depends_on: :none
+
+  # Optional processors - only the activated one runs
+  step :process_pdf, ->(result) {
+    result.continue(process_pdf(result.value))
+  }, depends_on: :optional
+
+  step :process_image, ->(result) {
+    result.continue(process_image(result.value))
+  }, depends_on: :optional
+
+  step :process_default, ->(result) {
+    result.continue(process_default(result.value))
+  }, depends_on: :optional
+end
+
+# Only :router and :process_pdf execute
+result = pipeline.call_parallel(SimpleFlow::Result.new({ type: :pdf }))
+```
+
+**Key characteristics:**
+- Declared with `depends_on: :optional`
+- Not executed unless activated with `result.activate(:step_name)`
+- Can activate multiple steps: `result.activate(:a, :b, :c)`
+- Optional steps can activate other optional steps (chaining)
+- Idempotent - activating the same step twice is safe
+- Activating unknown or non-optional steps raises `ArgumentError`
+
+**Common patterns:**
+- **Router Pattern** - Route to different handlers based on data
+- **Soft Failure Pattern** - Activate error handlers instead of halting
+- **Feature Flags** - Enable/disable features at runtime
+
+**[Learn more about optional steps →](../guides/optional-steps.md)**
+
 ## Step Contract
 
 Every step must:
@@ -388,4 +441,5 @@ end
 - [Pipeline](pipeline.md) - Learn how steps are orchestrated
 - [Flow Control](flow-control.md) - Advanced flow control patterns
 - [Parallel Execution](../concurrent/parallel-steps.md) - Concurrent step execution
+- [Optional Steps](../guides/optional-steps.md) - Dynamic step activation patterns
 - [Error Handling Guide](../guides/error-handling.md) - Comprehensive error handling

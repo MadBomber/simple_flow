@@ -242,6 +242,38 @@ result = pipeline.call_parallel(SimpleFlow::Result.new(data))
 
 **Note:** For steps with no dependencies, you can use either `depends_on: :none` (more readable) or `depends_on: []`.
 
+### Optional Steps (Dynamic DAG)
+
+Optional steps are declared with `depends_on: :optional` and only execute when explicitly activated at runtime:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :router, ->(r) {
+    case r.value[:type]
+    when :pdf then r.continue(r.value).activate(:process_pdf)
+    when :image then r.continue(r.value).activate(:process_image)
+    else r.continue(r.value).activate(:process_default)
+    end
+  }, depends_on: :none
+
+  step :process_pdf, ->(r) { process_pdf(r) }, depends_on: :optional
+  step :process_image, ->(r) { process_image(r) }, depends_on: :optional
+  step :process_default, ->(r) { process_default(r) }, depends_on: :optional
+end
+
+result = pipeline.call_parallel(SimpleFlow::Result.new({ type: :pdf, data: "..." }))
+# Only :router and :process_pdf execute
+```
+
+**Key features:**
+- Declare optional steps with `depends_on: :optional`
+- Activate steps dynamically with `result.activate(:step_name)`
+- Activate multiple steps at once: `result.activate(:step_a, :step_b)`
+- Optional steps can activate other optional steps (chaining)
+- Great for routing, feature flags, and soft error handling
+
+**[Learn more →](https://madbomber.github.io/simple_flow/guides/optional-steps/)**
+
 **Execution flow:**
 
 ```mermaid
@@ -455,6 +487,7 @@ Check out the `examples/` directory for comprehensive examples:
 10. `10_concurrency_control.rb` - Per-pipeline concurrency control
 11. `11_sequential_dependencies.rb` - Sequential step dependencies and halting
 12. `12_none_constant.rb` - Using reserved dependency symbols `:none` and `:nothing`
+13. `13_optional_steps_in_dynamic_dag.rb` - Optional steps with dynamic activation
 
 ## Requirements
 

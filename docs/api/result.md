@@ -8,7 +8,7 @@ The `Result` class is an immutable value object that represents the outcome of a
 
 ### Constructor
 
-#### `new(value, context: {}, errors: {})`
+#### `new(value, context: {}, errors: {}, activated_steps: [])`
 
 Creates a new Result instance.
 
@@ -16,6 +16,7 @@ Creates a new Result instance.
 - `value` (Object) - The outcome of the operation
 - `context` (Hash, optional) - Contextual data related to the operation (default: `{}`)
 - `errors` (Hash, optional) - Errors organized by category (default: `{}`)
+- `activated_steps` (Array, optional) - Steps to activate for dynamic execution (default: `[]`)
 
 **Returns:** Result instance
 
@@ -78,6 +79,21 @@ result = SimpleFlow::Result.new(nil, errors: {
 
 result.errors[:validation]  # => ["Email required", "Password too short"]
 result.errors[:auth]        # => ["Invalid credentials"]
+```
+
+#### `activated_steps`
+
+Steps that have been activated for dynamic execution.
+
+**Type:** Array (read-only)
+
+**Example:**
+```ruby
+result = SimpleFlow::Result.new(42)
+result.activated_steps  # => []
+
+result = result.activate(:process_pdf, :send_notification)
+result.activated_steps  # => [:process_pdf, :send_notification]
 ```
 
 ### Instance Methods
@@ -248,6 +264,90 @@ else
 end
 ```
 
+#### `activate(*step_names)`
+
+Activates optional steps for dynamic execution. Activated steps will be executed during `call_parallel` if they are declared with `depends_on: :optional`.
+
+**Parameters:**
+- `step_names` (Symbol, Array<Symbol>) - One or more step names to activate
+
+**Returns:** New Result instance with steps added to `activated_steps`
+
+**Immutability:** Creates a new Result object.
+
+**Example:**
+```ruby
+# Activate a single step
+result = SimpleFlow::Result.new(data).activate(:process_pdf)
+result.activated_steps  # => [:process_pdf]
+
+# Activate multiple steps at once
+result = SimpleFlow::Result.new(data).activate(:step_a, :step_b, :step_c)
+result.activated_steps  # => [:step_a, :step_b, :step_c]
+
+# Chain activations
+result = SimpleFlow::Result.new(data)
+  .activate(:step_a)
+  .activate(:step_b)
+result.activated_steps  # => [:step_a, :step_b]
+```
+
+**Usage in Steps (Router Pattern):**
+```ruby
+step :router, ->(result) {
+  case result.value[:type]
+  when :pdf
+    result.continue(result.value).activate(:process_pdf)
+  when :image
+    result.continue(result.value).activate(:process_image)
+  else
+    result.continue(result.value).activate(:process_default)
+  end
+}, depends_on: :none
+
+step :process_pdf, ->(r) { ... }, depends_on: :optional
+step :process_image, ->(r) { ... }, depends_on: :optional
+step :process_default, ->(r) { ... }, depends_on: :optional
+```
+
+**Usage in Steps (Soft Failure Pattern):**
+```ruby
+step :validate, ->(result) {
+  if invalid?(result.value)
+    # Instead of halting, activate error handlers
+    result
+      .with_error(:validation, "Invalid input")
+      .continue(result.value)
+      .activate(:handle_error, :cleanup)
+  else
+    result.continue(result.value)
+  end
+}, depends_on: :none
+
+step :handle_error, ->(r) { log_error(r); r.continue(r.value) }, depends_on: :optional
+step :cleanup, ->(r) { cleanup(r); r.halt }, depends_on: :optional
+```
+
+**Chained Activation:**
+```ruby
+# Optional steps can activate other optional steps
+step :upgrade_to_gold, ->(result) {
+  result
+    .continue(result.value.merge(tier: :gold))
+    .activate(:apply_loyalty_bonus)  # Triggers another optional step
+}, depends_on: :optional
+
+step :apply_loyalty_bonus, ->(result) {
+  result.continue(result.value.merge(bonus: 1000))
+}, depends_on: :optional
+```
+
+**Notes:**
+- Activation is idempotent (activating the same step twice is safe)
+- Activating unknown steps raises `ArgumentError`
+- Activating non-optional steps raises `ArgumentError`
+- Activated steps preserve through `continue`, `halt`, `with_context`, `with_error`
+
 ## Usage Patterns
 
 ### Basic Flow Control
@@ -373,3 +473,4 @@ Result objects are immutable and thread-safe. Multiple threads can safely read f
 - [Pipeline API](pipeline.md) - How pipelines use Result objects
 - [Error Handling Guide](../guides/error-handling.md) - Error handling patterns
 - [Validation Patterns](../guides/validation-patterns.md) - Validation strategies
+- [Optional Steps Guide](../guides/optional-steps.md) - Dynamic step activation patterns

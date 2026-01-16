@@ -62,6 +62,22 @@ pipeline = SimpleFlow::Pipeline.new do
 end
 ```
 
+**Optional Steps:**
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :router, ->(r) {
+    case r.value[:type]
+    when :pdf then r.continue(r.value).activate(:process_pdf)
+    else r.continue(r.value).activate(:process_default)
+    end
+  }, depends_on: :none
+
+  # Only executed when activated
+  step :process_pdf, ->(r) { ... }, depends_on: :optional
+  step :process_default, ->(r) { ... }, depends_on: :optional
+end
+```
+
 **Unnamed Steps:**
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
@@ -292,6 +308,23 @@ Hash of step dependencies (read-only).
 
 **Type:** Hash
 
+#### `optional_steps`
+
+Set of step names declared as optional (read-only).
+
+**Type:** Set
+
+**Example:**
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  step :router, ->(r) { r.continue(r.value) }, depends_on: :none
+  step :process_pdf, ->(r) { r.continue(r.value) }, depends_on: :optional
+  step :process_image, ->(r) { r.continue(r.value) }, depends_on: :optional
+end
+
+pipeline.optional_steps  # => #<Set: {:process_pdf, :process_image}>
+```
+
 ## Usage Examples
 
 ### Basic Sequential Pipeline
@@ -378,5 +411,6 @@ end
 
 - [Result API](result.md) - Result class reference
 - [Parallel Steps Guide](../concurrent/parallel-steps.md) - Using named steps
+- [Optional Steps Guide](../guides/optional-steps.md) - Dynamic step activation
 - [Middleware API](middleware.md) - Middleware reference
 - [Performance Guide](../concurrent/performance.md) - Optimization strategies

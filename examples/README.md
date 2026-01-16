@@ -298,6 +298,60 @@ This example shows the **recommended approach** - visualizing pipelines directly
 
 ---
 
+### 13. Optional Steps in Dynamic DAG (`13_optional_steps_in_dynamic_dag.rb`)
+
+**Demonstrates:**
+- Optional steps declared with `depends_on: :optional`
+- Dynamic activation with `result.activate(:step_name)`
+- Router pattern for type-based processing
+- Soft failure pattern with error handlers and cleanup
+- Chained optional activation (optional steps activating other optional steps)
+
+**Key patterns:**
+
+**1. Router Pattern:**
+```ruby
+step :router, ->(r) {
+  case r.value[:type]
+  when :pdf then r.continue(r.value).activate(:process_pdf)
+  when :image then r.continue(r.value).activate(:process_image)
+  else r.continue(r.value).activate(:process_default)
+  end
+}, depends_on: :none
+
+step :process_pdf, ->(r) { ... }, depends_on: :optional
+step :process_image, ->(r) { ... }, depends_on: :optional
+step :process_default, ->(r) { ... }, depends_on: :optional
+```
+
+**2. Soft Failure Pattern:**
+```ruby
+step :validate, ->(r) {
+  if invalid?(r.value)
+    r.with_error(:validation, "Invalid")
+      .continue(r.value)
+      .activate(:handle_error, :cleanup)  # Instead of halt
+  else
+    r.continue(r.value)
+  end
+}, depends_on: :none
+
+step :handle_error, ->(r) { log_error(r); r.continue(r.value) }, depends_on: :optional
+step :cleanup, ->(r) { cleanup(r); r.halt }, depends_on: :optional
+```
+
+**Key concepts:**
+- `depends_on: :optional` marks a step as optional (not executed by default)
+- `result.activate(:step_name)` adds a step to the execution plan
+- Multiple activations: `activate(:a, :b, :c)`
+- Chaining: optional steps can activate other optional steps
+- Idempotent: activating the same step twice is safe
+- Validation: activating unknown or non-optional steps raises `ArgumentError`
+
+**Run time:** ~1 second
+
+---
+
 ## Async Gem Availability
 
 All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to sequential execution.
