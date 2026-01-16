@@ -128,6 +128,7 @@ nav:
     - Best Practices: concurrent/best-practices.md
   - 📚 Guides:
     - Error Handling: guides/error-handling.md
+    - Optional Steps: guides/optional-steps.md
     - Validation Patterns: guides/validation-patterns.md
     - Choosing Concurrency Model: guides/choosing-concurrency-model.md
     - Data Fetching: guides/data-fetching.md
