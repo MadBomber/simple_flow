@@ -39,7 +39,7 @@ module SimpleFlow
   # end
   #
   class Pipeline
-    attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency, :parallel_groups
+    attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency, :parallel_groups, :optional_steps
 
     # Initializes a new Pipeline object. A block can be provided to dynamically configure the pipeline,
     # allowing the addition of steps and middleware.
@@ -53,6 +53,7 @@ module SimpleFlow
       @named_steps = {}
       @step_dependencies = {}
       @parallel_groups = {}
+      @optional_steps = Set.new
       @concurrency = concurrency
 
       validate_concurrency!
@@ -92,7 +93,7 @@ module SimpleFlow
         callable ||= block
 
         # Validate step name
-        if [:none, :nothing].include?(name)
+        if [:none, :nothing, :optional].include?(name)
           raise ArgumentError, "Step name '#{name}' is reserved. Please use a different name."
         end
 
@@ -100,8 +101,16 @@ module SimpleFlow
 
         callable = apply_middleware(callable)
         @named_steps[name] = callable
-        # Filter out reserved dependency symbols :none and :nothing, and expand parallel group names
-        @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+
+        # Check if this is an optional step
+        if depends_on == :optional
+          @optional_steps << name
+          @step_dependencies[name] = []
+        else
+          # Filter out reserved dependency symbols :none and :nothing, and expand parallel group names
+          @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+        end
+
         @steps << { name: name, callable: callable, type: :named }
       else
         # Unnamed step: step ->(result) { ... } or step { |result| ... }
@@ -312,31 +321,49 @@ module SimpleFlow
     def execute_with_dependency_graph(result)
       require_relative 'dependency_graph'
 
-      graph = DependencyGraph.new(@step_dependencies)
-      parallel_groups = graph.parallel_order
-
       current_result = result
-      step_results = {}
+      executed_steps = Set.new
+      activated_steps = Set.new
 
-      parallel_groups.each do |group|
-        if group.size == 1
+      loop do
+        # Build active dependencies: all non-optional steps + activated optional steps
+        active_dependencies = build_active_dependencies(activated_steps, executed_steps)
+
+        # Find the next group of steps that can be executed
+        next_group = find_next_executable_group(active_dependencies, executed_steps)
+        break if next_group.empty?
+
+        if next_group.size == 1
           # Single step, execute sequentially
-          step_name = group.first
+          step_name = next_group.first
           current_result = @named_steps[step_name].call(current_result)
-          step_results[step_name] = current_result
+          executed_steps << step_name
+
+          # Process any newly activated steps
+          process_activations(current_result, step_name, activated_steps)
+
           return current_result if current_result.respond_to?(:continue?) && !current_result.continue?
         else
           # Multiple steps, execute in parallel
-          callables = group.map { |name| @named_steps[name] }
+          callables = next_group.map { |name| @named_steps[name] }
           results = ParallelExecutor.execute_parallel(callables, current_result, concurrency: @concurrency)
 
           # Check if any step halted
           halted_result = results.find { |r| r.respond_to?(:continue?) && !r.continue? }
           return halted_result if halted_result
 
-          # Merge contexts and errors from all parallel results
+          # Mark all steps as executed
+          next_group.each { |name| executed_steps << name }
+
+          # Process activations from all results
+          next_group.each_with_index do |name, idx|
+            process_activations(results[idx], name, activated_steps)
+          end
+
+          # Merge contexts, errors, and activated_steps from all parallel results
           merged_context = {}
           merged_errors = {}
+          merged_activated = []
           results.each do |r|
             merged_context.merge!(r.context) if r.respond_to?(:context)
             if r.respond_to?(:errors)
@@ -345,24 +372,80 @@ module SimpleFlow
                 merged_errors[key].concat(messages)
               end
             end
+            merged_activated.concat(r.activated_steps) if r.respond_to?(:activated_steps)
           end
 
-          # Store results and create merged result
-          group.each_with_index do |name, idx|
-            step_results[name] = results[idx]
-          end
-
-          # Use the last result's value but with merged context/errors
+          # Use the last result's value but with merged context/errors/activated_steps
           last_result = results.last
           current_result = Result.new(
             last_result.value,
             context: merged_context,
-            errors: merged_errors
+            errors: merged_errors,
+            activated_steps: merged_activated.uniq
           )
         end
       end
 
       current_result
+    end
+
+    # Build the active step dependencies, excluding optional steps that haven't been activated
+    def build_active_dependencies(activated_steps, executed_steps)
+      active_deps = {}
+      @step_dependencies.each do |step_name, deps|
+        # Skip optional steps that haven't been activated
+        next if @optional_steps.include?(step_name) && !activated_steps.include?(step_name)
+
+        # Check if any dependency is an optional step that hasn't been activated
+        has_unactivated_optional_dep = deps.any? do |dep|
+          @optional_steps.include?(dep) && !activated_steps.include?(dep)
+        end
+
+        # If this step depends on an optional step that hasn't been activated, skip it
+        # (it can only run if/when that optional dependency gets activated)
+        next if has_unactivated_optional_dep
+
+        # Filter dependencies to only include steps that will actually run
+        # (non-optional steps and activated optional steps)
+        filtered_deps = deps.select do |dep|
+          !@optional_steps.include?(dep) || activated_steps.include?(dep)
+        end
+
+        active_deps[step_name] = filtered_deps
+      end
+      active_deps
+    end
+
+    # Find the next group of steps that can be executed
+    def find_next_executable_group(active_dependencies, executed_steps)
+      # Find steps whose dependencies have all been executed
+      ready_steps = active_dependencies.keys.select do |step_name|
+        next false if executed_steps.include?(step_name)
+
+        deps = active_dependencies[step_name]
+        deps.all? { |dep| executed_steps.include?(dep) }
+      end
+
+      ready_steps
+    end
+
+    # Process activated steps from a result, validating each
+    def process_activations(result, current_step, activated_steps)
+      return unless result.respond_to?(:activated_steps)
+
+      result.activated_steps.each do |step_name|
+        next if activated_steps.include?(step_name) # Idempotent
+
+        unless @named_steps.key?(step_name)
+          raise ArgumentError, "Step :#{current_step} attempted to activate unknown step :#{step_name}"
+        end
+
+        unless @optional_steps.include?(step_name)
+          raise ArgumentError, "Step :#{current_step} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
+        end
+
+        activated_steps << step_name
+      end
     end
 
     def execute_with_explicit_parallelism(result)
