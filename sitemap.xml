@@ -2,114 +2,118 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://madbomber.github.io/simple_flow/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/api/middleware/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/api/parallel-step/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/api/pipeline/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/api/result/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/concurrent/best-practices/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/concurrent/introduction/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/concurrent/parallel-steps/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/concurrent/performance/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/core-concepts/flow-control/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/core-concepts/middleware/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/core-concepts/overview/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/core-concepts/pipeline/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/core-concepts/result/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/core-concepts/steps/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/development/benchmarking/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/development/contributing/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/development/dagwood-concepts/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/development/testing/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/getting-started/examples/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/getting-started/installation/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/getting-started/quick-start/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/guides/choosing-concurrency-model/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/guides/complex-workflows/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/guides/data-fetching/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/guides/error-handling/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/guides/file-processing/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/simple_flow/guides/optional-steps/</loc>
+         <lastmod>2026-01-16</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/simple_flow/guides/validation-patterns/</loc>
-         <lastmod>2025-11-16</lastmod>
+         <lastmod>2026-01-16</lastmod>
     </url>
 </urlset>
