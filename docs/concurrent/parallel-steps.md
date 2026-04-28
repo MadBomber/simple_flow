@@ -231,7 +231,7 @@ result = pipeline.call_parallel(initial_data)
 
 ## Execution Methods
 
-### `call_parallel(result, strategy: :auto)`
+### `call_parallel(result, strategy: :auto, max_concurrent: nil)`
 
 Executes the pipeline with parallel support:
 
@@ -244,6 +244,9 @@ result = pipeline.call_parallel(initial_result, strategy: :auto)
 
 # Explicit strategy - only uses explicit parallel blocks
 result = pipeline.call_parallel(initial_result, strategy: :explicit)
+
+# Cap simultaneous fibers to prevent thundering-herd failures
+result = pipeline.call_parallel(initial_result, max_concurrent: 5)
 ```
 
 ### `call(result)`
@@ -254,6 +257,49 @@ Executes sequentially (ignores parallelism):
 # Sequential execution - useful for debugging
 result = pipeline.call(initial_result)
 ```
+
+## Concurrency Capping with `max_concurrent:`
+
+By default, all ready steps in a parallel group are launched simultaneously with no back-pressure. For pipelines that call rate-limited APIs or share a DB connection pool, firing 30 fibers at once can exhaust those resources before any result returns.
+
+The `max_concurrent:` keyword caps how many fibers run at the same time using `Async::Semaphore`:
+
+```ruby
+# 20 robot health checks, but only 4 at a time
+pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do
+  step :load_robots, loader, depends_on: []
+
+  step :check_1,  checker, depends_on: [:load_robots]
+  step :check_2,  checker, depends_on: [:load_robots]
+  # ... up to :check_20
+end
+
+result = pipeline.call_parallel(initial_data, max_concurrent: 4)
+```
+
+### How It Works
+
+`max_concurrent:` is forwarded through every parallel execution path — both the dependency-graph path and the explicit `parallel do` block path — and ultimately reaches `ParallelExecutor.execute_with_async`:
+
+```ruby
+semaphore = Async::Semaphore.new(max_concurrent)   # positional limit
+barrier   = Async::Barrier.new(parent: semaphore)  # all tasks gated by semaphore
+```
+
+When the semaphore is full, additional fibers queue up and are released as running fibers complete.
+
+### Thread Fallback
+
+When the `async` gem is unavailable and the pipeline falls back to Ruby threads, `max_concurrent:` is silently ignored — no error is raised and all steps complete normally. Thread-mode back-pressure is out of scope; OS scheduling provides natural throttling for CPU-bound work.
+
+### When to Use
+
+| Scenario | Recommended cap |
+|----------|----------------|
+| Third-party API with rate limit | Match the burst limit (e.g. `5`) |
+| DB connection pool of size N | `N / 2` to leave headroom |
+| Unlimited local computation | `nil` (default — no cap) |
+| Debugging sequential order | `1` (effectively sequential) |
 
 ## Visualizing Dependencies
 

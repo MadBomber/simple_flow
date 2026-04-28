@@ -146,19 +146,25 @@ result.errors     # => Any errors
 result.continue?  # => true/false
 ```
 
-#### `call_parallel(result, strategy: :auto)`
+#### `call_parallel(result, strategy: :auto, max_concurrent: nil)`
 
 Executes the pipeline with parallel execution where possible.
 
 **Parameters:**
 - `result` (Result) - Initial Result object
 - `strategy` (Symbol) - Parallelization strategy (`:auto` or `:explicit`)
+- `max_concurrent` (Integer, nil) - Maximum number of fibers to run at the same time (async only; `nil` means unlimited)
 
 **Returns:** Final Result object
 
 **Strategies:**
 - `:auto` (default) - Uses dependency graph if named steps exist
 - `:explicit` - Only uses explicit parallel blocks
+
+**Notes on `max_concurrent:`:**
+- Only applies when the `async` gem is in use (`:auto` with async present, or `:concurrency: :async`)
+- When the thread fallback is active (`concurrency: :threads`), the cap is silently ignored
+- Useful for preventing thundering-herd failures: API rate limits, DB connection-pool exhaustion, etc.
 
 **Example:**
 ```ruby
@@ -167,6 +173,12 @@ result = pipeline.call_parallel(initial_data)
 
 # Explicit strategy
 result = pipeline.call_parallel(initial_data, strategy: :explicit)
+
+# Cap parallel fibers to avoid overwhelming downstream services
+result = pipeline.call_parallel(initial_data, max_concurrent: 5)
+
+# Cap with explicit strategy
+result = pipeline.call_parallel(initial_data, strategy: :explicit, max_concurrent: 3)
 ```
 
 ### Visualization Methods

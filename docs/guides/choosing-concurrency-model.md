@@ -214,6 +214,7 @@ result = pipeline.call_parallel(config)  # ✅ Async is essential
 | **Setup** | None (built-in) | `gem 'async'` |
 | **Concurrency Limit** | ~100-1,000 | ~10,000+ |
 | **Memory per operation** | 1-2 MB | 4-8 KB |
+| **Back-pressure cap** | Not supported | `max_concurrent:` keyword |
 | **Library compatibility** | Any Ruby gem | Needs async-aware gems |
 | **Learning curve** | Simple | Moderate |
 | **Speed (I/O)** | Fast | Faster |
@@ -235,6 +236,34 @@ result = pipeline.call_parallel(config)  # ✅ Async is essential
 - Can juggle 10,000 tasks because they're mostly waiting anyway
 - Needs special tools designed for rapid task-switching
 - More efficient but requires planning
+
+---
+
+## Capping Concurrency with `max_concurrent:`
+
+Even when using the async gem, you may not want every parallel step to fire at once. The `max_concurrent:` keyword on `call_parallel` limits how many fibers run simultaneously, preventing thundering-herd failures against downstream services:
+
+```ruby
+# Shared connection pool of size 10 — leave headroom
+pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do
+  step :validate, validator, depends_on: []
+
+  # 20 steps declared, but at most 4 run at the same time
+  20.times do |i|
+    step :"fetch_#{i}", fetcher, depends_on: [:validate]
+  end
+
+  step :merge, merger, depends_on: 20.times.map { |i| :"fetch_#{i}" }
+end
+
+result = pipeline.call_parallel(initial_data, max_concurrent: 4)
+```
+
+**Key behaviors:**
+- Implemented via `Async::Semaphore` — fibers queue up and are released as slots open
+- `nil` (the default) means unlimited — existing behavior is unchanged
+- Silently ignored when the thread fallback is active (`concurrency: :threads`)
+- Works with both the dependency-graph path and explicit `parallel do` blocks
 
 ---
 

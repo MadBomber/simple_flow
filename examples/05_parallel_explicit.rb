@@ -12,6 +12,9 @@ Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 #   pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do ... end    # Force async
 #   pipeline = SimpleFlow::Pipeline.new(concurrency: :auto) do ... end     # Auto-detect (default)
 #
+# You can also cap the number of simultaneous fibers to prevent thundering-herd failures:
+#   result = pipeline.call_parallel(data, max_concurrent: 5)
+#
 # See examples/10_concurrency_control.rb for detailed examples
 
 puts "=" * 60

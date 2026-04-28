@@ -205,11 +205,11 @@ module SimpleFlow
     # @param result [Object] the initial data/input to be passed through the pipeline
     # @param strategy [Symbol] :auto (automatic detection) or :explicit (only explicit parallel blocks)
     # @return [Object] the result of executing the pipeline
-    def call_parallel(result, strategy: :auto)
+    def call_parallel(result, strategy: :auto, max_concurrent: nil)
       if strategy == :auto && has_named_steps?
-        execute_with_dependency_graph(result)
+        execute_with_dependency_graph(result, max_concurrent: max_concurrent)
       else
-        execute_with_explicit_parallelism(result)
+        execute_with_explicit_parallelism(result, max_concurrent: max_concurrent)
       end
     end
 
@@ -301,24 +301,25 @@ module SimpleFlow
       @named_steps.any?
     end
 
-    def execute_step_def(step_def, result)
+    def execute_step_def(step_def, result, max_concurrent: nil)
       case step_def[:type]
       when :named, :unnamed
         step_def[:callable].call(result)
       when :parallel
-        execute_parallel_group(step_def[:steps], result)
+        execute_parallel_group(step_def[:steps], result, max_concurrent: max_concurrent)
       end
     end
 
-    def execute_parallel_group(steps, result)
+    def execute_parallel_group(steps, result, max_concurrent: nil)
       callables = steps.map { |s| s[:callable] }
-      results = ParallelExecutor.execute_parallel(callables, result, concurrency: @concurrency)
+      results = ParallelExecutor.execute_parallel(
+        callables, result, concurrency: @concurrency, max_concurrent: max_concurrent
+      )
 
-      # Return the first halted result, or the last result if all continued
       results.find { |r| r.respond_to?(:continue?) && !r.continue? } || results.last
     end
 
-    def execute_with_dependency_graph(result)
+    def execute_with_dependency_graph(result, max_concurrent: nil)
       require_relative 'dependency_graph'
 
       current_result = result
@@ -346,7 +347,9 @@ module SimpleFlow
         else
           # Multiple steps, execute in parallel
           callables = next_group.map { |name| @named_steps[name] }
-          results = ParallelExecutor.execute_parallel(callables, current_result, concurrency: @concurrency)
+          results = ParallelExecutor.execute_parallel(
+            callables, current_result, concurrency: @concurrency, max_concurrent: max_concurrent
+          )
 
           # Check if any step halted
           halted_result = results.find { |r| r.respond_to?(:continue?) && !r.continue? }
@@ -448,10 +451,10 @@ module SimpleFlow
       end
     end
 
-    def execute_with_explicit_parallelism(result)
+    def execute_with_explicit_parallelism(result, max_concurrent: nil)
       steps.reduce(result) do |res, step_def|
         return res if res.respond_to?(:continue?) && !res.continue?
-        execute_step_def(step_def, res)
+        execute_step_def(step_def, res, max_concurrent: max_concurrent)
       end
     end
 

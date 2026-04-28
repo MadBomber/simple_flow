@@ -63,7 +63,7 @@ end
 puts "Pipeline concurrency setting: #{pipeline_threads.concurrency}"
 puts "Will use: Ruby Threads (even if async is available)"
 
-result = pipeline_threads.call(SimpleFlow::Result.new(nil))
+result = pipeline_threads.call_parallel(SimpleFlow::Result.new(nil))
 puts "Result context: #{result.context}"
 puts
 
@@ -222,6 +222,92 @@ pipelines.each_with_index do |pipeline, index|
   puts
 end
 
+# Example 7: Capping fiber concurrency with max_concurrent:
+puts "\nExample 7: Capping Concurrency with max_concurrent:"
+puts "-" * 60
+puts
+
+if async_available
+  puts "Demonstrates that at most N fibers run simultaneously."
+  puts "Useful for: rate-limited APIs, fixed-size DB connection pools."
+  puts
+
+  step_count = 8
+  cap        = 3
+  mutex      = Mutex.new
+  concurrent = 0
+  peak       = 0
+
+  make_step = ->(i) {
+    ->(result) {
+      mutex.synchronize { concurrent += 1; peak = [peak, concurrent].max }
+      sleep 0.05   # simulate I/O overlap
+      mutex.synchronize { concurrent -= 1 }
+      puts "  [Async] Step #{i} done (peak so far: #{peak})"
+      result.continue(result.value + 1)
+    }
+  }
+
+  capped_pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do
+    step :start, ->(result) { result.continue(0) }, depends_on: :none
+    step_count.times do |i|
+      step :"task_#{i}", make_step.call(i), depends_on: [:start]
+    end
+    step :finish, ->(result) { result.continue(result.value) },
+         depends_on: step_count.times.map { |i| :"task_#{i}" }
+  end
+
+  puts "Running #{step_count} parallel steps with max_concurrent: #{cap}..."
+  capped_result = capped_pipeline.call_parallel(
+    SimpleFlow::Result.new(0),
+    max_concurrent: cap
+  )
+
+  puts "\nPeak simultaneous fibers: #{peak} (cap was #{cap})"
+  puts "Cap respected?           #{peak <= cap ? '✓ Yes' : '✗ No'}"
+  puts "All steps completed?     #{capped_result.continue? ? '✓ Yes' : '✗ No'}"
+else
+  puts "Skipping: async gem not available"
+end
+
+puts
+
+# Example 8: Thread fallback silently ignores max_concurrent:
+puts "\nExample 8: Thread Fallback Ignores max_concurrent:"
+puts "-" * 60
+puts
+
+puts "When concurrency: :threads is active, max_concurrent: is"
+puts "silently ignored — no error raised, all steps complete."
+puts
+
+thread_pipeline = SimpleFlow::Pipeline.new(concurrency: :threads) do
+  step :a, ->(result) {
+    sleep 0.02
+    result.with_context(:a, :done).continue(result.value)
+  }, depends_on: :none
+
+  step :b, ->(result) {
+    sleep 0.02
+    result.with_context(:b, :done).continue(result.value)
+  }, depends_on: :none
+
+  step :c, ->(result) {
+    sleep 0.02
+    result.with_context(:c, :done).continue(result.value)
+  }, depends_on: :none
+end
+
+thread_result = thread_pipeline.call_parallel(
+  SimpleFlow::Result.new(nil),
+  max_concurrent: 1   # ignored — thread fallback has no cap
+)
+
+puts "All steps completed? #{thread_result.continue? ? '✓ Yes' : '✗ No'}"
+puts "Context: #{thread_result.context}"
+puts "(No error raised even though max_concurrent: 1 was passed)"
+puts
+
 puts "=" * 60
 puts "Concurrency control examples completed!"
 puts "=" * 60
@@ -231,5 +317,8 @@ puts "  • concurrency: :auto (default) - auto-detects best option"
 puts "  • concurrency: :threads - always uses Ruby threads"
 puts "  • concurrency: :async - requires async gem, uses fibers"
 puts "  • Different pipelines can use different concurrency models"
-puts "  • Choose based on your specific workload requirements"
+puts "  • max_concurrent: N - caps simultaneous fibers (async only)"
+puts "  • max_concurrent: is silently ignored for the thread fallback"
+puts "  • Use max_concurrent: to protect rate-limited APIs and"
+puts "    fixed-size connection pools from thundering-herd failures"
 puts
