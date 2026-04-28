@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1478,6 +1478,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#capping-concurrency-with-max_concurrent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capping Concurrency with max_concurrent:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#switching-between-models" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2404,6 +2415,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#capping-concurrency-with-max_concurrent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capping Concurrency with max_concurrent:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#switching-between-models" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2929,6 +2951,11 @@
 <td>4-8 KB</td>
 </tr>
 <tr>
+<td><strong>Back-pressure cap</strong></td>
+<td>Not supported</td>
+<td><code>max_concurrent:</code> keyword</td>
+</tr>
+<tr>
 <td><strong>Library compatibility</strong></td>
 <td>Any Ruby gem</td>
 <td>Needs async-aware gems</td>
@@ -2968,92 +2995,114 @@
 - Needs special tools designed for rapid task-switching
 - More efficient but requires planning</p>
 <hr />
+<h2 id="capping-concurrency-with-max_concurrent">Capping Concurrency with <code>max_concurrent:</code><a class="headerlink" href="#capping-concurrency-with-max_concurrent" title="Permanent link">&para;</a></h2>
+<p>Even when using the async gem, you may not want every parallel step to fire at once. The <code>max_concurrent:</code> keyword on <code>call_parallel</code> limits how many fibers run simultaneously, preventing thundering-herd failures against downstream services:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Shared connection pool of size 10 — leave headroom</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:async</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:validate</span><span class="p">,</span><span class="w"> </span><span class="n">validator</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="c1"># 20 steps declared, but at most 4 run at the same time</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="mi">20</span><span class="o">.</span><span class="n">times</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="n">step</span><span class="w"> </span><span class="ss">:&quot;fetch_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="ss">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:merge</span><span class="p">,</span><span class="w"> </span><span class="n">merger</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span><span class="w"> </span><span class="ss">:&quot;fetch_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="ss">&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="k">end</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span><span class="w"> </span><span class="ss">max_concurrent</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Key behaviors:</strong>
+- Implemented via <code>Async::Semaphore</code> — fibers queue up and are released as slots open
+- <code>nil</code> (the default) means unlimited — existing behavior is unchanged
+- Silently ignored when the thread fallback is active (<code>concurrency: :threads</code>)
+- Works with both the dependency-graph path and explicit <code>parallel do</code> blocks</p>
+<hr />
 <h2 id="switching-between-models">Switching Between Models<a class="headerlink" href="#switching-between-models" title="Permanent link">&para;</a></h2>
 <p>The beauty of SimpleFlow is that you can switch between concurrency models without changing your pipeline code:</p>
 <h3 id="starting-with-threads">Starting with Threads<a class="headerlink" href="#starting-with-threads" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Gemfile - no async gem</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Your pipeline code</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_user</span><span class="p">,</span><span class="w"> </span><span class="n">user_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_orders</span><span class="p">,</span><span class="w"> </span><span class="n">order_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_products</span><span class="p">,</span><span class="w"> </span><span class="n">product_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="k">end</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Uses threads</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Gemfile - no async gem</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Your pipeline code</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_user</span><span class="p">,</span><span class="w"> </span><span class="n">user_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_orders</span><span class="p">,</span><span class="w"> </span><span class="n">order_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_products</span><span class="p">,</span><span class="w"> </span><span class="n">product_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="k">end</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Uses threads</span>
 </span></code></pre></div>
 <h3 id="upgrading-to-async">Upgrading to Async<a class="headerlink" href="#upgrading-to-async" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Gemfile - add async gem</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># Same pipeline code - no changes needed!</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_user</span><span class="p">,</span><span class="w"> </span><span class="n">user_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_orders</span><span class="p">,</span><span class="w"> </span><span class="n">order_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_products</span><span class="p">,</span><span class="w"> </span><span class="n">product_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">end</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Now uses async automatically</span>
-</span></code></pre></div>
-<h3 id="mixing-concurrency-models-in-one-application">Mixing Concurrency Models in One Application<a class="headerlink" href="#mixing-concurrency-models-in-one-application" title="Permanent link">&para;</a></h3>
-<p>You can use different concurrency models for different pipelines in the same application:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Gemfile - include async for high-volume pipelines</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Gemfile - add async gem</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Low-volume pipeline: Use threads for simplicity</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">user_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:threads</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:validate</span><span class="p">,</span><span class="w"> </span><span class="n">validator</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_profile</span><span class="p">,</span><span class="w"> </span><span class="n">profile_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_preferences</span><span class="p">,</span><span class="w"> </span><span class="n">prefs_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Same pipeline code - no changes needed!</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_user</span><span class="p">,</span><span class="w"> </span><span class="n">user_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_orders</span><span class="p">,</span><span class="w"> </span><span class="n">order_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_products</span><span class="p">,</span><span class="w"> </span><span class="n">product_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:fetch_user</span><span class="o">]</span>
 </span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="k">end</span>
 </span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="c1"># High-volume pipeline: Use async for efficiency</span>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="n">monitoring_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:async</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:load_endpoints</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint_loader</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:check_all</span><span class="p">,</span><span class="w"> </span><span class="n">health_checker</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:load_endpoints</span><span class="o">]</span>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:alert</span><span class="p">,</span><span class="w"> </span><span class="n">alerter</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:check_all</span><span class="o">]</span>
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="k">end</span>
-</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
-</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="c1"># Each pipeline uses its configured concurrency model</span>
-</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="n">user_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user_pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">user_data</span><span class="p">)</span><span class="w">        </span><span class="c1"># Uses threads</span>
-</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="n">monitoring_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">monitoring_pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="w"> </span><span class="c1"># Uses async</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Now uses async automatically</span>
+</span></code></pre></div>
+<h3 id="mixing-concurrency-models-in-one-application">Mixing Concurrency Models in One Application<a class="headerlink" href="#mixing-concurrency-models-in-one-application" title="Permanent link">&para;</a></h3>
+<p>You can use different concurrency models for different pipelines in the same application:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Gemfile - include async for high-volume pipelines</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Low-volume pipeline: Use threads for simplicity</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">user_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:threads</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:validate</span><span class="p">,</span><span class="w"> </span><span class="n">validator</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_profile</span><span class="p">,</span><span class="w"> </span><span class="n">profile_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:fetch_preferences</span><span class="p">,</span><span class="w"> </span><span class="n">prefs_fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="k">end</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="c1"># High-volume pipeline: Use async for efficiency</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="n">monitoring_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:async</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:load_endpoints</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint_loader</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:check_all</span><span class="p">,</span><span class="w"> </span><span class="n">health_checker</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:load_endpoints</span><span class="o">]</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:alert</span><span class="p">,</span><span class="w"> </span><span class="n">alerter</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:check_all</span><span class="o">]</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="k">end</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="c1"># Each pipeline uses its configured concurrency model</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="n">user_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user_pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">user_data</span><span class="p">)</span><span class="w">        </span><span class="c1"># Uses threads</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="n">monitoring_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">monitoring_pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="w"> </span><span class="c1"># Uses async</span>
 </span></code></pre></div>
 <p>This allows you to optimize each pipeline based on its specific requirements!</p>
 <hr />
 <h2 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h2>
 <h3 id="io-bound-operations">I/O-Bound Operations<a class="headerlink" href="#io-bound-operations" title="Permanent link">&para;</a></h3>
 <p>Both threads and async excel at I/O-bound operations (network, disk, database):</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># API calls, database queries, file operations</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># Both models provide significant speedup over sequential execution</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Sequential: 10 API calls × 200ms = 2000ms</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Threads:    10 API calls in parallel = ~200ms</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># Async:      10 API calls in parallel = ~200ms</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Winner: Tie (both are fast for moderate I/O)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># API calls, database queries, file operations</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1"># Both models provide significant speedup over sequential execution</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Sequential: 10 API calls × 200ms = 2000ms</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># Threads:    10 API calls in parallel = ~200ms</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># Async:      10 API calls in parallel = ~200ms</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1"># Winner: Tie (both are fast for moderate I/O)</span>
 </span></code></pre></div>
 <h3 id="high-concurrency-1000-operations">High Concurrency (1000+ operations)<a class="headerlink" href="#high-concurrency-1000-operations" title="Permanent link">&para;</a></h3>
 <p>Async shines when dealing with thousands of concurrent operations:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># 5,000 concurrent HTTP requests</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># Threads:  5,000 threads × 1.5 MB = 7.5 GB RAM ❌</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Async:    5,000 fibers × 6 KB = 30 MB RAM ✅</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># Winner: Async (dramatically lower resource usage)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># 5,000 concurrent HTTP requests</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1"># Threads:  5,000 threads × 1.5 MB = 7.5 GB RAM ❌</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Async:    5,000 fibers × 6 KB = 30 MB RAM ✅</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># Winner: Async (dramatically lower resource usage)</span>
 </span></code></pre></div>
 <h3 id="cpu-bound-operations">CPU-Bound Operations<a class="headerlink" href="#cpu-bound-operations" title="Permanent link">&para;</a></h3>
 <p>Neither model helps with pure CPU work due to Ruby's GIL:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Heavy computation (image processing, data crunching)</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1"># GIL ensures only one thread/fiber does CPU work at a time</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Sequential: 1000ms</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Threads:    1000ms (GIL limitation)</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># Async:      1000ms (GIL limitation)</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Winner: None (use process-based parallelism for CPU work)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Heavy computation (image processing, data crunching)</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># GIL ensures only one thread/fiber does CPU work at a time</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Sequential: 1000ms</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># Threads:    1000ms (GIL limitation)</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># Async:      1000ms (GIL limitation)</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="c1"># Winner: None (use process-based parallelism for CPU work)</span>
 </span></code></pre></div>
 <hr />
 <h2 id="common-questions">Common Questions<a class="headerlink" href="#common-questions" title="Permanent link">&para;</a></h2>
@@ -3065,8 +3114,8 @@
 <p><strong>A:</strong> Start without async (use threads). It's simpler and works great for most use cases. Add async later if you need it.</p>
 <h3 id="q-can-i-check-which-model-is-being-used">Q: Can I check which model is being used?<a class="headerlink" href="#q-can-i-check-which-model-is-being-used" title="Permanent link">&para;</a></h3>
 <p><strong>A:</strong> Yes! Use the <code>async_available?</code> method:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Using async: </span><span class="si">#{</span><span class="n">pipeline</span><span class="o">.</span><span class="n">async_available?</span><span class="si">}</span><span class="s2">&quot;</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Using async: </span><span class="si">#{</span><span class="n">pipeline</span><span class="o">.</span><span class="n">async_available?</span><span class="si">}</span><span class="s2">&quot;</span>
 </span></code></pre></div>
 <h3 id="q-are-there-any-compatibility-issues-with-async">Q: Are there any compatibility issues with async?<a class="headerlink" href="#q-are-there-any-compatibility-issues-with-async" title="Permanent link">&para;</a></h3>
 <p><strong>A:</strong> Async requires async-aware libraries for best results:

@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1517,10 +1517,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#execute_parallelsteps-result" class="md-nav__link">
+  <a href="#execute_parallelsteps-result-concurrency-auto-max_concurrent-nil" class="md-nav__link">
     <span class="md-ellipsis">
       
-        execute_parallel(steps, result)
+        execute_parallel(steps, result, concurrency: :auto, max_concurrent: nil)
       
     </span>
   </a>
@@ -1578,10 +1578,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sequential-fallback" class="md-nav__link">
+  <a href="#thread-fallback" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sequential Fallback
+        Thread Fallback
       
     </span>
   </a>
@@ -2108,10 +2108,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#execute_parallelsteps-result" class="md-nav__link">
+  <a href="#execute_parallelsteps-result-concurrency-auto-max_concurrent-nil" class="md-nav__link">
     <span class="md-ellipsis">
       
-        execute_parallel(steps, result)
+        execute_parallel(steps, result, concurrency: :auto, max_concurrent: nil)
       
     </span>
   </a>
@@ -2169,10 +2169,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sequential-fallback" class="md-nav__link">
+  <a href="#thread-fallback" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sequential Fallback
+        Thread Fallback
       
     </span>
   </a>
@@ -2538,17 +2538,21 @@
 <p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/parallel_executor.rb</code></p>
 <p>Handles parallel execution of steps using the async gem, with automatic fallback to sequential execution.</p>
 <h3 id="class-methods">Class Methods<a class="headerlink" href="#class-methods" title="Permanent link">&para;</a></h3>
-<h4 id="execute_parallelsteps-result"><code>execute_parallel(steps, result)</code><a class="headerlink" href="#execute_parallelsteps-result" title="Permanent link">&para;</a></h4>
+<h4 id="execute_parallelsteps-result-concurrency-auto-max_concurrent-nil"><code>execute_parallel(steps, result, concurrency: :auto, max_concurrent: nil)</code><a class="headerlink" href="#execute_parallelsteps-result-concurrency-auto-max_concurrent-nil" title="Permanent link">&para;</a></h4>
 <p>Executes a group of steps in parallel.</p>
 <p><strong>Parameters:</strong>
 - <code>steps</code> (Array<Proc>) - Array of callable steps
-- <code>result</code> (Result) - The input result to pass to each step</p>
+- <code>result</code> (Result) - The input result to pass to each step
+- <code>concurrency</code> (Symbol) - Concurrency model (<code>:auto</code>, <code>:threads</code>, or <code>:async</code>)
+- <code>max_concurrent</code> (Integer, nil) - Maximum number of fibers to run simultaneously (async only; <code>nil</code> means unlimited)</p>
 <p><strong>Returns:</strong> Array<Result> - Results from each step</p>
 <p><strong>Behavior:</strong>
 - Uses async gem for true parallel execution if available
-- Falls back to sequential execution if async is not available
+- Falls back to Ruby threads if async is not available
 - Each step receives the same input result
-- Returns array of results in same order as input steps</p>
+- Returns array of results in same order as input steps
+- When <code>max_concurrent:</code> is set and async is in use, an <code>Async::Semaphore</code> gates fiber spawning so at most <code>max_concurrent</code> fibers run at once
+- <code>max_concurrent:</code> is silently ignored when the thread fallback is active</p>
 <p><strong>Example:</strong>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:a</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;data_a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">continue</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
@@ -2557,12 +2561,17 @@
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="o">]</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">execute_parallel</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">)</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">results</span><span class="o">.</span><span class="n">size</span><span class="w">  </span><span class="c1"># =&gt; 3</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">results</span><span class="o">[</span><span class="mi">0</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:a</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_a&quot;</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">results</span><span class="o">[</span><span class="mi">1</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:b</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_b&quot;</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">results</span><span class="o">[</span><span class="mi">2</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:c</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_c&quot;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Unlimited concurrency (default)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">execute_parallel</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># Cap at 2 simultaneous fibers</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">ParallelExecutor</span><span class="o">.</span><span class="n">execute_parallel</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="p">,</span><span class="w"> </span><span class="ss">max_concurrent</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">results</span><span class="o">.</span><span class="n">size</span><span class="w">  </span><span class="c1"># =&gt; 3</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">results</span><span class="o">[</span><span class="mi">0</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:a</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_a&quot;</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">results</span><span class="o">[</span><span class="mi">1</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:b</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_b&quot;</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">results</span><span class="o">[</span><span class="mi">2</span><span class="o">].</span><span class="n">context</span><span class="o">[</span><span class="ss">:c</span><span class="o">]</span><span class="w">  </span><span class="c1"># =&gt; &quot;data_c&quot;</span>
 </span></code></pre></div></p>
 <h4 id="execute_sequentialsteps-result"><code>execute_sequential(steps, result)</code><a class="headerlink" href="#execute_sequentialsteps-result" title="Permanent link">&para;</a></h4>
 <p>Executes steps sequentially (fallback implementation).</p>
@@ -2585,26 +2594,29 @@
 </span></code></pre></div></p>
 <h3 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">&para;</a></h3>
 <h4 id="async-integration">Async Integration<a class="headerlink" href="#async-integration" title="Permanent link">&para;</a></h4>
-<p>When async gem is available:
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Uses Async::Barrier for concurrent execution</span>
+<p>When the async gem is available, all steps are run as fibers inside a single <code>Async</code> block. An optional <code>Async::Semaphore</code> gates the barrier when <code>max_concurrent:</code> is set:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Unlimited (default)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="no">Async</span><span class="w"> </span><span class="k">do</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">barrier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Async</span><span class="o">::</span><span class="no">Barrier</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[]</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">steps</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="n">tasks</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">barrier</span><span class="o">.</span><span class="n">async</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="n">barrier</span><span class="o">.</span><span class="n">wait</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tasks</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:result</span><span class="p">)</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="k">end</span>
-</span></code></pre></div></p>
-<h4 id="sequential-fallback">Sequential Fallback<a class="headerlink" href="#sequential-fallback" title="Permanent link">&para;</a></h4>
-<p>When async is not available:
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">steps</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span><span class="w"> </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
-</span></code></pre></div></p>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">steps</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span><span class="w"> </span><span class="n">barrier</span><span class="o">.</span><span class="n">async</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">barrier</span><span class="o">.</span><span class="n">wait</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">tasks</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:result</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="k">end</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># With cap — semaphore becomes the barrier&#39;s parent</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="no">Async</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">semaphore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Async</span><span class="o">::</span><span class="no">Semaphore</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">max_concurrent</span><span class="p">)</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="n">barrier</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="no">Async</span><span class="o">::</span><span class="no">Barrier</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">parent</span><span class="p">:</span><span class="w"> </span><span class="n">semaphore</span><span class="p">)</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="n">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">steps</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span><span class="w"> </span><span class="n">barrier</span><span class="o">.</span><span class="n">async</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="n">barrier</span><span class="o">.</span><span class="n">wait</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="n">tasks</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:result</span><span class="p">)</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="k">end</span>
+</span></code></pre></div>
+<h4 id="thread-fallback">Thread Fallback<a class="headerlink" href="#thread-fallback" title="Permanent link">&para;</a></h4>
+<p>When async is not available, steps run as Ruby threads. <code>max_concurrent:</code> is not applied in this path:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">threads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">steps</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">step</span><span class="o">|</span><span class="w"> </span><span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">step</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">threads</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:value</span><span class="p">)</span>
+</span></code></pre></div>
 <h2 id="class-simpleflowdependencygraph">Class: <code>SimpleFlow::DependencyGraph</code><a class="headerlink" href="#class-simpleflowdependencygraph" title="Permanent link">&para;</a></h2>
 <p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/dependency_graph.rb</code></p>
 <p>Manages dependencies between pipeline steps and determines which steps can execute in parallel.</p>

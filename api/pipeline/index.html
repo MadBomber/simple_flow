@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1578,10 +1578,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#call_parallelresult-strategy-auto" class="md-nav__link">
+  <a href="#call_parallelresult-strategy-auto-max_concurrent-nil" class="md-nav__link">
     <span class="md-ellipsis">
       
-        call_parallel(result, strategy: :auto)
+        call_parallel(result, strategy: :auto, max_concurrent: nil)
       
     </span>
   </a>
@@ -2218,10 +2218,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#call_parallelresult-strategy-auto" class="md-nav__link">
+  <a href="#call_parallelresult-strategy-auto-max_concurrent-nil" class="md-nav__link">
     <span class="md-ellipsis">
       
-        call_parallel(result, strategy: :auto)
+        call_parallel(result, strategy: :auto, max_concurrent: nil)
       
     </span>
   </a>
@@ -2681,21 +2681,32 @@
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">result</span><span class="o">.</span><span class="n">errors</span><span class="w">     </span><span class="c1"># =&gt; Any errors</span>
 </span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">result</span><span class="o">.</span><span class="n">continue?</span><span class="w">  </span><span class="c1"># =&gt; true/false</span>
 </span></code></pre></div></p>
-<h4 id="call_parallelresult-strategy-auto"><code>call_parallel(result, strategy: :auto)</code><a class="headerlink" href="#call_parallelresult-strategy-auto" title="Permanent link">&para;</a></h4>
+<h4 id="call_parallelresult-strategy-auto-max_concurrent-nil"><code>call_parallel(result, strategy: :auto, max_concurrent: nil)</code><a class="headerlink" href="#call_parallelresult-strategy-auto-max_concurrent-nil" title="Permanent link">&para;</a></h4>
 <p>Executes the pipeline with parallel execution where possible.</p>
 <p><strong>Parameters:</strong>
 - <code>result</code> (Result) - Initial Result object
-- <code>strategy</code> (Symbol) - Parallelization strategy (<code>:auto</code> or <code>:explicit</code>)</p>
+- <code>strategy</code> (Symbol) - Parallelization strategy (<code>:auto</code> or <code>:explicit</code>)
+- <code>max_concurrent</code> (Integer, nil) - Maximum number of fibers to run at the same time (async only; <code>nil</code> means unlimited)</p>
 <p><strong>Returns:</strong> Final Result object</p>
 <p><strong>Strategies:</strong>
 - <code>:auto</code> (default) - Uses dependency graph if named steps exist
 - <code>:explicit</code> - Only uses explicit parallel blocks</p>
+<p><strong>Notes on <code>max_concurrent:</code>:</strong>
+- Only applies when the <code>async</code> gem is in use (<code>:auto</code> with async present, or <code>:concurrency: :async</code>)
+- When the thread fallback is active (<code>concurrency: :threads</code>), the cap is silently ignored
+- Useful for preventing thundering-herd failures: API rate limits, DB connection-pool exhaustion, etc.</p>
 <p><strong>Example:</strong>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Automatic strategy (uses dependency graph)</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_data</span><span class="p">)</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Explicit strategy</span>
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:explicit</span><span class="p">)</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Cap parallel fibers to avoid overwhelming downstream services</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span><span class="w"> </span><span class="ss">max_concurrent</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># Cap with explicit strategy</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:explicit</span><span class="p">,</span><span class="w"> </span><span class="ss">max_concurrent</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
 </span></code></pre></div></p>
 <h3 id="visualization-methods">Visualization Methods<a class="headerlink" href="#visualization-methods" title="Permanent link">&para;</a></h3>
 <h4 id="visualize_asciishow_groups-true"><code>visualize_ascii(show_groups: true)</code><a class="headerlink" href="#visualize_asciishow_groups-true" title="Permanent link">&para;</a></h4>
