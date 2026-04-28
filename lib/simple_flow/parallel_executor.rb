@@ -3,6 +3,7 @@
 begin
   require 'async'
   require 'async/barrier'
+  require 'async/semaphore'
   ASYNC_AVAILABLE = true
 rescue LoadError
   ASYNC_AVAILABLE = false
@@ -20,16 +21,16 @@ module SimpleFlow
     # @param result [Result] the input result
     # @param concurrency [Symbol] concurrency model (:auto, :threads, :async)
     # @return [Array<Result>] array of results from each step
-    def self.execute_parallel(steps, result, concurrency: :auto)
+    def self.execute_parallel(steps, result, concurrency: :auto, max_concurrent: nil)
       case concurrency
       when :auto
-        # Auto-detect: use async if available, otherwise threads
-        ASYNC_AVAILABLE ? execute_with_async(steps, result) : execute_with_threads(steps, result)
+        ASYNC_AVAILABLE ? execute_with_async(steps, result, max_concurrent: max_concurrent)
+                        : execute_with_threads(steps, result)
       when :threads
         execute_with_threads(steps, result)
       when :async
         raise ArgumentError, "Async gem not available" unless ASYNC_AVAILABLE
-        execute_with_async(steps, result)
+        execute_with_async(steps, result, max_concurrent: max_concurrent)
       else
         raise ArgumentError, "Invalid concurrency option: #{concurrency.inspect}"
       end
@@ -39,17 +40,16 @@ module SimpleFlow
     # @param steps [Array<Proc>] array of callable steps
     # @param result [Result] the input result
     # @return [Array<Result>] array of results from each step
-    def self.execute_with_async(steps, result)
+    def self.execute_with_async(steps, result, max_concurrent: nil)
       results = []
 
       Async do
-        barrier = Async::Barrier.new
-        tasks = []
+        semaphore = max_concurrent ? Async::Semaphore.new(max_concurrent) : nil
+        barrier   = Async::Barrier.new(parent: semaphore)
+        tasks     = []
 
         steps.each do |step|
-          tasks << barrier.async do
-            step.call(result)
-          end
+          tasks << barrier.async { step.call(result) }
         end
 
         barrier.wait

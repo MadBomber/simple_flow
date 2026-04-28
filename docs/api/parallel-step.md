@@ -10,21 +10,25 @@ Handles parallel execution of steps using the async gem, with automatic fallback
 
 ### Class Methods
 
-#### `execute_parallel(steps, result)`
+#### `execute_parallel(steps, result, concurrency: :auto, max_concurrent: nil)`
 
 Executes a group of steps in parallel.
 
 **Parameters:**
 - `steps` (Array<Proc>) - Array of callable steps
 - `result` (Result) - The input result to pass to each step
+- `concurrency` (Symbol) - Concurrency model (`:auto`, `:threads`, or `:async`)
+- `max_concurrent` (Integer, nil) - Maximum number of fibers to run simultaneously (async only; `nil` means unlimited)
 
 **Returns:** Array<Result> - Results from each step
 
 **Behavior:**
 - Uses async gem for true parallel execution if available
-- Falls back to sequential execution if async is not available
+- Falls back to Ruby threads if async is not available
 - Each step receives the same input result
 - Returns array of results in same order as input steps
+- When `max_concurrent:` is set and async is in use, an `Async::Semaphore` gates fiber spawning so at most `max_concurrent` fibers run at once
+- `max_concurrent:` is silently ignored when the thread fallback is active
 
 **Example:**
 ```ruby
@@ -35,7 +39,12 @@ steps = [
 ]
 
 initial = SimpleFlow::Result.new(123)
+
+# Unlimited concurrency (default)
 results = SimpleFlow::ParallelExecutor.execute_parallel(steps, initial)
+
+# Cap at 2 simultaneous fibers
+results = SimpleFlow::ParallelExecutor.execute_parallel(steps, initial, max_concurrent: 2)
 
 results.size  # => 3
 results[0].context[:a]  # => "data_a"
@@ -77,29 +86,34 @@ end
 
 #### Async Integration
 
-When async gem is available:
+When the async gem is available, all steps are run as fibers inside a single `Async` block. An optional `Async::Semaphore` gates the barrier when `max_concurrent:` is set:
+
 ```ruby
-# Uses Async::Barrier for concurrent execution
+# Unlimited (default)
 Async do
   barrier = Async::Barrier.new
-  tasks = []
-
-  steps.each do |step|
-    tasks << barrier.async do
-      step.call(result)
-    end
-  end
-
+  tasks = steps.map { |step| barrier.async { step.call(result) } }
   barrier.wait
-  results = tasks.map(&:result)
+  tasks.map(&:result)
+end
+
+# With cap — semaphore becomes the barrier's parent
+Async do
+  semaphore = Async::Semaphore.new(max_concurrent)
+  barrier   = Async::Barrier.new(parent: semaphore)
+  tasks = steps.map { |step| barrier.async { step.call(result) } }
+  barrier.wait
+  tasks.map(&:result)
 end
 ```
 
-#### Sequential Fallback
+#### Thread Fallback
 
-When async is not available:
+When async is not available, steps run as Ruby threads. `max_concurrent:` is not applied in this path:
+
 ```ruby
-steps.map { |step| step.call(result) }
+threads = steps.map { |step| Thread.new { step.call(result) } }
+threads.map(&:value)
 ```
 
 ## Class: `SimpleFlow::DependencyGraph`

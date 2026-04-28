@@ -1,8 +1,8 @@
 # SimpleFlow
 
 [![Ruby Version](https://img.shields.io/badge/ruby-3.2%2B-ruby.svg)](https://www.ruby-lang.org)
-[![Test Coverage](https://img.shields.io/badge/coverage-95.57%25-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
-[![Tests](https://img.shields.io/badge/tests-134%20passing-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Test Coverage](https://img.shields.io/badge/coverage-98.99%25-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Tests](https://img.shields.io/badge/tests-193%20passing-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://madbomber.github.io/simple_flow)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -294,6 +294,8 @@ graph TD
 
 ### Explicit Parallel Blocks
 
+Steps inside a `parallel do` block run concurrently and their contexts and errors are automatically merged into a single result for the next step:
+
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   step ->(r) { validate(r) }
@@ -304,6 +306,7 @@ pipeline = SimpleFlow::Pipeline.new do
     step ->(r) { r.with_context(:cache, fetch_cache).continue(r.value) }
   end
 
+  # All three context keys are available here
   step ->(r) { merge_results(r) }
 end
 ```
@@ -339,6 +342,32 @@ batch_result = batch_pipeline.call_parallel(batch_data) # Uses async
 - `:auto` (default) - Auto-detects best option (async if available, otherwise threads)
 - `:threads` - Always uses Ruby threads (simpler, works with any gems)
 - `:async` - Requires async gem (efficient for high-concurrency workloads)
+
+### Capping Parallel Concurrency
+
+Use `max_concurrent:` on `call_parallel` to limit how many fibers run at once. This prevents thundering-herd failures when parallel steps share a rate-limited API or a fixed-size DB connection pool:
+
+```ruby
+# 20 parallel steps declared, but only 4 run at a time
+pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do
+  step :validate, validator, depends_on: []
+
+  step :fetch_a, fetcher, depends_on: [:validate]
+  step :fetch_b, fetcher, depends_on: [:validate]
+  # ... more fetch steps ...
+end
+
+# Without cap: all ready steps fire simultaneously
+result = pipeline.call_parallel(data)
+
+# With cap: at most 4 fibers run at once via Async::Semaphore
+result = pipeline.call_parallel(data, max_concurrent: 4)
+```
+
+**Notes:**
+- Applies only when using the `async` gem; silently ignored for the thread fallback
+- Works with both dependency-graph (`call_parallel`) and explicit `parallel do` blocks
+- Default is `nil` (unlimited) — no change to existing behavior
 
 **[Learn more →](https://madbomber.github.io/simple_flow/guides/choosing-concurrency-model/)**
 
@@ -452,9 +481,9 @@ bundle exec rake test
 ```
 
 **Test Results:**
-- ✅ 134 tests passing
-- ✅ 480 assertions
-- ✅ 95.57% line coverage
+- ✅ 193 tests passing
+- ✅ 618 assertions
+- ✅ 98.99% line coverage
 
 **[Testing Guide →](https://madbomber.github.io/simple_flow/development/testing/)**
 
@@ -484,7 +513,7 @@ Check out the `examples/` directory for comprehensive examples:
 7. `07_real_world_etl.rb` - ETL pipeline example
 8. `08_graph_visualization.rb` - Manual visualization
 9. `09_pipeline_visualization.rb` - Direct pipeline visualization
-10. `10_concurrency_control.rb` - Per-pipeline concurrency control
+10. `10_concurrency_control.rb` - Per-pipeline concurrency control and `max_concurrent:` cap
 11. `11_sequential_dependencies.rb` - Sequential step dependencies and halting
 12. `12_none_constant.rb` - Using reserved dependency symbols `:none` and `:nothing`
 13. `13_optional_steps_in_dynamic_dag.rb` - Optional steps with dynamic activation

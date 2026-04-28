@@ -1,5 +1,24 @@
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-28
+
+### Added
+- `max_concurrent:` keyword on `call_parallel` and `ParallelExecutor.execute_parallel` to cap simultaneous async fibers via `Async::Semaphore`, preventing thundering-herd failures against rate-limited APIs or connection pools
+- Thread fallback silently ignores `max_concurrent:` with no error raised
+
+### Fixed
+- Explicit `parallel do` blocks now merge contexts and concatenate errors from **all** parallel steps before the next sequential step runs (previously only the last step's result was returned)
+
+### Documentation
+- Updated `call_parallel` API docs with `max_concurrent:` parameter and notes on thread fallback
+- Updated `parallel` DSL method docs with context-merge and halt short-circuit behaviour
+- Updated `ParallelExecutor` API docs with new `max_concurrent:` and `concurrency:` parameters
+- Added "Concurrency Capping with `max_concurrent:`" section to parallel-steps guide
+- Added back-pressure cap row to concurrency model comparison table
+- Updated README with concurrency capping subsection and context-merge note for explicit parallel blocks
+- Added `examples/10_concurrency_control.rb` examples for semaphore cap and thread fallback
+- Updated `examples/05_parallel_explicit.rb` header to document context-merge and halt behaviour
+
 ## [0.3.0] - 2026-01-15
 
 ### Added

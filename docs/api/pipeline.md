@@ -102,12 +102,17 @@ end
 
 #### `parallel(&block)`
 
-Defines an explicit parallel execution block.
+Defines an explicit parallel execution block. All steps inside the block run concurrently; their contexts and errors are **merged** into a single result before the next sequential step runs.
 
 **Parameters:**
 - `block` (Block) - Block containing step definitions
 
 **Returns:** self (for chaining)
+
+**Merging behaviour:**
+- Contexts from all parallel steps are merged (later keys win on collision)
+- Errors from all parallel steps are concatenated per key
+- If any step halts, the halted result is returned immediately (no merge)
 
 **Example:**
 ```ruby
@@ -115,11 +120,12 @@ pipeline = SimpleFlow::Pipeline.new do
   step ->(result) { result.continue(validate(result.value)) }
 
   parallel do
-    step ->(result) { result.with_context(:api, fetch_api).continue(result.value) }
-    step ->(result) { result.with_context(:db, fetch_db).continue(result.value) }
+    step ->(result) { result.with_context(:api,   fetch_api).continue(result.value) }
+    step ->(result) { result.with_context(:db,    fetch_db).continue(result.value) }
     step ->(result) { result.with_context(:cache, fetch_cache).continue(result.value) }
   end
 
+  # result.context contains :api, :db, and :cache from all three parallel steps
   step ->(result) { result.continue(merge_data(result.context)) }
 end
 ```
@@ -146,19 +152,25 @@ result.errors     # => Any errors
 result.continue?  # => true/false
 ```
 
-#### `call_parallel(result, strategy: :auto)`
+#### `call_parallel(result, strategy: :auto, max_concurrent: nil)`
 
 Executes the pipeline with parallel execution where possible.
 
 **Parameters:**
 - `result` (Result) - Initial Result object
 - `strategy` (Symbol) - Parallelization strategy (`:auto` or `:explicit`)
+- `max_concurrent` (Integer, nil) - Maximum number of fibers to run at the same time (async only; `nil` means unlimited)
 
 **Returns:** Final Result object
 
 **Strategies:**
 - `:auto` (default) - Uses dependency graph if named steps exist
 - `:explicit` - Only uses explicit parallel blocks
+
+**Notes on `max_concurrent:`:**
+- Only applies when the `async` gem is in use (`:auto` with async present, or `:concurrency: :async`)
+- When the thread fallback is active (`concurrency: :threads`), the cap is silently ignored
+- Useful for preventing thundering-herd failures: API rate limits, DB connection-pool exhaustion, etc.
 
 **Example:**
 ```ruby
@@ -167,6 +179,12 @@ result = pipeline.call_parallel(initial_data)
 
 # Explicit strategy
 result = pipeline.call_parallel(initial_data, strategy: :explicit)
+
+# Cap parallel fibers to avoid overwhelming downstream services
+result = pipeline.call_parallel(initial_data, max_concurrent: 5)
+
+# Cap with explicit strategy
+result = pipeline.call_parallel(initial_data, strategy: :explicit, max_concurrent: 3)
 ```
 
 ### Visualization Methods
