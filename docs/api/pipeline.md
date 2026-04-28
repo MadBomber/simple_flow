@@ -102,12 +102,17 @@ end
 
 #### `parallel(&block)`
 
-Defines an explicit parallel execution block.
+Defines an explicit parallel execution block. All steps inside the block run concurrently; their contexts and errors are **merged** into a single result before the next sequential step runs.
 
 **Parameters:**
 - `block` (Block) - Block containing step definitions
 
 **Returns:** self (for chaining)
+
+**Merging behaviour:**
+- Contexts from all parallel steps are merged (later keys win on collision)
+- Errors from all parallel steps are concatenated per key
+- If any step halts, the halted result is returned immediately (no merge)
 
 **Example:**
 ```ruby
@@ -115,11 +120,12 @@ pipeline = SimpleFlow::Pipeline.new do
   step ->(result) { result.continue(validate(result.value)) }
 
   parallel do
-    step ->(result) { result.with_context(:api, fetch_api).continue(result.value) }
-    step ->(result) { result.with_context(:db, fetch_db).continue(result.value) }
+    step ->(result) { result.with_context(:api,   fetch_api).continue(result.value) }
+    step ->(result) { result.with_context(:db,    fetch_db).continue(result.value) }
     step ->(result) { result.with_context(:cache, fetch_cache).continue(result.value) }
   end
 
+  # result.context contains :api, :db, and :cache from all three parallel steps
   step ->(result) { result.continue(merge_data(result.context)) }
 end
 ```

@@ -145,7 +145,9 @@ end
 
 ## Context Merging
 
-When parallel steps complete, SimpleFlow automatically merges their contexts and errors:
+When parallel steps complete, SimpleFlow automatically merges their contexts and errors into a single result. This applies to **both** named-step pipelines and explicit `parallel do` blocks.
+
+### Named Steps
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
@@ -168,36 +170,55 @@ pipeline = SimpleFlow::Pipeline.new do
 end
 ```
 
-### Error Accumulation
+### Explicit `parallel do` Blocks
 
-Errors from parallel steps are also merged:
+The same merging behaviour applies:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  step :validate_email, ->(result) {
-    if invalid_email?(result.value[:email])
-      result.with_error(:email, "Invalid format")
-    end
-    result.continue(result.value)
-  }, depends_on: []
+  parallel do
+    step ->(result) { result.with_context(:api,   fetch_api).continue(result.value) }
+    step ->(result) { result.with_context(:db,    fetch_db).continue(result.value) }
+    step ->(result) { result.with_context(:cache, fetch_cache).continue(result.value) }
+  end
 
-  step :validate_phone, ->(result) {
-    if invalid_phone?(result.value[:phone])
-      result.with_error(:phone, "Invalid format")
-    end
+  step ->(result) {
+    # All three context keys are available here
+    result.context[:api]   # => api data
+    result.context[:db]    # => db data
+    result.context[:cache] # => cache data
     result.continue(result.value)
-  }, depends_on: []
+  }
+end
+```
 
-  step :check_errors, ->(result) {
-    # Errors from both parallel validations are available
+### Error Accumulation
+
+Errors from parallel steps are merged regardless of execution path:
+
+```ruby
+pipeline = SimpleFlow::Pipeline.new do
+  parallel do
+    step ->(result) {
+      result.with_error(:email, "Invalid format").continue(result.value)
+    }
+    step ->(result) {
+      result.with_error(:phone, "Invalid format").continue(result.value)
+    }
+  end
+
+  step ->(result) {
+    # Errors from both parallel steps are available
     if result.errors.any?
-      result.halt(result.value)  # Stop if any validation failed
+      result.halt(result.value)
     else
       result.continue(result.value)
     end
-  }, depends_on: [:validate_email, :validate_phone]
+  }
 end
 ```
+
+The same pattern works with named steps and `depends_on:`.
 
 ## Halting Execution
 

@@ -1,8 +1,8 @@
 # SimpleFlow
 
 [![Ruby Version](https://img.shields.io/badge/ruby-3.2%2B-ruby.svg)](https://www.ruby-lang.org)
-[![Test Coverage](https://img.shields.io/badge/coverage-98.98%25-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
-[![Tests](https://img.shields.io/badge/tests-186%20passing-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Test Coverage](https://img.shields.io/badge/coverage-98.99%25-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Tests](https://img.shields.io/badge/tests-193%20passing-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://madbomber.github.io/simple_flow)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -294,6 +294,8 @@ graph TD
 
 ### Explicit Parallel Blocks
 
+Steps inside a `parallel do` block run concurrently and their contexts and errors are automatically merged into a single result for the next step:
+
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
   step ->(r) { validate(r) }
@@ -304,6 +306,7 @@ pipeline = SimpleFlow::Pipeline.new do
     step ->(r) { r.with_context(:cache, fetch_cache).continue(r.value) }
   end
 
+  # All three context keys are available here
   step ->(r) { merge_results(r) }
 end
 ```
@@ -478,9 +481,9 @@ bundle exec rake test
 ```
 
 **Test Results:**
-- ✅ 186 tests passing
-- ✅ 598 assertions
-- ✅ 98.98% line coverage
+- ✅ 193 tests passing
+- ✅ 618 assertions
+- ✅ 98.99% line coverage
 
 **[Testing Guide →](https://madbomber.github.io/simple_flow/development/testing/)**
 

@@ -7,6 +7,11 @@ Timecop.travel(Time.local(2001, 9, 11, 7, 0, 0))
 
 # Explicit parallel blocks
 #
+# Steps inside a `parallel do` block run concurrently. When they complete,
+# contexts from all steps are merged and errors are concatenated before the
+# next sequential step runs. A halt from any step short-circuits the merge
+# and stops the pipeline immediately.
+#
 # NOTE: You can control which concurrency model is used with the concurrency parameter:
 #   pipeline = SimpleFlow::Pipeline.new(concurrency: :threads) do ... end  # Force threads
 #   pipeline = SimpleFlow::Pipeline.new(concurrency: :async) do ... end    # Force async

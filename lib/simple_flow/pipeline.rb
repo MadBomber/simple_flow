@@ -316,7 +316,17 @@ module SimpleFlow
         callables, result, concurrency: @concurrency, max_concurrent: max_concurrent
       )
 
-      results.find { |r| r.respond_to?(:continue?) && !r.continue? } || results.last
+      halted = results.find { |r| r.respond_to?(:continue?) && !r.continue? }
+      return halted if halted
+
+      merged_context = {}
+      merged_errors  = {}
+      results.each do |r|
+        merged_context.merge!(r.context) if r.respond_to?(:context)
+        r.errors.each { |k, m| (merged_errors[k] ||= []).concat(m) } if r.respond_to?(:errors)
+      end
+
+      Result.new(results.last.value, context: merged_context, errors: merged_errors)
     end
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
