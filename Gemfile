@@ -17,6 +17,8 @@ group :development, :test do
 
   # Development and quality tools
   gem "rubocop", "~> 1.50"
+  gem "rubocop-minitest", "~> 0.40.0"
+  gem "rubocop-performance", "~> 1.26.0"
   gem "benchmark-ips", "~> 2.10"
   gem "simplecov", "~> 0.22", require: false
   gem "timecop", "~> 0.9"
