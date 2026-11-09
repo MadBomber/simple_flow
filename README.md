@@ -212,7 +212,7 @@ class CachingMiddleware
 end
 
 pipeline = SimpleFlow::Pipeline.new do
-  use CachingMiddleware, cache: Redis.new
+  use_middleware CachingMiddleware, cache: Redis.new
   step ->(result) { expensive_operation(result) }
 end
 ```
@@ -420,8 +420,8 @@ E-commerce order processing pipeline:
 
 ```ruby
 pipeline = SimpleFlow::Pipeline.new do
-  use SimpleFlow::MiddleWare::Logging
-  use SimpleFlow::MiddleWare::Instrumentation, api_key: 'orders'
+  use_middleware SimpleFlow::MiddleWare::Logging
+  use_middleware SimpleFlow::MiddleWare::Instrumentation, api_key: 'orders'
 
   step :validate_order, ->(r) {
     # Validation logic
