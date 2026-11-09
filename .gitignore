@@ -8,5 +8,10 @@
 /tmp/
 
 # Graph exports written by examples 08 and 09 when run from the repo root
-/ecommerce_graph.*
-/pipeline_graph.*
+/ecommerce_graph.dot
+/ecommerce_graph.html
+/ecommerce_graph.mmd
+/pipeline_graph.dot
+/pipeline_graph.html
+/pipeline_graph.mmd
+/pipeline.png
