@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2847,8 +2847,8 @@
 </ul>
 <h3 id="example-scenario_1">Example Scenario<a class="headerlink" href="#example-scenario_1" title="Permanent link">&para;</a></h3>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Web scraper fetching 10,000 product pages</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;async&#39;</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;async/http/internet&#39;</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'async'</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'async/http/internet'</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:load_urls</span><span class="p">,</span><span class="w"> </span><span class="n">url_loader</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[]</span>
@@ -2908,8 +2908,8 @@
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># Need low memory footprint and high concurrency</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Gemfile:</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async-http&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 0.60&#39;</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'async'</span><span class="p">,</span><span class="w"> </span><span class="s1">'~&gt; 2.0'</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'async-http'</span><span class="p">,</span><span class="w"> </span><span class="s1">'~&gt; 0.60'</span>
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># Explicitly require async concurrency for this high-volume pipeline</span>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:async</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
@@ -3003,10 +3003,10 @@
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="c1"># 20 steps declared, but at most 4 run at the same time</span>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="mi">20</span><span class="o">.</span><span class="n">times</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="n">step</span><span class="w"> </span><span class="ss">:&quot;fetch_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="ss">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="n">step</span><span class="w"> </span><span class="ss">:"fetch_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="ss">"</span><span class="p">,</span><span class="w"> </span><span class="n">fetcher</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:validate</span><span class="o">]</span>
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="k">end</span>
 </span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:merge</span><span class="p">,</span><span class="w"> </span><span class="n">merger</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span><span class="w"> </span><span class="ss">:&quot;fetch_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="ss">&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="n">step</span><span class="w"> </span><span class="ss">:merge</span><span class="p">,</span><span class="w"> </span><span class="n">merger</span><span class="p">,</span><span class="w"> </span><span class="ss">depends_on</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">map</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span><span class="w"> </span><span class="ss">:"fetch_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="ss">"</span><span class="w"> </span><span class="p">}</span>
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="k">end</span>
 </span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
 </span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_data</span><span class="p">,</span><span class="w"> </span><span class="ss">max_concurrent</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
@@ -3021,7 +3021,7 @@
 <p>The beauty of SimpleFlow is that you can switch between concurrency models without changing your pipeline code:</p>
 <h3 id="starting-with-threads">Starting with Threads<a class="headerlink" href="#starting-with-threads" title="Permanent link">&para;</a></h3>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Gemfile - no async gem</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'simple_flow'</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Your pipeline code</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
@@ -3034,8 +3034,8 @@
 </span></code></pre></div>
 <h3 id="upgrading-to-async">Upgrading to Async<a class="headerlink" href="#upgrading-to-async" title="Permanent link">&para;</a></h3>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Gemfile - add async gem</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'simple_flow'</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'async'</span><span class="p">,</span><span class="w"> </span><span class="s1">'~&gt; 2.0'</span>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Same pipeline code - no changes needed!</span>
 </span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
@@ -3049,8 +3049,8 @@
 <h3 id="mixing-concurrency-models-in-one-application">Mixing Concurrency Models in One Application<a class="headerlink" href="#mixing-concurrency-models-in-one-application" title="Permanent link">&para;</a></h3>
 <p>You can use different concurrency models for different pipelines in the same application:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Gemfile - include async for high-volume pipelines</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;simple_flow&#39;</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">&#39;async&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;~&gt; 2.0&#39;</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'simple_flow'</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">gem</span><span class="w"> </span><span class="s1">'async'</span><span class="p">,</span><span class="w"> </span><span class="s1">'~&gt; 2.0'</span>
 </span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
 </span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Low-volume pipeline: Use threads for simplicity</span>
 </span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">user_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">concurrency</span><span class="p">:</span><span class="w"> </span><span class="ss">:threads</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
@@ -3115,7 +3115,7 @@
 <h3 id="q-can-i-check-which-model-is-being-used">Q: Can I check which model is being used?<a class="headerlink" href="#q-can-i-check-which-model-is-being-used" title="Permanent link">&para;</a></h3>
 <p><strong>A:</strong> Yes! Use the <code>async_available?</code> method:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Using async: </span><span class="si">#{</span><span class="n">pipeline</span><span class="o">.</span><span class="n">async_available?</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">"Using async: </span><span class="si">#{</span><span class="n">pipeline</span><span class="o">.</span><span class="n">async_available?</span><span class="si">}</span><span class="s2">"</span>
 </span></code></pre></div>
 <h3 id="q-are-there-any-compatibility-issues-with-async">Q: Are there any compatibility issues with async?<a class="headerlink" href="#q-are-there-any-compatibility-issues-with-async" title="Permanent link">&para;</a></h3>
 <p><strong>A:</strong> Async requires async-aware libraries for best results:
@@ -3264,10 +3264,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.0.1"}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.0.1"}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

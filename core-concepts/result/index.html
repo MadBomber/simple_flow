@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2207,7 +2207,7 @@
 </ul>
 <h2 id="immutability">Immutability<a class="headerlink" href="#immutability" title="Permanent link">&para;</a></h2>
 <p>Results are immutable - every operation returns a new <code>Result</code> instance rather than modifying the existing one. This design promotes safer concurrent operations and functional programming patterns.</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">original</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">original</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"data"</span><span class="p">)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">updated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">original</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:user_id</span><span class="p">,</span><span class="w"> </span><span class="mi">123</span><span class="p">)</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">original</span><span class="o">.</span><span class="n">context</span><span class="w">  </span><span class="c1"># =&gt; {}</span>
@@ -2222,7 +2222,7 @@
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">},</span>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="w"> </span><span class="p">},</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="ss">errors</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">validation</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="s1">&#39;Required field missing&#39;</span><span class="o">]</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="ss">errors</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">validation</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="s1">'Required field missing'</span><span class="o">]</span><span class="w"> </span><span class="p">}</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="working-with-context">Working with Context<a class="headerlink" href="#working-with-context" title="Permanent link">&para;</a></h2>
@@ -2230,10 +2230,10 @@
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:user_id</span><span class="p">,</span><span class="w"> </span><span class="mi">123</span><span class="p">)</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:timestamp</span><span class="p">,</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">to_i</span><span class="p">)</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:source</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;api&#39;</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="ss">:source</span><span class="p">,</span><span class="w"> </span><span class="s1">'api'</span><span class="p">)</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">result</span><span class="o">.</span><span class="n">context</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># =&gt; { user_id: 123, timestamp: 1234567890, source: &#39;api&#39; }</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># =&gt; { user_id: 123, timestamp: 1234567890, source: 'api' }</span>
 </span></code></pre></div>
 <h3 id="common-context-use-cases">Common Context Use Cases<a class="headerlink" href="#common-context-use-cases" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2246,14 +2246,14 @@
 <h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
 <p>Errors are organized by category, allowing multiple errors per category:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Result</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:validation</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Email is required&#39;</span><span class="p">)</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:validation</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Password too short&#39;</span><span class="p">)</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:authentication</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Invalid token&#39;</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:validation</span><span class="p">,</span><span class="w"> </span><span class="s1">'Email is required'</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:validation</span><span class="p">,</span><span class="w"> </span><span class="s1">'Password too short'</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:authentication</span><span class="p">,</span><span class="w"> </span><span class="s1">'Invalid token'</span><span class="p">)</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">result</span><span class="o">.</span><span class="n">errors</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># =&gt; {</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1">#   validation: [&#39;Email is required&#39;, &#39;Password too short&#39;],</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1">#   authentication: [&#39;Invalid token&#39;]</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1">#   validation: ['Email is required', 'Password too short'],</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1">#   authentication: ['Invalid token']</span>
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># }</span>
 </span></code></pre></div>
 <h2 id="flow-control">Flow Control<a class="headerlink" href="#flow-control" title="Permanent link">&para;</a></h2>
@@ -2289,7 +2289,7 @@
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="c1"># Validation</span>
 </span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">params</span><span class="o">[</span><span class="ss">:email</span><span class="o">].</span><span class="n">nil?</span>
 </span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">      </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:validation</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Email required&#39;</span><span class="p">)</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">      </span><span class="o">.</span><span class="n">with_error</span><span class="p">(</span><span class="ss">:validation</span><span class="p">,</span><span class="w"> </span><span class="s1">'Email required'</span><span class="p">)</span>
 </span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">      </span><span class="o">.</span><span class="n">halt</span>
 </span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="k">end</span>
 </span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
@@ -2437,10 +2437,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.0.1"}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.0.1"}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
