@@ -354,7 +354,7 @@ step :cleanup, ->(r) { cleanup(r); r.halt }, depends_on: :optional
 
 ## Async Gem Availability
 
-All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to sequential execution.
+All parallel examples will automatically use the `async` gem if available for fiber-based concurrency. If it is not available, they fall back to Ruby threads, which still run the steps in parallel using a different concurrency model.
 
 Check async availability:
 ```ruby
@@ -402,8 +402,9 @@ gem install async
 chmod +x examples/*.rb
 ```
 
-**Examples run sequentially despite async gem:**
-- Check that async gem is properly installed
+**Examples use threads instead of the async gem:**
+- Without the `async` gem, parallel steps fall back to Ruby threads (still parallel, fiber-based concurrency is just unavailable)
+- Check that the async gem is properly installed if you want the async path
 - Verify with `pipeline.async_available?`
 
 ## Additional Resources
