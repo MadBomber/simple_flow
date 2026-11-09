@@ -43,9 +43,11 @@ module SimpleFlow
 
       def test_initialize_accepts_logger_keyword
         output = StringIO.new
-        Logging.new(@callable, logger: Logger.new(output)).call('x')
+        result = Logging.new(@callable, logger: Logger.new(output)).call('x')
 
+        assert_equal 'Processed: x', result
         assert_match(/Before call/, output.string)
+        assert_match(/After call/, output.string)
       end
 
       def test_logger_keyword_wins_over_positional_logger
