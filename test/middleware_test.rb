@@ -1,4 +1,5 @@
 require_relative 'test_helper'
+require 'stringio'
 
 module SimpleFlow
   module MiddleWare
@@ -38,6 +39,23 @@ module SimpleFlow
         assert_equal 2, final.value
         assert_match(/Before call/, output.string)
         assert_match(/After call/, output.string)
+      end
+
+      def test_initialize_accepts_logger_keyword
+        output = StringIO.new
+        Logging.new(@callable, logger: Logger.new(output)).call('x')
+
+        assert_match(/Before call/, output.string)
+      end
+
+      def test_logger_keyword_wins_over_positional_logger
+        keyword_output = StringIO.new
+        positional_output = StringIO.new
+        middleware = Logging.new(@callable, Logger.new(positional_output), logger: Logger.new(keyword_output))
+        middleware.call('x')
+
+        assert_match(/Before call/, keyword_output.string)
+        assert_empty positional_output.string
       end
     end
 
