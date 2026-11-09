@@ -1,6 +1,5 @@
-require 'minitest/autorun'
-require 'logger'
-require_relative '../lib/simple_flow/middleware'
+require_relative 'test_helper'
+require 'stringio'
 
 module SimpleFlow
   module MiddleWare
@@ -27,6 +26,39 @@ module SimpleFlow
           assert_equal "Processed: initial", processed_result
       end
 
+      def test_pipeline_use_middleware_accepts_logger_keyword
+        output = StringIO.new
+        logger = Logger.new(output)
+        pipeline = SimpleFlow::Pipeline.new do
+          use_middleware SimpleFlow::MiddleWare::Logging, logger: logger
+          step ->(result) { result.continue(result.value + 1) }
+        end
+
+        final = pipeline.call(SimpleFlow::Result.new(1))
+
+        assert_equal 2, final.value
+        assert_match(/Before call/, output.string)
+        assert_match(/After call/, output.string)
+      end
+
+      def test_initialize_accepts_logger_keyword
+        output = StringIO.new
+        result = Logging.new(@callable, logger: Logger.new(output)).call('x')
+
+        assert_equal 'Processed: x', result
+        assert_match(/Before call/, output.string)
+        assert_match(/After call/, output.string)
+      end
+
+      def test_logger_keyword_wins_over_positional_logger
+        keyword_output = StringIO.new
+        positional_output = StringIO.new
+        middleware = Logging.new(@callable, Logger.new(positional_output), logger: Logger.new(keyword_output))
+        middleware.call('x')
+
+        assert_match(/Before call/, keyword_output.string)
+        assert_empty positional_output.string
+      end
     end
 
     class TestInstrumentation < Minitest::Test
