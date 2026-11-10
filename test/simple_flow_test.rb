@@ -13,6 +13,10 @@ module SimpleFlow
       @initial_result = Result.new(1)
     end
 
+    def test_that_it_has_a_version_number
+      assert_match(/\A\d+\.\d+\.\d+/, ::SimpleFlow::VERSION)
+    end
+
     def test_pipeline_execution
       result = @pipeline.call(@initial_result)
       assert_equal 22, result.value, "Pipeline should process value correctly"
