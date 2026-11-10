@@ -142,4 +142,44 @@ class NamedParallelTest < Minitest::Test
     result = pipeline.call_parallel(Result.new(0))
     assert_equal 10, result.value
   end
+
+  # Named steps inside an unnamed parallel block run under call_parallel
+  def test_unnamed_parallel_block_steps_run_under_call_parallel
+    a, p1, p2 = %i[a p1 p2].map { |key| context_flag(key) }
+    pipeline = Pipeline.new do
+      step :a, a
+      parallel do
+        step :p1, p1
+        step :p2, p2
+      end
+    end
+
+    assert_call_parallel_matches_call(pipeline, { a: true, p1: true, p2: true })
+  end
+
+  # A step depending on a step from an unnamed parallel block runs under call_parallel
+  def test_depend_on_step_in_unnamed_parallel_block
+    p1 = context_flag(:p1)
+    pipeline = Pipeline.new do
+      parallel do
+        step :p1, p1
+      end
+      step :c, ->(result) { result.with_context(:c, result.context[:p1]).continue(result.value) }, depends_on: [:p1]
+    end
+
+    assert_call_parallel_matches_call(pipeline, { p1: true, c: true })
+  end
+
+  private
+
+  def context_flag(key)
+    ->(result) { result.with_context(key, true).continue(result.value) }
+  end
+
+  def assert_call_parallel_matches_call(pipeline, expected)
+    sequential = pipeline.call(Result.new(0)).context
+
+    assert_equal expected, sequential
+    assert_equal sequential, pipeline.call_parallel(Result.new(0)).context
+  end
 end
