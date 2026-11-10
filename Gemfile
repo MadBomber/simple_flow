@@ -9,7 +9,6 @@ group :development, :test do
   gem 'debug_me'
   gem 'aigcm'
   gem "irb"
-  gem "logger"
   gem "rake", "~> 13.0"
 
   gem "minitest", "~> 5.16"
