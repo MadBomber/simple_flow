@@ -148,18 +148,14 @@ module SimpleFlow
       group = ParallelBlock.new(self)
       group.instance_eval(&block)
 
-      if name
-        # Named parallel group - track it for dependency resolution
-        step_names = group.steps.map { |s| s[:name] }.compact
-        @parallel_groups[name] = {
-          steps: step_names,
-          dependencies: filtered_deps
-        }
+      step_names = group.steps.map { |s| s[:name] }.compact
 
-        # Add dependencies from the parallel group to its contained steps
-        step_names.each do |step_name|
-          @step_dependencies[step_name] = filtered_deps
-        end
+      # Named parallel group - track it for dependency resolution
+      @parallel_groups[name] = { steps: step_names, dependencies: filtered_deps } if name
+
+      # Named steps join the dependency graph whether or not the group is named
+      step_names.each do |step_name|
+        @step_dependencies[step_name] = filtered_deps
       end
 
       @steps << { steps: group.steps, type: :parallel, name: name }
