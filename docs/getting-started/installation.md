@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Ruby >= 2.7.0
+- Ruby >= 3.2.0
 - Bundler (recommended)
 
 ## Installation Methods
@@ -31,11 +31,8 @@ gem install simple_flow
 
 ## Dependencies
 
-SimpleFlow has minimal dependencies:
-
-- **async** (~> 2.0) - For concurrent execution support
-
-All dependencies are automatically installed.
+- **logger** and **tsort** - no longer default gems as of Ruby 4.0/4.1; installed automatically
+- **async** (~> 2.0) - optional; add it to your Gemfile for fiber-based parallel execution. Without it, parallel steps run on Ruby threads.
 
 ## Verifying Installation
 

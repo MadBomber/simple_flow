@@ -521,6 +521,7 @@ Check out the `examples/` directory for comprehensive examples:
 ## Requirements
 
 - Ruby 3.2 or higher
+- `logger` and `tsort` (no longer default gems as of Ruby 4.0/4.1; installed automatically)
 - Optional: `async` gem (~> 2.0) for parallel execution
 
 ## License

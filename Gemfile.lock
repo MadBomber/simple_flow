@@ -2,6 +2,8 @@ PATH
   remote: .
   specs:
     simple_flow (0.4.0)
+      logger (>= 1.5)
+      tsort (>= 0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -138,7 +140,6 @@ DEPENDENCIES
   benchmark-ips (~> 2.10)
   debug_me
   irb
-  logger
   minitest (~> 5.16)
   rake (~> 13.0)
   rubocop (~> 1.50)
