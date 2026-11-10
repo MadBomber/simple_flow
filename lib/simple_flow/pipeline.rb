@@ -327,6 +327,7 @@ module SimpleFlow
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
       require_relative 'dependency_graph'
+      validate_dependencies!
 
       current_result = result
       executed_steps = Set.new
@@ -396,6 +397,20 @@ module SimpleFlow
       end
 
       current_result
+    end
+
+    # Raises when a step depends on a name that is not a step in the graph,
+    # such as a typo or a parallel group referenced before its declaration
+    # @raise [ArgumentError] naming the first step with an unknown dependency
+    def validate_dependencies!
+      @step_dependencies.each do |step_name, deps|
+        unknown = deps.find { |dep| !@step_dependencies.key?(dep) }
+        next unless unknown
+
+        raise ArgumentError,
+              "Step :#{step_name} depends on unknown step :#{unknown} " \
+              '(parallel groups must be declared before they are referenced)'
+      end
     end
 
     # Build the active step dependencies, excluding optional steps that haven't been activated
