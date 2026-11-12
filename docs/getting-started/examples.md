@@ -397,7 +397,7 @@ ruby examples/12_none_constant.rb
 
 ## Async Gem Availability
 
-All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to sequential execution.
+All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to Ruby threads.
 
 Check async availability:
 

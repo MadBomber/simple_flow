@@ -266,7 +266,7 @@ Checks if the async gem is available for true parallel execution.
 if pipeline.async_available?
   puts "Parallel execution enabled"
 else
-  puts "Falling back to sequential execution"
+  puts "Falling back to Ruby threads"
 end
 ```
 

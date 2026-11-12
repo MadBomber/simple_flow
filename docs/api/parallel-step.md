@@ -6,7 +6,7 @@ This document covers the APIs for parallel execution in SimpleFlow, including th
 
 **Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/parallel_executor.rb`
 
-Handles parallel execution of steps using the async gem, with automatic fallback to sequential execution.
+Handles parallel execution of steps using the async gem, with automatic fallback to Ruby threads.
 
 ### Class Methods
 
@@ -52,19 +52,35 @@ results[1].context[:b]  # => "data_b"
 results[2].context[:c]  # => "data_c"
 ```
 
-#### `execute_sequential(steps, result)`
+#### `execute_with_async(steps, result, max_concurrent: nil)`
 
-Executes steps sequentially (fallback implementation).
+Runs each step in its own fiber inside an `Async` block. This is what `execute_parallel` calls for `:async`, and for `:auto` when the async gem is installed.
 
 **Parameters:**
 - `steps` (Array<Proc>) - Array of callable steps
-- `result` (Result) - The input result
+- `result` (Result) - The input result to pass to each step
+- `max_concurrent` (Integer, nil) - Maximum number of fibers to run at once (`nil` means unlimited)
 
-**Returns:** Array<Result>
+**Returns:** Array<Result> - Results in the same order as `steps`
 
 **Example:**
 ```ruby
-results = SimpleFlow::ParallelExecutor.execute_sequential(steps, initial)
+results = SimpleFlow::ParallelExecutor.execute_with_async(steps, initial, max_concurrent: 2)
+```
+
+#### `execute_with_threads(steps, result)`
+
+Runs each step in its own Ruby thread and waits for all of them. This is what `execute_parallel` calls for `:threads`, and for `:auto` when the async gem is not installed. There is no `max_concurrent:` here; every step gets a thread.
+
+**Parameters:**
+- `steps` (Array<Proc>) - Array of callable steps
+- `result` (Result) - The input result to pass to each step
+
+**Returns:** Array<Result> - Results in the same order as `steps`
+
+**Example:**
+```ruby
+results = SimpleFlow::ParallelExecutor.execute_with_threads(steps, initial)
 ```
 
 #### `async_available?`
@@ -78,7 +94,7 @@ Checks if the async gem is available.
 if SimpleFlow::ParallelExecutor.async_available?
   puts "Async gem is installed - true parallel execution enabled"
 else
-  puts "Async gem not found - will use sequential fallback"
+  puts "Async gem not found - will use Ruby threads"
 end
 ```
 
