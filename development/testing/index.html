@@ -2419,32 +2419,22 @@
 <h1 id="testing-guide">Testing Guide<a class="headerlink" href="#testing-guide" title="Permanent link">&para;</a></h1>
 <p>This guide covers testing strategies, patterns, and best practices for SimpleFlow.</p>
 <h2 id="test-suite-overview">Test Suite Overview<a class="headerlink" href="#test-suite-overview" title="Permanent link">&para;</a></h2>
-<p>SimpleFlow uses Minitest for its test suite.</p>
-<p><strong>Current Coverage:</strong>
-- <strong>121 tests</strong>
-- <strong>296 assertions</strong>
-- <strong>96.61% code coverage</strong>
-- <strong>All tests passing</strong></p>
+<p>SimpleFlow uses Minitest for its test suite, with SimpleCov measuring line coverage. Run the suite to see the current test, assertion, and coverage counts; they change with every release, so this page doesn't list them.</p>
 <h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
 <h3 id="run-all-tests">Run All Tests<a class="headerlink" href="#run-all-tests" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span><span class="nb">test</span>
 </span></code></pre></div>
-<p>Expected output:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Run options: --seed 12345
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a># Running:
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>.............................................................................
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Finished in 0.123456s, 987.65 runs/s, 2345.67 assertions/s.
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>121 tests, 296 assertions, 0 failures, 0 errors, 0 skips
-</span></code></pre></div></p>
+<p>The run ends with a Minitest summary and a SimpleCov coverage line, in this shape (your numbers will differ):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>N runs, N assertions, 0 failures, 0 errors, N skips
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Coverage report generated for Unit Tests to .../coverage.
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Line Coverage: NN.N% (N / N)
+</span></code></pre></div>
+<p>Skips are expected when the optional <code>async</code> gem is installed, as it is in the development Gemfile: those tests check the error raised when <code>async</code> is missing.</p>
 <h3 id="run-specific-test-file">Run Specific Test File<a class="headerlink" href="#run-specific-test-file" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ruby<span class="w"> </span>-Ilib:test<span class="w"> </span>test/pipeline_test.rb
 </span></code></pre></div>
 <h3 id="run-specific-test">Run Specific Test<a class="headerlink" href="#run-specific-test" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ruby<span class="w"> </span>-Ilib:test<span class="w"> </span>test/pipeline_test.rb<span class="w"> </span>-n<span class="w"> </span>test_basic_pipeline
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ruby<span class="w"> </span>-Ilib:test<span class="w"> </span>test/pipeline_test.rb<span class="w"> </span>-n<span class="w"> </span>test_pipeline_with_one_step
 </span></code></pre></div>
 <h3 id="run-tests-with-verbose-output">Run Tests with Verbose Output<a class="headerlink" href="#run-tests-with-verbose-output" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ruby<span class="w"> </span>-Ilib:test<span class="w"> </span>test/pipeline_test.rb<span class="w"> </span>--verbose
@@ -2829,31 +2819,22 @@
 </span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="k">end</span>
 </span></code></pre></div>
 <h2 id="running-tests-in-ci">Running Tests in CI<a class="headerlink" href="#running-tests-in-ci" title="Permanent link">&para;</a></h2>
-<p>SimpleFlow uses GitHub Actions for continuous integration. Tests run automatically on:</p>
+<p>SimpleFlow uses GitHub Actions for continuous integration. The <code>Tests</code> workflow (<code>.github/workflows/test.yml</code>) runs <code>bundle exec rake test</code>:</p>
 <ul>
-<li>Every push to any branch</li>
-<li>Every pull request</li>
-<li>Multiple Ruby versions (2.7, 3.0, 3.1, 3.2, 3.3)</li>
+<li>On every push to <code>main</code> or <code>develop</code></li>
+<li>On every pull request</li>
+<li>On Ruby 3.3 and 3.4</li>
 </ul>
+<p>The gemspec allows Ruby &gt;= 3.2, but CI skips 3.2 because the locked test dependencies (<code>async</code> and <code>io-event</code>) need Ruby 3.3 or newer.</p>
 <h2 id="coverage-reports">Coverage Reports<a class="headerlink" href="#coverage-reports" title="Permanent link">&para;</a></h2>
-<p>To generate coverage reports locally:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Add to test_helper.rb</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'simplecov'</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="no">SimpleCov</span><span class="o">.</span><span class="n">start</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="n">add_filter</span><span class="w"> </span><span class="s1">'/test/'</span>
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="k">end</span>
-</span></code></pre></div>
-<p>Run tests:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span><span class="nb">test</span>
-</span></code></pre></div></p>
-<p>View coverage:
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>open<span class="w"> </span>coverage/index.html
+<p><code>test/test_helper.rb</code> starts SimpleCov, so every <code>bundle exec rake test</code> run writes a coverage report. View it with:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>open<span class="w"> </span>coverage/index.html
 </span></code></pre></div></p>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../contributing/">Contributing Guide</a> - How to contribute</li>
 <li><a href="../benchmarking/">Benchmarking Guide</a> - Performance testing</li>
-<li><a href="/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/">Examples</a> - Working examples to test against</li>
+<li><a href="https://github.com/MadBomber/simple_flow/tree/main/examples">Examples</a> - Working examples to test against</li>
 </ul>
 
 
