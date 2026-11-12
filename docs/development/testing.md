@@ -4,13 +4,7 @@ This guide covers testing strategies, patterns, and best practices for SimpleFlo
 
 ## Test Suite Overview
 
-SimpleFlow uses Minitest for its test suite.
-
-**Current Coverage:**
-- **121 tests**
-- **296 assertions**
-- **96.61% code coverage**
-- **All tests passing**
+SimpleFlow uses Minitest for its test suite, with SimpleCov measuring line coverage. Run the suite to see the current test, assertion, and coverage counts; they change with every release, so this page doesn't list them.
 
 ## Running Tests
 
@@ -20,18 +14,15 @@ SimpleFlow uses Minitest for its test suite.
 bundle exec rake test
 ```
 
-Expected output:
+The run ends with a Minitest summary and a SimpleCov coverage line, in this shape (your numbers will differ):
+
 ```
-Run options: --seed 12345
-
-# Running:
-
-.............................................................................
-
-Finished in 0.123456s, 987.65 runs/s, 2345.67 assertions/s.
-
-121 tests, 296 assertions, 0 failures, 0 errors, 0 skips
+N runs, N assertions, 0 failures, 0 errors, 2 skips
+Coverage report generated for Unit Tests to .../coverage.
+Line Coverage: NN.N% (N / N)
 ```
+
+The two skips are expected when the optional `async` gem is installed, as it is in the development Gemfile: those tests check the error raised when `async` is missing.
 
 ### Run Specific Test File
 
@@ -42,7 +33,7 @@ ruby -Ilib:test test/pipeline_test.rb
 ### Run Specific Test
 
 ```bash
-ruby -Ilib:test test/pipeline_test.rb -n test_basic_pipeline
+ruby -Ilib:test test/pipeline_test.rb -n test_pipeline_with_one_step
 ```
 
 ### Run Tests with Verbose Output
@@ -479,30 +470,17 @@ end
 
 ## Running Tests in CI
 
-SimpleFlow uses GitHub Actions for continuous integration. Tests run automatically on:
+SimpleFlow uses GitHub Actions for continuous integration. The `Tests` workflow (`.github/workflows/test.yml`) runs `bundle exec rake test`:
 
-- Every push to any branch
-- Every pull request
-- Multiple Ruby versions (2.7, 3.0, 3.1, 3.2, 3.3)
+- On every push to `main` or `develop`
+- On every pull request
+- On Ruby 3.3 and 3.4
+
+The gemspec allows Ruby >= 3.2, but CI skips 3.2 because the locked test dependencies (`async` and `io-event`) need Ruby 3.3 or newer.
 
 ## Coverage Reports
 
-To generate coverage reports locally:
-
-```ruby
-# Add to test_helper.rb
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/test/'
-end
-```
-
-Run tests:
-```bash
-bundle exec rake test
-```
-
-View coverage:
+`test/test_helper.rb` starts SimpleCov, so every `bundle exec rake test` run writes a coverage report. View it with:
 ```bash
 open coverage/index.html
 ```
@@ -511,4 +489,4 @@ open coverage/index.html
 
 - [Contributing Guide](contributing.md) - How to contribute
 - [Benchmarking Guide](benchmarking.md) - Performance testing
-- [Examples](/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/) - Working examples to test against
+- [Examples](https://github.com/MadBomber/simple_flow/tree/main/examples) - Working examples to test against
