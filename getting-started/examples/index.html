@@ -2563,7 +2563,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="async-gem-availability">Async Gem Availability<a class="headerlink" href="#async-gem-availability" title="Permanent link">&para;</a></h2>
-<p>All parallel examples will automatically use the <code>async</code> gem if available for true concurrent execution. If not available, they fall back to sequential execution.</p>
+<p>All parallel examples will automatically use the <code>async</code> gem if available for true concurrent execution. If not available, they fall back to Ruby threads.</p>
 <p>Check async availability:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span>
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nb">puts</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">async_available?</span><span class="w">  </span><span class="c1"># =&gt; true or false</span>
@@ -2606,10 +2606,10 @@
 <p><strong>Permission errors on example files:</strong></p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>chmod<span class="w"> </span>+x<span class="w"> </span>examples/*.rb
 </span></code></pre></div>
-<p><strong>Examples run sequentially despite async gem:</strong></p>
+<p><strong>Steps run one after another instead of in parallel:</strong></p>
 <ul>
-<li>Check that async gem is properly installed</li>
-<li>Verify with <code>pipeline.async_available?</code></li>
+<li>Named steps only run in parallel under <code>pipeline.call_parallel</code>, and only when no <code>depends_on:</code> chain links them; steps in a <code>parallel</code> block run in parallel either way</li>
+<li>A missing async gem is not the cause: SimpleFlow falls back to Ruby threads (<code>pipeline.async_available?</code> tells you which one you have)</li>
 </ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>

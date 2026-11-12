@@ -2677,7 +2677,7 @@
 <h1 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h1>
 <p>Understanding the performance implications of parallel execution in SimpleFlow helps you make informed decisions about when and how to use concurrent execution.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>SimpleFlow uses the <code>async</code> gem for true concurrent execution. When the async gem is available, parallel steps run in separate fibers, allowing I/O operations to execute concurrently. When async is not available, SimpleFlow falls back to sequential execution.</p>
+<p>SimpleFlow uses the <code>async</code> gem for true concurrent execution. When the async gem is available, parallel steps run in separate fibers, allowing I/O operations to execute concurrently. When async is not available, SimpleFlow falls back to Ruby threads.</p>
 <h2 id="async-gem-integration">Async Gem Integration<a class="headerlink" href="#async-gem-integration" title="Permanent link">&para;</a></h2>
 <h3 id="checking-availability">Checking Availability<a class="headerlink" href="#checking-availability" title="Permanent link">&para;</a></h3>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SimpleFlow</span><span class="o">::</span><span class="no">Pipeline</span><span class="o">.</span><span class="n">new</span>
@@ -2691,12 +2691,12 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bundle<span class="w"> </span>install
 </span></code></pre></div>
 <h3 id="fallback-behavior">Fallback Behavior<a class="headerlink" href="#fallback-behavior" title="Permanent link">&para;</a></h3>
-<p>If async is not available, SimpleFlow automatically falls back to sequential execution:</p>
+<p>If async is not available, SimpleFlow automatically falls back to Ruby threads:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># With async gem</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Executes in parallel</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Runs steps as fibers</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Without async gem</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Executes sequentially (automatically)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="w">  </span><span class="c1"># Runs steps as Ruby threads (automatically)</span>
 </span></code></pre></div>
 <p>The API remains identical, ensuring your code works in both scenarios.</p>
 <h2 id="when-to-use-parallel-execution">When to Use Parallel Execution<a class="headerlink" href="#when-to-use-parallel-execution" title="Permanent link">&para;</a></h2>
