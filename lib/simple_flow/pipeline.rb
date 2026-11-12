@@ -316,13 +316,9 @@ module SimpleFlow
       return halted if halted
 
       merged_context = {}
-      merged_errors  = {}
-      results.each do |r|
-        merged_context.merge!(r.context) if r.respond_to?(:context)
-        r.errors.each { |k, m| (merged_errors[k] ||= []).concat(m) } if r.respond_to?(:errors)
-      end
+      results.each { |r| merged_context.merge!(r.context) if r.respond_to?(:context) }
 
-      Result.new(results.last.value, context: merged_context, errors: merged_errors)
+      Result.new(results.last.value, context: merged_context, errors: merge_parallel_errors(result, results))
     end
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
@@ -372,16 +368,9 @@ module SimpleFlow
 
           # Merge contexts, errors, and activated_steps from all parallel results
           merged_context = {}
-          merged_errors = {}
           merged_activated = []
           results.each do |r|
             merged_context.merge!(r.context) if r.respond_to?(:context)
-            if r.respond_to?(:errors)
-              r.errors.each do |key, messages|
-                merged_errors[key] ||= []
-                merged_errors[key].concat(messages)
-              end
-            end
             merged_activated.concat(r.activated_steps) if r.respond_to?(:activated_steps)
           end
 
@@ -390,13 +379,33 @@ module SimpleFlow
           current_result = Result.new(
             last_result.value,
             context: merged_context,
-            errors: merged_errors,
+            errors: merge_parallel_errors(current_result, results),
             activated_steps: merged_activated.uniq
           )
         end
       end
 
       current_result
+    end
+
+    # Merges the errors of parallel branches that all started from +input+.
+    # Each branch carries the errors it inherited from +input+; those are kept
+    # once, and only the messages a branch added after them are appended.
+    # @param input [Result] the result every branch received
+    # @param results [Array<Result>] the branch results
+    # @return [Hash{Object => Array}] the merged errors
+    def merge_parallel_errors(input, results)
+      merged = input.errors.transform_values(&:dup)
+      results.each do |r|
+        next unless r.respond_to?(:errors)
+
+        r.errors.each do |key, messages|
+          inherited = input.errors.fetch(key, [])
+          added = messages.first(inherited.size) == inherited ? messages.drop(inherited.size) : messages
+          (merged[key] ||= []).concat(added)
+        end
+      end
+      merged
     end
 
     # Raises when a step depends on a name that is not a step in the graph,
