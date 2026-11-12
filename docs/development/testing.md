@@ -17,12 +17,12 @@ bundle exec rake test
 The run ends with a Minitest summary and a SimpleCov coverage line, in this shape (your numbers will differ):
 
 ```
-N runs, N assertions, 0 failures, 0 errors, 2 skips
+N runs, N assertions, 0 failures, 0 errors, N skips
 Coverage report generated for Unit Tests to .../coverage.
 Line Coverage: NN.N% (N / N)
 ```
 
-The two skips are expected when the optional `async` gem is installed, as it is in the development Gemfile: those tests check the error raised when `async` is missing.
+Skips are expected when the optional `async` gem is installed, as it is in the development Gemfile: those tests check the error raised when `async` is missing.
 
 ### Run Specific Test File
 
