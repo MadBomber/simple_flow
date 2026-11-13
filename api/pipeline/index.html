@@ -1320,6 +1320,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1905,6 +1909,62 @@
     
   
     Middleware API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-graph-visualizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DependencyGraphVisualizer API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../step-tracker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StepTracker API
   
 
     
@@ -2778,7 +2838,7 @@
 </span></code></pre></div></p>
 <h4 id="visualize"><code>visualize</code><a class="headerlink" href="#visualize" title="Permanent link">&para;</a></h4>
 <p>Creates a visualizer for this pipeline's dependency graph.</p>
-<p><strong>Returns:</strong> DependencyGraphVisualizer or nil if no named steps</p>
+<p><strong>Returns:</strong> <a href="../dependency-graph-visualizer/">DependencyGraphVisualizer</a> or nil if no named steps</p>
 <p><strong>Example:</strong>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">visualizer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">visualize</span>
 </span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">if</span><span class="w"> </span><span class="n">visualizer</span>
@@ -2886,6 +2946,7 @@
 <li><a href="../../concurrent/parallel-steps/">Parallel Steps Guide</a> - Using named steps</li>
 <li><a href="../../guides/optional-steps/">Optional Steps Guide</a> - Dynamic step activation</li>
 <li><a href="../middleware/">Middleware API</a> - Middleware reference</li>
+<li><a href="../dependency-graph-visualizer/">DependencyGraphVisualizer API</a> - Every visualization format, including <code>to_html</code></li>
 <li><a href="../../concurrent/performance/">Performance Guide</a> - Optimization strategies</li>
 </ul>
 
