@@ -20,6 +20,7 @@
 - The two "async gem not available" tests now run on every build instead of being skipped (#35)
 - CI also runs the suite on Ruby 4.0 (#27)
 - Regenerated the example regression baselines, which predated 0.4.0, and added one for example 13 (#14)
+- `rake test` runs without Ruby warnings or stray `Instrumentation` output; the pipeline tests now assert that output instead
 
 ### Maintenance
 - Refreshed development and test dependencies: minitest 6, simplecov 1.x, rubocop 1.92, async 2.46 and others; the runtime dependencies are unchanged (#28)

@@ -18,7 +18,8 @@ module SimpleFlow
     end
 
     def test_pipeline_execution
-      result = @pipeline.call(@initial_result)
+      result = nil
+      assert_output(/Instrumentation: test_key took/) { result = @pipeline.call(@initial_result) }
       assert_equal 22, result.value, "Pipeline should process value correctly"
       refute result.continue?, "Result should be halted by second step"
     end
@@ -39,7 +40,8 @@ module SimpleFlow
     end
 
     def test_result_handling
-      result = @pipeline.call(@initial_result)
+      result = nil
+      assert_output(/Instrumentation: test_key took/) { result = @pipeline.call(@initial_result) }
       assert result.errors.empty?, "Result should have no errors"
       assert_equal({}, result.context, "Result context should remain unchanged")
     end

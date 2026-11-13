@@ -34,7 +34,7 @@ module SimpleFlow
         }
       end
 
-      result = pipeline.call(@initial_result)
+      pipeline.call(@initial_result)
 
       # Check that step1 runs first, parallel steps run together, step3 runs last
       assert_equal :step1, execution_order.first

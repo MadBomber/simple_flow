@@ -9,21 +9,21 @@ module SimpleFlow
         @logger = Logger.new($stdout)
         @logging_middleware = Logging.new(@callable, @logger)
       end
-            
-        def test_call_logs_correctly
-          result = "initial"
-          output = StringIO.new
-          logger = Logger.new(output)
-          
-          # Make sure the middleware uses this logger
-          @logging_middleware = Logging.new(@callable, logger)
-          
-          processed_result = @logging_middleware.call(result)
-          
-          # Check if the expected log messages are present in the output
-          assert_match(/Before call/, output.string)
-          assert_match(/After call/, output.string)
-          assert_equal "Processed: initial", processed_result
+
+      def test_call_logs_correctly
+        result = "initial"
+        output = StringIO.new
+        logger = Logger.new(output)
+
+        # Make sure the middleware uses this logger
+        @logging_middleware = Logging.new(@callable, logger)
+
+        processed_result = @logging_middleware.call(result)
+
+        # Check if the expected log messages are present in the output
+        assert_match(/Before call/, output.string)
+        assert_match(/After call/, output.string)
+        assert_equal "Processed: initial", processed_result
       end
 
       def test_pipeline_use_middleware_accepts_logger_keyword
