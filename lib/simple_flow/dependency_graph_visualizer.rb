@@ -100,7 +100,7 @@ module SimpleFlow
           color = colors[idx % colors.size]
           lines << "  // Group #{idx + 1}"
           group.each do |step|
-            lines << "  #{step} [fillcolor=#{color}, style=\"rounded,filled\"];"
+            lines << "  #{dot_id(step)} [fillcolor=#{color}, style=\"rounded,filled\"];"
           end
         end
         lines << ""
@@ -110,10 +110,10 @@ module SimpleFlow
       lines << "  // Dependencies"
       @graph.dependencies.each do |step, deps|
         if deps.empty?
-          lines << "  #{step};"
+          lines << "  #{dot_id(step)};"
         else
           deps.each do |dep|
-            lines << "  #{dep} -> #{step};"
+            lines << "  #{dot_id(dep)} -> #{dot_id(step)};"
           end
         end
       end
@@ -301,7 +301,19 @@ module SimpleFlow
       html
     end
 
+    DOT_KEYWORDS = %w[node edge graph digraph subgraph strict].freeze
+    private_constant :DOT_KEYWORDS
+
     private
+
+    # Quote a DOT ID unless it is a plain identifier that isn't a DOT keyword,
+    # so names like :"fetch-user" or :save? produce valid Graphviz input.
+    def dot_id(name)
+      name = name.to_s
+      return name if name.match?(/\A[A-Za-z_][A-Za-z0-9_]*\z/) && !DOT_KEYWORDS.include?(name.downcase)
+
+      %("#{name.gsub(/["\\]/) { |char| "\\#{char}" }}")
+    end
 
     def build_tree(parallel_groups)
       output = []

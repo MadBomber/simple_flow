@@ -2,6 +2,7 @@
 
 ### Fixed
 - `call_parallel` no longer silently skips steps: named steps inside an unnamed `parallel do` block (and steps that depend on them) now run, and a `depends_on:` naming an unknown step raises `ArgumentError` instead of skipping the step
+- `Pipeline#visualize_dot` (`DependencyGraphVisualizer#to_dot`) quotes step names that aren't plain DOT identifiers, such as `:"fetch-user"`, `:save?` or `:node`, so Graphviz accepts the output; ordinary names are written unchanged (#36)
 - Declared `logger` and `tsort` as runtime dependencies so `require "simple_flow"` works under Bundler on Ruby 4.0+ (logger is no longer a default gem as of Ruby 4.0, and tsort as of 4.1)
 - `MiddleWare::Logging` now accepts `logger:` as a keyword, so the documented `use_middleware SimpleFlow::MiddleWare::Logging, logger: custom_logger` works instead of raising `NoMethodError` on the first step; the positional `Logging.new(callable, logger)` form still works
 - Parallel steps (`call_parallel` and explicit `parallel do` blocks) no longer repeat errors that were already on the incoming result once per branch; each inherited error appears once, followed by the errors each branch added (#18)
