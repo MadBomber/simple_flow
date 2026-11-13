@@ -5,6 +5,7 @@
 - Declared `logger` and `tsort` as runtime dependencies so `require "simple_flow"` works under Bundler on Ruby 4.0+ (logger is no longer a default gem as of Ruby 4.0, and tsort as of 4.1)
 - `MiddleWare::Logging` now accepts `logger:` as a keyword, so the documented `use_middleware SimpleFlow::MiddleWare::Logging, logger: custom_logger` works instead of raising `NoMethodError` on the first step; the positional `Logging.new(callable, logger)` form still works
 - Parallel steps (`call_parallel` and explicit `parallel do` blocks) no longer repeat errors that were already on the incoming result once per branch; each inherited error appears once, followed by the errors each branch added (#18)
+- `benchmarks/parallel_vs_sequential.rb` runs on Ruby 4.0 again; it no longer needs `Benchmark.realtime` (#29)
 
 ### Documentation
 - Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias

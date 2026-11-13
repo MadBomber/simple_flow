@@ -10,6 +10,15 @@ puts 'SimpleFlow Performance Benchmarks: Parallel vs Sequential Execution'
 puts '=' * 80
 puts
 
+# Wall-clock seconds the block takes. Stands in for Benchmark.realtime:
+# benchmark-ips defines the Benchmark module without loading the standard
+# benchmark library, which is a bundled gem (not in the Gemfile) on Ruby 4.0.
+def elapsed_seconds
+  started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  yield
+  Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+end
+
 # Simulate I/O operations with different delays
 def io_operation(delay = 0.01)
   sleep delay
@@ -79,11 +88,11 @@ puts
     end
   end
 
-  seq_time = Benchmark.realtime do
+  seq_time = elapsed_seconds do
     seq_pipeline.call(SimpleFlow::Result.new(nil))
   end
 
-  par_time = Benchmark.realtime do
+  par_time = elapsed_seconds do
     par_pipeline.call(SimpleFlow::Result.new(nil))
   end
 
