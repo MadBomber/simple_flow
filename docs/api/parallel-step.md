@@ -4,7 +4,7 @@ This document covers the APIs for parallel execution in SimpleFlow, including th
 
 ## Class: `SimpleFlow::ParallelExecutor`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/parallel_executor.rb`
+**Location**: [`lib/simple_flow/parallel_executor.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/parallel_executor.rb)
 
 Handles parallel execution of steps using the async gem, with automatic fallback to Ruby threads.
 
@@ -132,7 +132,7 @@ threads.map(&:value)
 
 ## Class: `SimpleFlow::DependencyGraph`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/dependency_graph.rb`
+**Location**: [`lib/simple_flow/dependency_graph.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/dependency_graph.rb)
 
 Manages dependencies between pipeline steps and determines which steps can execute in parallel.
 

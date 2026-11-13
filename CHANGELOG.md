@@ -14,6 +14,7 @@
 ### Documentation
 - Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias
 - Fixed `examples/README.md` async-fallback wording: without the `async` gem, parallel steps fall back to Ruby threads (still parallel), not sequential execution
+- Docs pages link source and example files on GitHub by repo-relative path instead of showing a local checkout path, and the `concurrency: :async` option on the Pipeline API page is spelled correctly (#38)
 
 ### Tests
 - The `VERSION` test now runs under `rake test`

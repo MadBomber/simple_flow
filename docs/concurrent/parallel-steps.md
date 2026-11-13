@@ -470,7 +470,7 @@ end
 
 ## Real-World Example
 
-See `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/06_real_world_ecommerce.rb` for a complete e-commerce order processing pipeline that demonstrates:
+See [`examples/06_real_world_ecommerce.rb`](https://github.com/MadBomber/simple_flow/blob/main/examples/06_real_world_ecommerce.rb) for a complete e-commerce order processing pipeline that demonstrates:
 
 - Multi-level parallel execution
 - Context merging
