@@ -68,10 +68,7 @@ module SimpleFlow
         end
       end
 
-      error = outcomes.filter_map(&:last).first
-      raise error if error
-
-      outcomes.map(&:first)
+      results_or_raise(outcomes)
     end
 
     # Calls a step and returns what it produced or the error it raised, so a
@@ -89,12 +86,20 @@ module SimpleFlow
     # @param steps [Array<Proc>] array of callable steps
     # @param result [Result] the input result
     # @return [Array<Result>] array of results from each step
+    # @raise [StandardError] the first failing step's error, once every step has finished
     def self.execute_with_threads(steps, result)
-      threads = steps.map do |step|
-        Thread.new { step.call(result) }
-      end
+      outcomes = steps.map { |step| Thread.new { capture_outcome(step, result) } }.map(&:value)
+      results_or_raise(outcomes)
+    end
 
-      threads.map(&:value)
+    # Raises the first error in step order, otherwise returns each step's result
+    # @param outcomes [Array<Array(Object, StandardError)>] from capture_outcome
+    # @return [Array<Result>] each step's result, in step order
+    def self.results_or_raise(outcomes)
+      error = outcomes.filter_map(&:last).first
+      raise error if error
+
+      outcomes.map(&:first)
     end
 
     # Check if async is available
