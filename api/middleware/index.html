@@ -2356,7 +2356,7 @@
 <p>Middleware in SimpleFlow wraps steps with cross-cutting functionality using the decorator pattern. This document covers built-in middleware and how to create custom middleware.</p>
 <h2 id="built-in-middleware">Built-in Middleware<a class="headerlink" href="#built-in-middleware" title="Permanent link">&para;</a></h2>
 <h3 id="class-simpleflowmiddlewarelogging">Class: <code>SimpleFlow::MiddleWare::Logging</code><a class="headerlink" href="#class-simpleflowmiddlewarelogging" title="Permanent link">&para;</a></h3>
-<p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/middleware.rb</code></p>
+<p><strong>Location</strong>: <a href="https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/middleware.rb"><code>lib/simple_flow/middleware.rb</code></a></p>
 <p>Logs before and after step execution.</p>
 <h4 id="constructor">Constructor<a class="headerlink" href="#constructor" title="Permanent link">&para;</a></h4>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="n">callable</span><span class="p">,</span><span class="w"> </span><span class="n">positional_logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">nil</span><span class="p">,</span><span class="w"> </span><span class="ss">logger</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">)</span>
@@ -2389,7 +2389,7 @@
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>I, [2025-11-15T12:00:00.456789 #12345]  INFO -- : After call
 </span></code></pre></div></p>
 <h3 id="class-simpleflowmiddlewareinstrumentation">Class: <code>SimpleFlow::MiddleWare::Instrumentation</code><a class="headerlink" href="#class-simpleflowmiddlewareinstrumentation" title="Permanent link">&para;</a></h3>
-<p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/middleware.rb</code></p>
+<p><strong>Location</strong>: <a href="https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/middleware.rb"><code>lib/simple_flow/middleware.rb</code></a></p>
 <p>Measures step execution duration.</p>
 <h4 id="constructor_1">Constructor<a class="headerlink" href="#constructor_1" title="Permanent link">&para;</a></h4>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="n">callable</span><span class="p">,</span><span class="w"> </span><span class="ss">api_key</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">)</span>

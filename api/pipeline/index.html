@@ -2577,7 +2577,7 @@
 <h1 id="pipeline-api-reference">Pipeline API Reference<a class="headerlink" href="#pipeline-api-reference" title="Permanent link">&para;</a></h1>
 <p>The <code>Pipeline</code> class orchestrates step execution with middleware integration and parallel execution support.</p>
 <h2 id="class-simpleflowpipeline">Class: <code>SimpleFlow::Pipeline</code><a class="headerlink" href="#class-simpleflowpipeline" title="Permanent link">&para;</a></h2>
-<p><strong>Location</strong>: <code>/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/pipeline.rb</code></p>
+<p><strong>Location</strong>: <a href="https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/pipeline.rb"><code>lib/simple_flow/pipeline.rb</code></a></p>
 <h3 id="constructor">Constructor<a class="headerlink" href="#constructor" title="Permanent link">&para;</a></h3>
 <h4 id="newconfig"><code>new(&amp;config)</code><a class="headerlink" href="#newconfig" title="Permanent link">&para;</a></h4>
 <p>Creates a new Pipeline with optional configuration block.</p>
@@ -2697,7 +2697,7 @@
 - <code>:auto</code> (default) - Uses dependency graph if named steps exist
 - <code>:explicit</code> - Only uses explicit parallel blocks</p>
 <p><strong>Notes on <code>max_concurrent:</code>:</strong>
-- Only applies when the <code>async</code> gem is in use (<code>:auto</code> with async present, or <code>:concurrency: :async</code>)
+- Only applies when the <code>async</code> gem is in use (<code>:auto</code> with async present, or <code>concurrency: :async</code>)
 - When the thread fallback is active (<code>concurrency: :threads</code>), the cap is silently ignored
 - Useful for preventing thundering-herd failures: API rate limits, DB connection-pool exhaustion, etc.</p>
 <p><strong>Example:</strong>
