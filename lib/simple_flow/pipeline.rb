@@ -418,8 +418,10 @@ module SimpleFlow
     end
 
     # Raises when a step depends on a name that is not a step in the graph,
-    # such as a typo or a parallel group referenced before its declaration
-    # @raise [ArgumentError] naming the first step with an unknown dependency
+    # such as a typo or a parallel group referenced before its declaration,
+    # or when steps depend on each other in a cycle
+    # @raise [ArgumentError] naming the first step with an unknown dependency,
+    #   or the steps of the first dependency cycle
     def validate_dependencies!
       @step_dependencies.each do |step_name, deps|
         unknown = deps.find { |dep| !@step_dependencies.key?(dep) }
@@ -429,6 +431,23 @@ module SimpleFlow
               "Step :#{step_name} depends on unknown step :#{unknown} " \
               '(parallel groups must be declared before they are referenced)'
       end
+
+      cycle = find_dependency_cycle(@step_dependencies)
+      return unless cycle
+
+      names = cycle.map { |name| ":#{name}" }.join(', ')
+      raise ArgumentError, "Circular depends_on among steps: #{names}"
+    end
+
+    # Finds steps that can never run because they depend on each other
+    # @param dependencies [Hash{Symbol => Array<Symbol>}] step name => dependencies
+    # @return [Array<Symbol>, nil] the steps of the first cycle (a single step
+    #   when it depends on itself), or nil when there is none
+    def find_dependency_cycle(dependencies)
+      own = dependencies.find { |step_name, deps| deps.include?(step_name) }
+      return [own.first] if own
+
+      DependencyGraph.new(dependencies).strongly_connected_components.find { |group| group.size > 1 }
     end
 
     # Build the active step dependencies, excluding optional steps that haven't been activated

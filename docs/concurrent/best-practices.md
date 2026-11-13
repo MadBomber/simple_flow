@@ -136,7 +136,8 @@ pipeline = SimpleFlow::Pipeline.new do
   step :step_a, ->(result) { ... }, depends_on: [:step_b]
   step :step_b, ->(result) { ... }, depends_on: [:step_a]
 end
-# Raises TSort::Cyclic error
+pipeline.call_parallel(initial)
+# Raises ArgumentError: Circular depends_on among steps: :step_a, :step_b
 ```
 
 ### 3. Minimize Dependency Chains
