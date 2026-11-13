@@ -20,8 +20,12 @@ module SimpleFlow
     # @param steps [Array<Proc>] array of callable steps
     # @param result [Result] the input result
     # @param concurrency [Symbol] concurrency model (:auto, :threads, :async)
+    # @param max_concurrent [Integer, nil] most steps to run at once (async only); nil means no cap
     # @return [Array<Result>] array of results from each step
+    # @raise [ArgumentError] if max_concurrent is not a positive Integer or nil
     def self.execute_parallel(steps, result, concurrency: :auto, max_concurrent: nil)
+      validate_max_concurrent(max_concurrent)
+
       case concurrency
       when :auto
         ASYNC_AVAILABLE ? execute_with_async(steps, result, max_concurrent: max_concurrent)
@@ -34,6 +38,16 @@ module SimpleFlow
       else
         raise ArgumentError, "Invalid concurrency option: #{concurrency.inspect}"
       end
+    end
+
+    # Async::Semaphore.new(0) never lets a task start, so a cap below 1
+    # would hang forever rather than fail
+    # @param max_concurrent [Object] the caller's max_concurrent
+    # @raise [ArgumentError] unless it is a positive Integer or nil
+    def self.validate_max_concurrent(max_concurrent)
+      return if max_concurrent.nil? || (max_concurrent.is_a?(Integer) && max_concurrent.positive?)
+
+      raise ArgumentError, "max_concurrent must be a positive Integer or nil, got #{max_concurrent.inspect}"
     end
 
     # Execute steps with async gem (fiber-based concurrency)
