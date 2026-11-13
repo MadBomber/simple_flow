@@ -54,7 +54,7 @@ results[2].context[:c]  # => "data_c"
 
 #### `execute_with_async(steps, result, max_concurrent: nil)`
 
-Runs each step in its own fiber inside an `Async` block. This is what `execute_parallel` calls for `:async`, and for `:auto` when the async gem is installed.
+Runs each step in its own fiber inside a `Sync` block, so it waits for every step and works inside a reactor that is already running. If a step raises, the exception is raised to the caller once all steps have finished (the first one in step order when several raise). This is what `execute_parallel` calls for `:async`, and for `:auto` when the async gem is installed.
 
 **Parameters:**
 - `steps` (Array<Proc>) - Array of callable steps
@@ -102,24 +102,22 @@ end
 
 #### Async Integration
 
-When the async gem is available, all steps are run as fibers inside a single `Async` block. An optional `Async::Semaphore` gates the barrier when `max_concurrent:` is set:
+When the async gem is available, all steps are run as fibers inside a single `Sync` block. An optional `Async::Semaphore` gates the barrier when `max_concurrent:` is set:
 
 ```ruby
 # Unlimited (default)
-Async do
+Sync do
   barrier = Async::Barrier.new
   tasks = steps.map { |step| barrier.async { step.call(result) } }
-  barrier.wait
-  tasks.map(&:result)
+  tasks.map(&:wait)
 end
 
 # With cap — semaphore becomes the barrier's parent
-Async do
+Sync do
   semaphore = Async::Semaphore.new(max_concurrent)
   barrier   = Async::Barrier.new(parent: semaphore)
   tasks = steps.map { |step| barrier.async { step.call(result) } }
-  barrier.wait
-  tasks.map(&:result)
+  tasks.map(&:wait)
 end
 ```
 

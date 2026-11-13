@@ -41,22 +41,34 @@ module SimpleFlow
     # @param result [Result] the input result
     # @return [Array<Result>] array of results from each step
     def self.execute_with_async(steps, result, max_concurrent: nil)
-      results = []
-
-      Async do
+      # Sync (not Async) waits for the block, lets a step's exception reach the
+      # caller and reuses a reactor that is already running
+      outcomes = Sync do
         semaphore = max_concurrent ? Async::Semaphore.new(max_concurrent) : nil
         barrier   = Async::Barrier.new(parent: semaphore)
-        tasks     = []
 
-        steps.each do |step|
-          tasks << barrier.async { step.call(result) }
+        begin
+          steps.map { |step| barrier.async { capture_outcome(step, result) } }.map(&:wait)
+        ensure
+          barrier.stop
         end
-
-        barrier.wait
-        results = tasks.map(&:result)
       end
 
-      results
+      error = outcomes.filter_map(&:last).first
+      raise error if error
+
+      outcomes.map(&:first)
+    end
+
+    # Calls a step and returns what it produced or the error it raised, so a
+    # failure is raised once by the caller rather than logged by the task
+    # @param step [#call] the step to run
+    # @param result [Result] the input result
+    # @return [Array(Object, StandardError)] [step result, nil] or [nil, error]
+    def self.capture_outcome(step, result)
+      [step.call(result), nil]
+    rescue StandardError => e
+      [nil, e]
     end
 
     # Execute steps with Ruby threads (fallback for true parallelism)
