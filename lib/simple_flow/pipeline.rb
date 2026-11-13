@@ -391,21 +391,27 @@ module SimpleFlow
     # Merges the errors of parallel branches that all started from +input+.
     # Each branch carries the errors it inherited from +input+; those are kept
     # once, and only the messages a branch added after them are appended.
-    # @param input [Result] the result every branch received
+    # @param input [Result, Object] what every branch received; input that is
+    #   not a Result has no errors to inherit
     # @param results [Array<Result>] the branch results
     # @return [Hash{Object => Array}] the merged errors
     def merge_parallel_errors(input, results)
-      merged = input.errors.transform_values(&:dup)
+      inherited_errors = errors_of(input)
+      merged = inherited_errors.transform_values(&:dup)
       results.each do |r|
-        next unless r.respond_to?(:errors)
-
-        r.errors.each do |key, messages|
-          inherited = input.errors.fetch(key, [])
+        errors_of(r).each do |key, messages|
+          inherited = inherited_errors.fetch(key, [])
           added = messages.first(inherited.size) == inherited ? messages.drop(inherited.size) : messages
           (merged[key] ||= []).concat(added)
         end
       end
       merged
+    end
+
+    # @param result [Result, Object] a step's input or output
+    # @return [Hash{Object => Array}] its errors, or none when it is not a Result
+    def errors_of(result)
+      result.respond_to?(:errors) ? result.errors : {}
     end
 
     # Merges the activated steps of parallel branches that all started from
