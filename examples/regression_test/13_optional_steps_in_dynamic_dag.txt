@@ -1,0 +1,186 @@
+======================================================================
+Optional Steps in Dynamic DAG
+======================================================================
+
+======================================================================
+Pattern 1: Router Pattern
+======================================================================
+
+Test 1: Processing a PDF document
+--------------------------------------------------
+  [analyze] Analyzing document: report.pdf
+  [analyze] Detected PDF document, routing to PDF processor
+  [pdf] Extracting text from PDF...
+  [pdf] Parsing 42 pages...
+  [pdf] Storing PDF document in database...
+  Result: stored=true, processor=pdf
+
+Test 2: Processing an image
+--------------------------------------------------
+  [analyze] Analyzing document: scan.jpg
+  [analyze] Detected image document, routing to image processor
+  [image] Running OCR on image...
+  [image] Detecting objects in image...
+  [image] Storing image document in database...
+  Result: stored=true, processor=image, objects=[:text, :logo]
+
+Test 3: Processing a spreadsheet
+--------------------------------------------------
+  [analyze] Analyzing document: data.xlsx
+  [analyze] Detected spreadsheet, routing to spreadsheet processor
+  [spreadsheet] Parsing cells and formulas...
+  [spreadsheet] Extracting 500 rows...
+  [spreadsheet] Storing spreadsheet in database...
+  Result: stored=true, processor=spreadsheet
+
+Test 4: Processing an unknown type
+--------------------------------------------------
+  [analyze] Analyzing document: mystery.xyz
+  [analyze] Unknown type, routing to generic processor
+  [generic] Applying generic text extraction...
+  [generic] Storing document in database...
+  Result: stored=true, processor=generic
+
+======================================================================
+Pattern 2: Soft Failure Pattern
+======================================================================
+
+Test 1: Successful order processing
+--------------------------------------------------
+  [validate] Validating order #ORD-001...
+  [validate] Order validated with 2 items
+  [inventory] Checking inventory for 2 items...
+  [inventory] All items in stock
+  [payment] Processing payment of $99.99...
+  [payment] Payment successful!
+  [fulfill] Creating shipment...
+  [fulfill] Order #ORD-001 ready for shipping
+  Continue? true
+  Status: Fulfilled
+  Tracking: SHIP-8916
+
+Test 2: Order with no items (validation error)
+--------------------------------------------------
+  [validate] Validating order #ORD-002...
+  [validate] ERROR: No items in order!
+  [error_handler] Processing error for order #ORD-002...
+  [error_handler] Failed at step: validate_order
+  [error_handler] Errors: {validation: ["Order has no items"]}
+  [error_handler] Logging error to monitoring system...
+  [error_handler] Sending alert to operations team...
+  [cleanup] Performing cleanup for order #ORD-002...
+  [cleanup] Marking order as failed...
+  [cleanup] Cleanup complete - halting pipeline
+  Continue? false
+  Failed at: validate_order
+  Error handled? 
+  Cleaned up? true
+  Errors: {validation: ["Order has no items"]}
+
+Test 3: Order with out-of-stock items
+--------------------------------------------------
+  [validate] Validating order #ORD-003...
+  [validate] Order validated with 2 items
+  [inventory] Checking inventory for 2 items...
+  [inventory] ERROR: 1 items out of stock!
+  [error_handler] Processing error for order #ORD-003...
+  [error_handler] Failed at step: check_inventory
+  [error_handler] Errors: {inventory: ["Items out of stock: Rare Widget"]}
+  [error_handler] Logging error to monitoring system...
+  [error_handler] Sending alert to operations team...
+  [cleanup] Performing cleanup for order #ORD-003...
+  [cleanup] Marking order as failed...
+  [cleanup] Cleanup complete - halting pipeline
+  Continue? false
+  Failed at: check_inventory
+  Out of stock: ["Rare Widget"]
+  Errors: {inventory: ["Items out of stock: Rare Widget"]}
+
+Test 4: Order with invalid payment
+--------------------------------------------------
+  [validate] Validating order #ORD-004...
+  [validate] Order validated with 1 items
+  [inventory] Checking inventory for 1 items...
+  [inventory] All items in stock
+  [payment] Processing payment of $25.0...
+  [payment] ERROR: Invalid payment method!
+  [error_handler] Processing error for order #ORD-004...
+  [error_handler] Failed at step: process_payment
+  [error_handler] Errors: {payment: ["Payment declined"]}
+  [error_handler] Logging error to monitoring system...
+  [error_handler] Sending alert to operations team...
+  [cleanup] Performing cleanup for order #ORD-004...
+  [cleanup] Marking order as failed...
+  [cleanup] Cleanup complete - halting pipeline
+  Continue? false
+  Failed at: process_payment
+  Errors: {payment: ["Payment declined"]}
+
+======================================================================
+Pattern 3: Chained Optional Activation
+======================================================================
+
+Test 1: Silver user eligible for Gold
+--------------------------------------------------
+  [check] Checking upgrade eligibility for user U001...
+  [check] User eligible for gold upgrade!
+  [gold] Upgrading user to Gold tier...
+  [gold] Adding Gold benefits...
+  [gold] Activating loyalty bonus...
+  [loyalty] Applying 2000 loyalty bonus points...
+  New tier: gold
+  Benefits: [:priority_support, :free_shipping]
+  Bonus points: 2000
+
+Test 2: Gold user eligible for Platinum
+--------------------------------------------------
+  [check] Checking upgrade eligibility for user U002...
+  [check] User eligible for platinum upgrade!
+  [platinum] Upgrading user to Platinum tier...
+  [platinum] Adding Platinum benefits...
+  [platinum] Activating loyalty bonus and special gift...
+  [loyalty] Applying 3000 loyalty bonus points...
+  [gift] Scheduling special gift delivery...
+  [gift] Gift: Exclusive member package
+  New tier: platinum
+  Benefits: [:concierge, :exclusive_events, :free_returns]
+  Bonus points: 
+  Gift scheduled: true
+
+Test 3: New user not eligible
+--------------------------------------------------
+  [check] Checking upgrade eligibility for user U003...
+  [check] User not eligible for upgrade
+  Upgrade: none
+  Tier unchanged: bronze
+
+======================================================================
+Optional steps examples completed!
+======================================================================
+
+Key Takeaways:
+
+1. Router Pattern:
+   • Use `depends_on: :optional` to declare optional steps
+   • Activate specific steps with `result.activate(:step_name)`
+   • Each optional step is a complete processing path
+   • Great for type-based routing, feature flags, A/B testing
+
+2. Soft Failure Pattern:
+   • Instead of `result.halt`, activate error handlers
+   • Error handlers can log, alert, and clean up resources
+   • Cleanup step halts after proper teardown
+   • Maintains auditability and proper resource management
+
+3. Chained Optional Activation:
+   • Optional steps can activate other optional steps
+   • Creates dynamic processing chains based on data
+   • Enables complex conditional workflows
+   • Each step in the chain can add or modify behavior
+
+Best Practices:
+   • Optional steps work best as "terminal" paths
+   • Use the skip pattern (return result if failed) for non-optional steps
+   • Activate multiple steps at once: activate(:a, :b, :c)
+   • Chain activations for dependent optional behavior
+

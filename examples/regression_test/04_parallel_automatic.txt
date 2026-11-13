@@ -10,13 +10,13 @@ Example 1: Basic Parallel Execution
   [07:00:00.000] Fetching user...
   [07:00:00.105] Fetching orders...
   [07:00:00.105] Fetching products...
-  [07:00:00.206] Calculating total...
+  [07:00:00.207] Calculating total...
 
 Result: Total: 3 orders, 3 products
 User: {id: 123, name: "John Doe"}
 Orders: [1, 2, 3]
 Products: [:a, :b, :c]
-Execution time: 206.3ms
+Execution time: 207.83ms
 (Should be ~200ms with parallel, ~400ms sequential)
 
 
@@ -38,7 +38,7 @@ Dependency graph structure:
 
 Result: Order total: $100.0
 Context: {validated: true, inventory: :available, price: 100, shipping: 10, discount: 10.0}
-Execution time: 160.32ms
+Execution time: 163.01ms
 
 
 Example 3: Dependency Graph Analysis
