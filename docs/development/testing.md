@@ -474,7 +474,7 @@ SimpleFlow uses GitHub Actions for continuous integration. The `Tests` workflow 
 
 - On every push to `main` or `develop`
 - On every pull request
-- On Ruby 3.3 and 3.4
+- On Ruby 3.3, 3.4 and 4.0
 
 The gemspec allows Ruby >= 3.2, but CI skips 3.2 because the locked test dependencies (`async` and `io-event`) need Ruby 3.3 or newer.
 
