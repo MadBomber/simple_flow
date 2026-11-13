@@ -289,7 +289,7 @@ end
 
 Creates a visualizer for this pipeline's dependency graph.
 
-**Returns:** DependencyGraphVisualizer or nil if no named steps
+**Returns:** [DependencyGraphVisualizer](dependency-graph-visualizer.md) or nil if no named steps
 
 **Example:**
 ```ruby
@@ -431,4 +431,5 @@ end
 - [Parallel Steps Guide](../concurrent/parallel-steps.md) - Using named steps
 - [Optional Steps Guide](../guides/optional-steps.md) - Dynamic step activation
 - [Middleware API](middleware.md) - Middleware reference
+- [DependencyGraphVisualizer API](dependency-graph-visualizer.md) - Every visualization format, including `to_html`
 - [Performance Guide](../concurrent/performance.md) - Optimization strategies

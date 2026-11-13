@@ -139,6 +139,8 @@ nav:
     - Pipeline API: api/pipeline.md
     - ParallelStep API: api/parallel-step.md
     - Middleware API: api/middleware.md
+    - DependencyGraphVisualizer API: api/dependency-graph-visualizer.md
+    - StepTracker API: api/step-tracker.md
   - ⚙️ Development:
     - Contributing: development/contributing.md
     - Testing: development/testing.md
