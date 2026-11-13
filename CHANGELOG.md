@@ -10,6 +10,7 @@
 - `DependencyGraphVisualizer#to_html` requires `json` itself, so it no longer raises `NoMethodError` when the `async` gem (which happened to load `json`) is not installed (#33)
 - Explicit `parallel do` blocks keep `activated_steps` from the incoming result and from each branch under `call` and `strategy: :explicit` (#34)
 - `benchmarks/parallel_vs_sequential.rb` runs on Ruby 4.0 again; it no longer needs `Benchmark.realtime` (#29)
+- Running steps in parallel (`call_parallel` and `parallel` blocks) raises `ArgumentError` for a `max_concurrent:` that isn't a positive Integer or nil, instead of hanging forever on the async backend when given 0 or a negative number
 
 ### Documentation
 - Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias
