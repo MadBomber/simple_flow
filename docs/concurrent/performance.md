@@ -468,7 +468,7 @@ File.write('pipeline.dot', pipeline.visualize_dot)
 
 ## Performance Testing
 
-See `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/04_parallel_automatic.rb` for performance comparisons showing:
+See [`examples/04_parallel_automatic.rb`](https://github.com/MadBomber/simple_flow/blob/main/examples/04_parallel_automatic.rb) for performance comparisons showing:
 
 - Parallel vs sequential execution times
 - Context merging behavior

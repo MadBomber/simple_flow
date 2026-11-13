@@ -429,8 +429,8 @@ end
 
 ## For complete examples, see:
 
-- `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/06_real_world_ecommerce.rb` - Full e-commerce workflow
-- `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/07_real_world_etl.rb` - Complete ETL pipeline
+- [`examples/06_real_world_ecommerce.rb`](https://github.com/MadBomber/simple_flow/blob/main/examples/06_real_world_ecommerce.rb) - Full e-commerce workflow
+- [`examples/07_real_world_etl.rb`](https://github.com/MadBomber/simple_flow/blob/main/examples/07_real_world_etl.rb) - Complete ETL pipeline
 
 ## Related Documentation
 

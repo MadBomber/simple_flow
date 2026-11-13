@@ -4,7 +4,7 @@ The `Result` class is an immutable value object that represents the outcome of a
 
 ## Class: `SimpleFlow::Result`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/result.rb`
+**Location**: [`lib/simple_flow/result.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/result.rb)
 
 ### Constructor
 

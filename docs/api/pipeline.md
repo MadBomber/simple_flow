@@ -4,7 +4,7 @@ The `Pipeline` class orchestrates step execution with middleware integration and
 
 ## Class: `SimpleFlow::Pipeline`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/pipeline.rb`
+**Location**: [`lib/simple_flow/pipeline.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/pipeline.rb)
 
 ### Constructor
 
@@ -168,7 +168,7 @@ Executes the pipeline with parallel execution where possible.
 - `:explicit` - Only uses explicit parallel blocks
 
 **Notes on `max_concurrent:`:**
-- Only applies when the `async` gem is in use (`:auto` with async present, or `:concurrency: :async`)
+- Only applies when the `async` gem is in use (`:auto` with async present, or `concurrency: :async`)
 - When the thread fallback is active (`concurrency: :threads`), the cap is silently ignored
 - Useful for preventing thundering-herd failures: API rate limits, DB connection-pool exhaustion, etc.
 
