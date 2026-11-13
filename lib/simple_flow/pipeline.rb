@@ -187,6 +187,8 @@ module SimpleFlow
 
         case step_def
         when Hash
+          next res if skip_optional_step?(step_def, res)
+
           execute_step_def(step_def, res)
         else
           # Backward compatibility with old format
@@ -295,6 +297,18 @@ module SimpleFlow
 
     def has_named_steps?
       @named_steps.any?
+    end
+
+    # True for an optional step (depends_on: :optional) that the result has not
+    # activated; the sequential runners skip such steps
+    # @param step_def [Hash] a step definition from #steps
+    # @param result [Object] the result about to be passed to the step
+    # @return [Boolean]
+    def skip_optional_step?(step_def, result)
+      return false unless @optional_steps.include?(step_def[:name])
+
+      activated = result.respond_to?(:activated_steps) ? result.activated_steps : []
+      !activated.include?(step_def[:name])
     end
 
     def execute_step_def(step_def, result, max_concurrent: nil)
@@ -516,6 +530,8 @@ module SimpleFlow
     def execute_with_explicit_parallelism(result, max_concurrent: nil)
       steps.reduce(result) do |res, step_def|
         return res if res.respond_to?(:continue?) && !res.continue?
+        next res if skip_optional_step?(step_def, res)
+
         execute_step_def(step_def, res, max_concurrent: max_concurrent)
       end
     end
