@@ -16,6 +16,7 @@
 - Running steps in parallel (`call_parallel` and `parallel` blocks) raises `ArgumentError` for a `max_concurrent:` that isn't a positive Integer or nil, instead of hanging forever on the async backend when given 0 or a negative number
 
 ### Documentation
+- Added API reference pages for `DependencyGraphVisualizer` (every output format, including `to_html`, which has no `Pipeline` shortcut) and `StepTracker` (#47)
 - Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias
 - Fixed `examples/README.md` async-fallback wording: without the `async` gem, parallel steps fall back to Ruby threads (still parallel), not sequential execution
 - Docs pages link source and example files on GitHub by repo-relative path instead of showing a local checkout path, and the `concurrency: :async` option on the Pipeline API page is spelled correctly (#38)
