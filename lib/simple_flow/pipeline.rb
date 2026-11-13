@@ -318,7 +318,12 @@ module SimpleFlow
       merged_context = {}
       results.each { |r| merged_context.merge!(r.context) if r.respond_to?(:context) }
 
-      Result.new(results.last.value, context: merged_context, errors: merge_parallel_errors(result, results))
+      Result.new(
+        results.last.value,
+        context: merged_context,
+        errors: merge_parallel_errors(result, results),
+        activated_steps: merge_parallel_activations(result, results)
+      )
     end
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
@@ -367,11 +372,7 @@ module SimpleFlow
 
           # Merge contexts, errors, and activated_steps from all parallel results
           merged_context = {}
-          merged_activated = []
-          results.each do |r|
-            merged_context.merge!(r.context) if r.respond_to?(:context)
-            merged_activated.concat(r.activated_steps) if r.respond_to?(:activated_steps)
-          end
+          results.each { |r| merged_context.merge!(r.context) if r.respond_to?(:context) }
 
           # Use the last result's value but with merged context/errors/activated_steps
           last_result = results.last
@@ -379,7 +380,7 @@ module SimpleFlow
             last_result.value,
             context: merged_context,
             errors: merge_parallel_errors(current_result, results),
-            activated_steps: merged_activated.uniq
+            activated_steps: merge_parallel_activations(current_result, results)
           )
         end
       end
@@ -405,6 +406,15 @@ module SimpleFlow
         end
       end
       merged
+    end
+
+    # Merges the activated steps of parallel branches that all started from
+    # +input+: the steps +input+ already carried, then any a branch added.
+    # @param input [Result] the result every branch received
+    # @param results [Array<Result>] the branch results
+    # @return [Array<Symbol>] the activated steps, each listed once
+    def merge_parallel_activations(input, results)
+      [input, *results].flat_map { |r| r.respond_to?(:activated_steps) ? r.activated_steps : [] }.uniq
     end
 
     # Raises when a step depends on a name that is not a step in the graph,

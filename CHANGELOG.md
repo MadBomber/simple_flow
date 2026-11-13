@@ -7,6 +7,7 @@
 - Parallel steps (`call_parallel` and explicit `parallel do` blocks) no longer repeat errors that were already on the incoming result once per branch; each inherited error appears once, followed by the errors each branch added (#18)
 - An exception raised by a parallel step under the `async` backend (the default when the gem is installed) now reaches the caller instead of being lost behind `NoMethodError: undefined method 'value' for nil`, and parallel execution works when called inside a reactor that is already running (#30)
 - `DependencyGraphVisualizer#to_html` requires `json` itself, so it no longer raises `NoMethodError` when the `async` gem (which happened to load `json`) is not installed (#33)
+- Explicit `parallel do` blocks keep `activated_steps` from the incoming result and from each branch under `call` and `strategy: :explicit` (#34)
 - `benchmarks/parallel_vs_sequential.rb` runs on Ruby 4.0 again; it no longer needs `Benchmark.realtime` (#29)
 
 ### Documentation
