@@ -322,7 +322,6 @@ module SimpleFlow
     end
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
-      require_relative 'dependency_graph'
       validate_dependencies!
 
       current_result = result
@@ -331,7 +330,7 @@ module SimpleFlow
 
       loop do
         # Build active dependencies: all non-optional steps + activated optional steps
-        active_dependencies = build_active_dependencies(activated_steps, executed_steps)
+        active_dependencies = build_active_dependencies(activated_steps)
 
         # Find the next group of steps that can be executed
         next_group = find_next_executable_group(active_dependencies, executed_steps)
@@ -423,7 +422,7 @@ module SimpleFlow
     end
 
     # Build the active step dependencies, excluding optional steps that haven't been activated
-    def build_active_dependencies(activated_steps, executed_steps)
+    def build_active_dependencies(activated_steps)
       active_deps = {}
       @step_dependencies.each do |step_name, deps|
         # Skip optional steps that haven't been activated
@@ -452,14 +451,12 @@ module SimpleFlow
     # Find the next group of steps that can be executed
     def find_next_executable_group(active_dependencies, executed_steps)
       # Find steps whose dependencies have all been executed
-      ready_steps = active_dependencies.keys.select do |step_name|
+      active_dependencies.keys.select do |step_name|
         next false if executed_steps.include?(step_name)
 
         deps = active_dependencies[step_name]
         deps.all? { |dep| executed_steps.include?(dep) }
       end
-
-      ready_steps
     end
 
     # Process activated steps from a result, validating each

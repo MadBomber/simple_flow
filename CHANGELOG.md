@@ -20,6 +20,7 @@
 
 ### Maintenance
 - Refreshed development and test dependencies: minitest 6, simplecov 1.x, rubocop 1.92, async 2.46 and others; the runtime dependencies are unchanged (#28)
+- Removed unused requires, an unused method argument and unused variables (#32)
 
 ## [0.4.0] - 2026-04-28
 

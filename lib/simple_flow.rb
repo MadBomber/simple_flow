@@ -9,7 +9,6 @@
 # where the orchestration of tasks, error handling, and context management are crucial.
 #
 
-require 'delegate'
 require 'logger'
 
 require_relative 'simple_flow/version'
