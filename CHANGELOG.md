@@ -14,6 +14,7 @@
 
 ### Tests
 - The `VERSION` test now runs under `rake test`
+- The two "async gem not available" tests now run on every build instead of being skipped (#35)
 - CI also runs the suite on Ruby 4.0 (#27)
 
 ### Maintenance

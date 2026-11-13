@@ -42,11 +42,11 @@ module SimpleFlow
     end
 
     def test_error_when_requesting_async_without_gem
-      skip "Async gem is available" if ParallelExecutor.async_available?
-
-      error = assert_raises(ArgumentError) do
-        Pipeline.new(concurrency: :async) do
-          step ->(result) { result.continue(result.value) }
+      error = without_async do
+        assert_raises(ArgumentError) do
+          Pipeline.new(concurrency: :async) do
+            step ->(result) { result.continue(result.value) }
+          end
         end
       end
 
@@ -153,17 +153,31 @@ module SimpleFlow
     end
 
     def test_parallel_executor_async_error_when_unavailable
-      skip "Async gem is available" if ParallelExecutor.async_available?
-
       steps = [
         ->(result) { result.continue(result.value + 1) }
       ]
 
-      error = assert_raises(ArgumentError) do
-        ParallelExecutor.execute_parallel(steps, Result.new(0), concurrency: :async)
+      error = without_async do
+        assert_raises(ArgumentError) do
+          ParallelExecutor.execute_parallel(steps, Result.new(0), concurrency: :async)
+        end
       end
 
       assert_includes error.message, "Async gem not available"
+    end
+
+    private
+
+    # Runs the block as if the async gem could not be loaded, then puts the
+    # real ASYNC_AVAILABLE back
+    def without_async
+      original = Object.const_get(:ASYNC_AVAILABLE)
+      Object.send(:remove_const, :ASYNC_AVAILABLE)
+      Object.const_set(:ASYNC_AVAILABLE, false)
+      yield
+    ensure
+      Object.send(:remove_const, :ASYNC_AVAILABLE)
+      Object.const_set(:ASYNC_AVAILABLE, original)
     end
   end
 end
