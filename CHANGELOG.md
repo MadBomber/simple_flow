@@ -19,6 +19,7 @@
 - `ParallelExecutor.execute_with_async` called directly also raises `ArgumentError` for a `max_concurrent:` that isn't a positive Integer or nil, instead of hanging forever on 0 or a negative number
 
 ### Documentation
+- The docs landing page's Get Started button links to the built Quick Start page instead of a 404 `.md` URL, and its Quick Example passes `{ user_id: 123 }` as a hash so `Result.new` no longer raises `ArgumentError` (#65)
 - Added API reference pages for `DependencyGraphVisualizer` (every output format, including `to_html`, which has no `Pipeline` shortcut) and `StepTracker` (#47)
 - Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias
 - Fixed `examples/README.md` async-fallback wording: without the `async` gem, parallel steps fall back to Ruby threads (still parallel), not sequential execution
