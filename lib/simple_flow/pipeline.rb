@@ -203,7 +203,10 @@ module SimpleFlow
     # @param result [Object] the initial data/input to be passed through the pipeline
     # @param strategy [Symbol] :auto (automatic detection) or :explicit (only explicit parallel blocks)
     # @return [Object] the result of executing the pipeline
+    # @raise [ArgumentError] if strategy is not :auto or :explicit
     def call_parallel(result, strategy: :auto, max_concurrent: nil)
+      validate_strategy!(strategy)
+
       if strategy == :auto && has_named_steps?
         execute_with_dependency_graph(result, max_concurrent: max_concurrent)
       else
@@ -293,6 +296,17 @@ module SimpleFlow
       if @concurrency == :async && !ParallelExecutor.async_available?
         raise ArgumentError, "Concurrency set to :async but async gem is not available. Install with: gem 'async', '~> 2.0'"
       end
+    end
+
+    # Raises unless +strategy+ is one call_parallel knows how to run.
+    # @param strategy [Object] the strategy passed to call_parallel
+    # @return [nil]
+    # @raise [ArgumentError] if strategy is not :auto or :explicit
+    def validate_strategy!(strategy)
+      valid_strategies = %i[auto explicit]
+      return if valid_strategies.include?(strategy)
+
+      raise ArgumentError, "Invalid strategy: #{strategy.inspect}. Valid strategies: #{valid_strategies.inspect}"
     end
 
     def has_named_steps?
