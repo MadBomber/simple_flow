@@ -473,13 +473,13 @@ graph TB
 
 ## Testing
 
-SimpleFlow has excellent test coverage:
+Run the test suite:
 
 ```bash
 bundle exec rake test
 ```
 
-The run prints the test count and line coverage; the Tests badge above shows the latest CI result.
+The Tests badge above shows the latest CI result.
 
 **[Testing Guide →](https://madbomber.github.io/simple_flow/development/testing/)**
 
@@ -518,7 +518,7 @@ Check out the `examples/` directory for comprehensive examples:
 
 - Ruby 3.2 or higher
 - `logger` and `tsort` (no longer default gems as of Ruby 4.0/4.1; installed automatically)
-- Optional: `async` gem (~> 2.0) for fiber-based concurrency (threads are used otherwise)
+- Optional: `async` gem (~> 2.0) for fiber-based concurrency; without it the default `:auto` mode uses threads
 
 ## License
 
