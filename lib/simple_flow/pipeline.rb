@@ -39,6 +39,12 @@ module SimpleFlow
   # end
   #
   class Pipeline
+    # depends_on: values that mean "no dependencies"
+    NO_DEPENDENCY = %i[none nothing].freeze
+
+    # Names that steps and parallel groups cannot use
+    RESERVED_NAMES = (NO_DEPENDENCY + [:optional]).freeze
+
     attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency, :parallel_groups, :optional_steps
 
     # Initializes a new Pipeline object. A block can be provided to dynamically configure the pipeline,
@@ -93,7 +99,7 @@ module SimpleFlow
         callable ||= block
 
         # Validate step name
-        if [:none, :nothing, :optional].include?(name)
+        if RESERVED_NAMES.include?(name)
           raise ArgumentError, "Step name '#{name}' is reserved. Please use a different name."
         end
 
@@ -108,7 +114,7 @@ module SimpleFlow
           @step_dependencies[name] = []
         else
           # Filter out reserved dependency symbols :none and :nothing, and expand parallel group names
-          @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+          @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| NO_DEPENDENCY.include?(dep) })
         end
 
         @steps << { name: name, callable: callable, type: :named }
@@ -137,12 +143,12 @@ module SimpleFlow
     #   step :process, ->(result) { ... }, depends_on: :fetch_data
     def parallel(name = nil, depends_on: :none, &block)
       # Validate name if provided
-      if name && [:none, :nothing].include?(name)
+      if name && RESERVED_NAMES.include?(name)
         raise ArgumentError, "Parallel group name '#{name}' is reserved. Please use a different name."
       end
 
       # Filter and expand dependencies
-      filtered_deps = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+      filtered_deps = expand_dependencies(Array(depends_on).reject { |dep| NO_DEPENDENCY.include?(dep) })
 
       # Create and evaluate the parallel block
       group = ParallelBlock.new(self)
