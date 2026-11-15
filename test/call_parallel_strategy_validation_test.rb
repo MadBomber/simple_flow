@@ -26,12 +26,6 @@ module SimpleFlow
       assert_match(/\[:auto, :explicit\]/, error.message)
     end
 
-    def test_string_strategy_raises
-      assert_raises(ArgumentError) do
-        increment_pipeline.call_parallel(@result, strategy: 'auto')
-      end
-    end
-
     def test_unknown_strategy_raises_before_any_step_runs
       ran = false
       pipeline = Pipeline.new do
@@ -57,6 +51,7 @@ module SimpleFlow
       assert_nil pipeline.send(:validate_strategy!, :auto)
       assert_nil pipeline.send(:validate_strategy!, :explicit)
       assert_raises(ArgumentError) { pipeline.send(:validate_strategy!, :bogus) }
+      assert_raises(ArgumentError) { pipeline.send(:validate_strategy!, 'auto') }
     end
   end
 end
