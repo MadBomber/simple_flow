@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Fixed
+- `Pipeline#visualize_mermaid` (`DependencyGraphVisualizer#to_mermaid`) gives a step named after a Mermaid keyword (such as `:end`) or containing a space, bracket, quote or similar punctuation a generated node id and a quoted label, so Mermaid can parse the output; other names are written unchanged (#56)
 - `call_parallel` raises `ArgumentError` naming the value and the valid ones (`:auto`, `:explicit`) for an unknown `strategy:`, such as a misspelled `:explict`, instead of silently running it as `:explicit`
 - Optional steps (`depends_on: :optional`) now run only when activated under `Pipeline#call` and `call_parallel(strategy: :explicit)`, matching `call_parallel`; before, every optional step ran, so in the router pattern an unactivated branch could overwrite the result (#45)
 - Parallel steps no longer raise `NoMethodError` when the pipeline's input is not a `Result`, a regression from the inherited-errors fix (#18)
