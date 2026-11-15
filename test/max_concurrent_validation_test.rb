@@ -64,6 +64,19 @@ module SimpleFlow
       end
     end
 
+    # execute_with_async is a documented entry point, so it checks too
+    def test_invalid_raises_from_execute_with_async
+      skip 'async gem not available' unless ParallelExecutor.async_available?
+      steps = [->(r) { r }, ->(r) { r }]
+
+      [0, -1, '2'].each do |max_concurrent|
+        error = assert_raises(ArgumentError) do
+          Timeout.timeout(2) { ParallelExecutor.execute_with_async(steps, @result, max_concurrent: max_concurrent) }
+        end
+        assert_match(/got #{Regexp.escape(max_concurrent.inspect)}\z/, error.message)
+      end
+    end
+
     def test_nil_and_positive_integer_still_run
       [nil, 2].each do |max_concurrent|
         final = call_with(max_concurrent)
