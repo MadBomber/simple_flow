@@ -2927,6 +2927,7 @@
 </span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># Cap simultaneous fibers to prevent thundering-herd failures</span>
 </span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">.</span><span class="n">call_parallel</span><span class="p">(</span><span class="n">initial_result</span><span class="p">,</span><span class="w"> </span><span class="ss">max_concurrent</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
 </span></code></pre></div>
+<p>Any <code>strategy:</code> other than <code>:auto</code> or <code>:explicit</code> raises <code>ArgumentError</code>.</p>
 <h3 id="callresult"><code>call(result)</code><a class="headerlink" href="#callresult" title="Permanent link">&para;</a></h3>
 <p>Executes sequentially (ignores parallelism):</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Sequential execution - useful for debugging</span>

@@ -2755,7 +2755,8 @@
 <p><strong>Returns:</strong> Final Result object</p>
 <p><strong>Strategies:</strong>
 - <code>:auto</code> (default) - Uses dependency graph if named steps exist
-- <code>:explicit</code> - Only uses explicit parallel blocks</p>
+- <code>:explicit</code> - Only uses explicit parallel blocks
+- Any other value raises <code>ArgumentError</code></p>
 <p><strong>Notes on <code>max_concurrent:</code>:</strong>
 - Only applies when the <code>async</code> gem is in use (<code>:auto</code> with async present, or <code>concurrency: :async</code>)
 - When the thread fallback is active (<code>concurrency: :threads</code>), the cap is silently ignored
