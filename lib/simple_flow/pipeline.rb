@@ -182,12 +182,14 @@ module SimpleFlow
     # @param result [Object] the initial data/input to be passed through the pipeline
     # @return [Object] the result of executing the pipeline
     def call(result)
+      skipped = Set.new
+
       steps.reduce(result) do |res, step_def|
         return res if res.respond_to?(:continue?) && !res.continue?
 
         case step_def
         when Hash
-          next res if skip_optional_step?(step_def, res)
+          next res if skip_step?(step_def, res, skipped)
 
           execute_step_def(step_def, res)
         else
@@ -323,6 +325,22 @@ module SimpleFlow
 
       activated = result.respond_to?(:activated_steps) ? result.activated_steps : []
       !activated.include?(step_def[:name])
+    end
+
+    # True for a step the sequential runners skip: an unactivated optional
+    # step, or one that depends on a step skipped earlier, so the skip carries
+    # to dependents as it does under the dependency-graph strategy
+    # @param step_def [Hash] a step definition from #steps
+    # @param result [Object] the result about to be passed to the step
+    # @param skipped [Set<Symbol>] names of the steps skipped so far; the
+    #   names in +step_def+ are added when it is skipped
+    # @return [Boolean]
+    def skip_step?(step_def, result, skipped)
+      names = step_def[:type] == :parallel ? step_def[:steps].filter_map { |s| s[:name] } : [step_def[:name]].compact
+      skip = skip_optional_step?(step_def, result) ||
+             names.any? { |name| @step_dependencies.fetch(name, []).any? { |dep| skipped.include?(dep) } }
+      skipped.merge(names) if skip
+      skip
     end
 
     def execute_step_def(step_def, result, max_concurrent: nil)
@@ -542,9 +560,11 @@ module SimpleFlow
     end
 
     def execute_with_explicit_parallelism(result, max_concurrent: nil)
+      skipped = Set.new
+
       steps.reduce(result) do |res, step_def|
         return res if res.respond_to?(:continue?) && !res.continue?
-        next res if skip_optional_step?(step_def, res)
+        next res if skip_step?(step_def, res, skipped)
 
         execute_step_def(step_def, res, max_concurrent: max_concurrent)
       end
