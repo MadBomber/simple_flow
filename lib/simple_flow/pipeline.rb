@@ -103,7 +103,13 @@ module SimpleFlow
         @named_steps[name] = callable
 
         # Check if this is an optional step
-        if depends_on == :optional
+        deps = Array(depends_on)
+        if deps.include?(:optional) && deps.uniq != [:optional]
+          raise ArgumentError,
+                "Step :#{name} cannot combine depends_on: :optional with other dependencies (got #{depends_on.inspect})"
+        end
+
+        if deps.include?(:optional)
           @optional_steps << name
           @step_dependencies[name] = []
         else
@@ -136,6 +142,11 @@ module SimpleFlow
     #   end
     #   step :process, ->(result) { ... }, depends_on: :fetch_data
     def parallel(name = nil, depends_on: :none, &block)
+      if Array(depends_on).include?(:optional)
+        group = name ? "Parallel group :#{name}" : 'A parallel group'
+        raise ArgumentError, "#{group} cannot be optional; declare its steps with depends_on: :optional instead"
+      end
+
       # Validate name if provided
       if name && [:none, :nothing].include?(name)
         raise ArgumentError, "Parallel group name '#{name}' is reserved. Please use a different name."
