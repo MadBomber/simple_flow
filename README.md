@@ -1,7 +1,7 @@
 # SimpleFlow
 
 [![Ruby Version](https://img.shields.io/badge/ruby-3.2%2B-ruby.svg)](https://www.ruby-lang.org)
-[![Tests](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml/badge.svg)](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml)
+[![Tests](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://madbomber.github.io/simple_flow)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -478,8 +478,6 @@ Run the test suite:
 ```bash
 bundle exec rake test
 ```
-
-The Tests badge above shows the latest CI result.
 
 **[Testing Guide →](https://madbomber.github.io/simple_flow/development/testing/)**
 
