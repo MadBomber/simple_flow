@@ -54,6 +54,52 @@ module SimpleFlow
       assert_equal %i[extra], ran
     end
 
+    # Issue #51: all three runners reject an unknown or non-optional activation
+    def test_every_runner_rejects_activating_an_unknown_step
+      pipeline = Pipeline.new do
+        step :router, ->(r) { r.activate(:nope).continue(r.value) }, depends_on: :none
+      end
+
+      each_runner(pipeline) do |run|
+        error = assert_raises(ArgumentError) { run.call(Result.new(1)) }
+        assert_equal 'Step :router attempted to activate unknown step :nope', error.message
+      end
+    end
+
+    def test_every_runner_rejects_activating_a_non_optional_step
+      pipeline = Pipeline.new do
+        step :router, ->(r) { r.activate(:regular).continue(r.value) }, depends_on: :none
+        step :regular, ->(r) { r.continue(r.value) }, depends_on: [:router]
+      end
+
+      each_runner(pipeline) do |run|
+        error = assert_raises(ArgumentError) { run.call(Result.new(1)) }
+        assert_match(/\AStep :router attempted to activate non-optional step :regular\./, error.message)
+      end
+    end
+
+    def test_unnamed_steps_and_parallel_blocks_are_named_in_the_error
+      pipeline = Pipeline.new do
+        step :start, ->(r) { r.continue(r.value) }, depends_on: :none
+        step ->(r) { r.activate(:nope) }
+      end
+      error = assert_raises(ArgumentError) { pipeline.call(Result.new(1)) }
+      assert_equal 'An unnamed step attempted to activate unknown step :nope', error.message
+
+      pipeline = Pipeline.new do
+        step :start, ->(r) { r.continue(r.value) }, depends_on: :none
+        parallel { step ->(r) { r.activate(:nope) } }
+      end
+      error = assert_raises(ArgumentError) { pipeline.call(Result.new(1)) }
+      assert_equal 'A parallel block attempted to activate unknown step :nope', error.message
+    end
+
+    def each_runner(pipeline)
+      yield pipeline.method(:call)
+      yield ->(r) { pipeline.call_parallel(r) }
+      yield ->(r) { pipeline.call_parallel(r, strategy: :explicit) }
+    end
+
     def test_skip_optional_step_predicate
       pipeline = build_router([])
       optional = { name: :pdf, type: :named }
