@@ -166,6 +166,7 @@ Executes the pipeline with parallel execution where possible.
 **Strategies:**
 - `:auto` (default) - Uses dependency graph if named steps exist
 - `:explicit` - Only uses explicit parallel blocks
+- Any other value raises `ArgumentError`
 
 **Notes on `max_concurrent:`:**
 - Only applies when the `async` gem is in use (`:auto` with async present, or `concurrency: :async`)
