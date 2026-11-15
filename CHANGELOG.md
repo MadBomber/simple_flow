@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Fixed
+- `call_parallel` (default `:auto` strategy) returns an already-halted input unchanged without running any step, as `call` and `strategy: :explicit` already do; before, it ran the whole first wave of steps (#59)
 - `call_parallel` raises `ArgumentError` naming the value and the valid ones (`:auto`, `:explicit`) for an unknown `strategy:`, such as a misspelled `:explict`, instead of silently running it as `:explicit`
 - Optional steps (`depends_on: :optional`) now run only when activated under `Pipeline#call` and `call_parallel(strategy: :explicit)`, matching `call_parallel`; before, every optional step ran, so in the router pattern an unactivated branch could overwrite the result (#45)
 - Parallel steps no longer raise `NoMethodError` when the pipeline's input is not a `Result`, a regression from the inherited-errors fix (#18)
