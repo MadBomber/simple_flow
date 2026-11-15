@@ -53,8 +53,12 @@ module SimpleFlow
     # Execute steps with async gem (fiber-based concurrency)
     # @param steps [Array<Proc>] array of callable steps
     # @param result [Result] the input result
+    # @param max_concurrent [Integer, nil] most steps to run at once; nil means no cap
     # @return [Array<Result>] array of results from each step
+    # @raise [ArgumentError] if max_concurrent is not a positive Integer or nil
     def self.execute_with_async(steps, result, max_concurrent: nil)
+      validate_max_concurrent(max_concurrent)
+
       # Sync (not Async) waits for the block, lets a step's exception reach the
       # caller and reuses a reactor that is already running
       outcomes = Sync do
