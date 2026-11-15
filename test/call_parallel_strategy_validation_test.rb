@@ -4,8 +4,8 @@ require 'minitest/autorun'
 require_relative '../lib/simple_flow'
 
 module SimpleFlow
-  # An unknown call_parallel strategy raises instead of silently running as
-  # :explicit (finding F-81)
+  # An unknown call_parallel strategy, such as a misspelled :explict, raises
+  # instead of silently running as :explicit
   class CallParallelStrategyValidationTest < Minitest::Test
     def setup
       @result = Result.new(1)
