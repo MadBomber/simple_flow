@@ -117,6 +117,12 @@ module SimpleFlow
         callable = name_or_callable || block
         raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
 
+        unless Array(depends_on).all? { |dep| [:none, :nothing].include?(dep) }
+          raise ArgumentError,
+                "depends_on: #{depends_on.inspect} needs a named step " \
+                '(step :name, callable, depends_on: ...); an unnamed step has no dependencies'
+        end
+
         callable = apply_middleware(callable)
         @steps << { callable: callable, type: :unnamed }
       end
