@@ -1,8 +1,7 @@
 # SimpleFlow
 
 [![Ruby Version](https://img.shields.io/badge/ruby-3.2%2B-ruby.svg)](https://www.ruby-lang.org)
-[![Test Coverage](https://img.shields.io/badge/coverage-98.99%25-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
-[![Tests](https://img.shields.io/badge/tests-193%20passing-brightgreen.svg)](https://github.com/MadBomber/simple_flow)
+[![Tests](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml?query=branch%3Amain)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://madbomber.github.io/simple_flow)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -474,16 +473,11 @@ graph TB
 
 ## Testing
 
-SimpleFlow has excellent test coverage:
+Run the test suite:
 
 ```bash
 bundle exec rake test
 ```
-
-**Test Results:**
-- ✅ 193 tests passing
-- ✅ 618 assertions
-- ✅ 98.99% line coverage
 
 **[Testing Guide →](https://madbomber.github.io/simple_flow/development/testing/)**
 
@@ -522,7 +516,7 @@ Check out the `examples/` directory for comprehensive examples:
 
 - Ruby 3.2 or higher
 - `logger` and `tsort` (no longer default gems as of Ruby 4.0/4.1; installed automatically)
-- Optional: `async` gem (~> 2.0) for parallel execution
+- Optional: `async` gem (~> 2.0) for fiber-based concurrency; without it the default `:auto` mode uses threads
 
 ## License
 
