@@ -360,6 +360,7 @@ module SimpleFlow
       current_result = result
       executed_steps = Set.new
       activated_steps = Set.new
+      process_activations(result, nil, activated_steps)
 
       loop do
         # Build active dependencies: all non-optional steps + activated optional steps
@@ -523,18 +524,21 @@ module SimpleFlow
     end
 
     # Process activated steps from a result, validating each
+    # @param current_step [Symbol, nil] the step that produced +result+, or nil
+    #   when +result+ is the pipeline's input
     def process_activations(result, current_step, activated_steps)
       return unless result.respond_to?(:activated_steps)
 
+      source = current_step ? "Step :#{current_step}" : 'The input result'
       result.activated_steps.each do |step_name|
         next if activated_steps.include?(step_name) # Idempotent
 
         unless @named_steps.key?(step_name)
-          raise ArgumentError, "Step :#{current_step} attempted to activate unknown step :#{step_name}"
+          raise ArgumentError, "#{source} attempted to activate unknown step :#{step_name}"
         end
 
         unless @optional_steps.include?(step_name)
-          raise ArgumentError, "Step :#{current_step} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
+          raise ArgumentError, "#{source} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
         end
 
         activated_steps << step_name
