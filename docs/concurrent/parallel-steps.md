@@ -270,6 +270,8 @@ result = pipeline.call_parallel(initial_result, strategy: :explicit)
 result = pipeline.call_parallel(initial_result, max_concurrent: 5)
 ```
 
+Any `strategy:` other than `:auto` or `:explicit` raises `ArgumentError`.
+
 ### `call(result)`
 
 Executes sequentially (ignores parallelism):
