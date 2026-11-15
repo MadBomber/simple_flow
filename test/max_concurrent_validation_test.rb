@@ -73,7 +73,7 @@ module SimpleFlow
         error = assert_raises(ArgumentError) do
           Timeout.timeout(2) { ParallelExecutor.execute_with_async(steps, @result, max_concurrent: max_concurrent) }
         end
-        assert_match(/got #{Regexp.escape(max_concurrent.inspect)}/, error.message)
+        assert_match(/got #{Regexp.escape(max_concurrent.inspect)}\z/, error.message)
       end
     end
 
