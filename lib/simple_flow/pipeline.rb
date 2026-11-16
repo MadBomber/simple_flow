@@ -39,6 +39,12 @@ module SimpleFlow
   # end
   #
   class Pipeline
+    # depends_on: values that mean "no dependencies"
+    NO_DEPENDENCY = %i[none nothing].freeze
+
+    # Names that steps and parallel groups cannot use
+    RESERVED_NAMES = (NO_DEPENDENCY + [:optional]).freeze
+
     attr_reader :steps, :middlewares, :named_steps, :step_dependencies, :concurrency, :parallel_groups, :optional_steps
 
     # Initializes a new Pipeline object. A block can be provided to dynamically configure the pipeline,
@@ -65,7 +71,12 @@ module SimpleFlow
     # object that responds to `.new` with the callable to be wrapped and options hash.
     # @param [Proc, Class] middleware the middleware to be used
     # @param [Hash] options any options to be passed to the middleware upon initialization
+    # @raise [ArgumentError] if middleware is neither a Proc nor responds to `.new`
     def use_middleware(middleware, options = {})
+      unless middleware.is_a?(Proc) || middleware.respond_to?(:new)
+        raise ArgumentError, "Middleware must be a Proc or respond to .new, got #{middleware.inspect}"
+      end
+
       @middlewares << [middleware, options]
     end
 
@@ -95,30 +106,43 @@ module SimpleFlow
         callable ||= block
 
         # Validate step name
-        if [:none, :nothing, :optional].include?(name)
+        if RESERVED_NAMES.include?(name)
           raise ArgumentError, "Step name '#{name}' is reserved. Please use a different name."
         end
 
-        raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+        validate_callable!(callable, name)
 
         callable = apply_middleware(callable)
         @named_steps[name] = callable
 
         # Check if this is an optional step
-        if depends_on == :optional
+        deps = Array(depends_on)
+        if deps.include?(:optional) && deps.uniq != [:optional]
+          raise ArgumentError,
+                "Step :#{name} cannot combine depends_on: :optional with other dependencies (got #{depends_on.inspect})"
+        end
+
+        if deps.include?(:optional)
           @optional_steps << name
           @step_dependencies[name] = []
         else
           # Filter out reserved dependency symbols :none and :nothing, and expand parallel group names
-          @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+          @step_dependencies[name] = expand_dependencies(Array(depends_on).reject { |dep| NO_DEPENDENCY.include?(dep) })
         end
 
         @steps << { name: name, callable: callable, type: :named }
       else
         # Unnamed step: step ->(result) { ... } or step { |result| ... }
-        raise_on_extra_step_arguments!(name_or_callable, callable, block)
+        extra = callable
         callable = name_or_callable || block
-        raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+        validate_callable!(callable)
+        raise_on_extra_step_arguments!(name_or_callable, extra, block)
+
+        unless Array(depends_on).all? { |dep| [:none, :nothing].include?(dep) }
+          raise ArgumentError,
+                "depends_on: #{depends_on.inspect} needs a named step " \
+                '(step :name, callable, depends_on: ...); an unnamed step has no dependencies'
+        end
 
         callable = apply_middleware(callable)
         @steps << { callable: callable, type: :unnamed }
@@ -139,13 +163,18 @@ module SimpleFlow
     #   end
     #   step :process, ->(result) { ... }, depends_on: :fetch_data
     def parallel(name = nil, depends_on: :none, &block)
+      if Array(depends_on).include?(:optional)
+        group = name ? "Parallel group :#{name}" : 'A parallel group'
+        raise ArgumentError, "#{group} cannot be optional; declare its steps with depends_on: :optional instead"
+      end
+
       # Validate name if provided
-      if name && [:none, :nothing].include?(name)
+      if name && RESERVED_NAMES.include?(name)
         raise ArgumentError, "Parallel group name '#{name}' is reserved. Please use a different name."
       end
 
       # Filter and expand dependencies
-      filtered_deps = expand_dependencies(Array(depends_on).reject { |dep| [:none, :nothing].include?(dep) })
+      filtered_deps = expand_dependencies(Array(depends_on).reject { |dep| NO_DEPENDENCY.include?(dep) })
 
       # Create and evaluate the parallel block
       group = ParallelBlock.new(self)
@@ -312,6 +341,18 @@ module SimpleFlow
       raise ArgumentError, "Invalid strategy: #{strategy.inspect}. Valid strategies: #{valid_strategies.inspect}"
     end
 
+    # Raises unless +callable+ can be used as a step
+    # @param callable [Object] what was given as the step
+    # @param name [Symbol, nil] the step's name, nil for an unnamed step
+    # @raise [ArgumentError] naming the step and the class of what it received
+    def validate_callable!(callable, name = nil)
+      return if callable.respond_to?(:call)
+
+      label = name ? "Step :#{name}" : 'Step'
+      hint = callable.is_a?(String) ? '; step names must be Symbols' : ''
+      raise ArgumentError, "#{label} must respond to #call (got #{callable.class})#{hint}"
+    end
+
     # An unnamed step takes exactly one callable: a positional one or a block
     # @raise [ArgumentError] when given a second positional callable, or both
     #   a callable and a block
@@ -373,10 +414,12 @@ module SimpleFlow
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
       validate_dependencies!
+      return result if result.respond_to?(:continue?) && !result.continue?
 
       current_result = result
       executed_steps = Set.new
       activated_steps = Set.new
+      process_activations(result, nil, activated_steps)
 
       loop do
         # Build active dependencies: all non-optional steps + activated optional steps
@@ -540,18 +583,21 @@ module SimpleFlow
     end
 
     # Process activated steps from a result, validating each
+    # @param current_step [Symbol, nil] the step that produced +result+, or nil
+    #   when +result+ is the pipeline's input
     def process_activations(result, current_step, activated_steps)
       return unless result.respond_to?(:activated_steps)
 
+      source = current_step ? "Step :#{current_step}" : 'The input result'
       result.activated_steps.each do |step_name|
         next if activated_steps.include?(step_name) # Idempotent
 
         unless @named_steps.key?(step_name)
-          raise ArgumentError, "Step :#{current_step} attempted to activate unknown step :#{step_name}"
+          raise ArgumentError, "#{source} attempted to activate unknown step :#{step_name}"
         end
 
         unless @optional_steps.include?(step_name)
-          raise ArgumentError, "Step :#{current_step} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
+          raise ArgumentError, "#{source} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
         end
 
         activated_steps << step_name
@@ -582,15 +628,16 @@ module SimpleFlow
           raise ArgumentError, "Step :#{name} was given both a callable and a block" if callable && block
 
           callable ||= block
-          raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+          @pipeline.send(:validate_callable!, callable, name)
           callable = @pipeline.send(:apply_middleware, callable)
           # Register the step in the pipeline's named_steps
           @pipeline.instance_variable_get(:@named_steps)[name] = callable
           @steps << { name: name, callable: callable, type: :named }
         else
-          @pipeline.send(:raise_on_extra_step_arguments!, name_or_callable, callable, block)
+          extra = callable
           callable = name_or_callable || block
-          raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+          @pipeline.send(:validate_callable!, callable)
+          @pipeline.send(:raise_on_extra_step_arguments!, name_or_callable, extra, block)
           callable = @pipeline.send(:apply_middleware, callable)
           @steps << { callable: callable, type: :unnamed }
         end
