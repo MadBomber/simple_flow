@@ -46,6 +46,50 @@ class TestSimpleFlowPipeline < Minitest::Test
     assert_equal 2, result.value
   end
 
+  # Issue #61: a value that isn't middleware fails where it is declared
+  def test_use_middleware_rejects_a_value_that_is_not_middleware
+    [:logging, ->(r) { r }.method(:call)].each do |bad|
+      error = assert_raises(ArgumentError) do
+        SimpleFlow::Pipeline.new { use_middleware bad }
+      end
+      assert_includes error.message, bad.inspect
+    end
+  end
+
+  # Issue #58: the error names the step and what it received
+  def test_step_validation_error_names_the_step_and_what_it_got
+    cases = {
+      -> { SimpleFlow::Pipeline.new { step :fetch, 42 } } => 'Step :fetch must respond to #call (got Integer)',
+      -> { SimpleFlow::Pipeline.new { step 42 } } => 'Step must respond to #call (got Integer)',
+      -> { SimpleFlow::Pipeline.new { step 'writer', ->(r) { r } } } =>
+        'Step must respond to #call (got String); step names must be Symbols',
+      -> { SimpleFlow::Pipeline.new { parallel { step :fetch } } } => 'Step :fetch must respond to #call (got NilClass)'
+    }
+
+    cases.each do |build, message|
+      error = assert_raises(ArgumentError) { build.call }
+      assert_equal message, error.message
+    end
+  end
+
+  # Issue #69: a step that would silently drop a callable raises instead
+  def test_step_rejects_an_extra_callable_or_block
+    a = ->(r) { r.continue(1) }
+    b = ->(r) { r.continue(2) }
+    cases = {
+      -> { SimpleFlow::Pipeline.new { step a, b } } => /second callable/,
+      -> { SimpleFlow::Pipeline.new { step(a) { |r| r } } } => /both a callable and a block/,
+      -> { SimpleFlow::Pipeline.new { step(:x, a) { |r| r } } } => /Step :x was given both a callable and a block/,
+      -> { SimpleFlow::Pipeline.new { parallel { step a, b } } } => /second callable/,
+      -> { SimpleFlow::Pipeline.new { parallel { step(:x, a) { |r| r } } } } => /Step :x was given both/
+    }
+
+    cases.each do |build, message|
+      error = assert_raises(ArgumentError) { build.call }
+      assert_match message, error.message
+    end
+  end
+
   def test_pipeline_stops_when_continue_is_false
     pipeline = SimpleFlow::Pipeline.new do
       step ->(result) { result.halt }
