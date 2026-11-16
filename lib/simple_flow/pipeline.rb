@@ -214,6 +214,8 @@ module SimpleFlow
     # @param result [Object] the initial data/input to be passed through the pipeline
     # @return [Object] the result of executing the pipeline
     def call(result)
+      activated = Set.new
+
       steps.reduce(result) do |res, step_def|
         return res if res.respond_to?(:continue?) && !res.continue?
 
@@ -221,7 +223,7 @@ module SimpleFlow
         when Hash
           next res if skip_optional_step?(step_def, res)
 
-          execute_step_def(step_def, res)
+          validate_step_activations(execute_step_def(step_def, res), step_def, activated)
         else
           # Backward compatibility with old format
           step_def.call(res)
@@ -583,12 +585,18 @@ module SimpleFlow
     end
 
     # Process activated steps from a result, validating each
-    # @param current_step [Symbol, nil] the step that produced +result+, or nil
+    # @param current_step [Symbol, String, nil] the name of the step that
+    #   produced +result+, a description of it when it has no name, or nil
     #   when +result+ is the pipeline's input
     def process_activations(result, current_step, activated_steps)
       return unless result.respond_to?(:activated_steps)
 
-      source = current_step ? "Step :#{current_step}" : 'The input result'
+      source =
+        case current_step
+        when Symbol then "Step :#{current_step}"
+        when nil then 'The input result'
+        else current_step
+        end
       result.activated_steps.each do |step_name|
         next if activated_steps.include?(step_name) # Idempotent
 
@@ -605,12 +613,36 @@ module SimpleFlow
     end
 
     def execute_with_explicit_parallelism(result, max_concurrent: nil)
+      activated = Set.new
+
       steps.reduce(result) do |res, step_def|
         return res if res.respond_to?(:continue?) && !res.continue?
         next res if skip_optional_step?(step_def, res)
 
-        execute_step_def(step_def, res, max_concurrent: max_concurrent)
+        validate_step_activations(
+          execute_step_def(step_def, res, max_concurrent: max_concurrent), step_def, activated
+        )
       end
+    end
+
+    # The sequential runners' counterpart of the dependency-graph check: in a
+    # pipeline with named steps, raises when a step's result activates an
+    # unknown or non-optional step
+    # @param result [Object] what the step returned
+    # @param step_def [Hash] the step definition that produced +result+
+    # @param activated [Set<Symbol>] activations already validated
+    # @return [Object] +result+
+    def validate_step_activations(result, step_def, activated)
+      return result unless has_named_steps?
+
+      source =
+        case step_def[:type]
+        when :named then step_def[:name]
+        when :parallel then step_def[:name] ? "Parallel group :#{step_def[:name]}" : 'A parallel block'
+        else 'An unnamed step'
+        end
+      process_activations(result, source, activated)
+      result
     end
 
     # Helper class for building parallel blocks
