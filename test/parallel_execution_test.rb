@@ -94,6 +94,23 @@ module SimpleFlow
       assert_includes result.errors[:validation], "Failed validation"
     end
 
+    # Issue #59: no step runs on an already-halted input, under any runner
+    def test_halted_input_runs_no_steps
+      ran = []
+      pipeline = Pipeline.new do
+        step(:a, depends_on: :none) { |r| ran << :a; r.continue(r.value) }
+        step(:b, depends_on: :none) { |r| ran << :b; r.continue(r.value) }
+        step(:c, depends_on: [:a]) { |r| ran << :c; r.continue(r.value) }
+      end
+      input = Result.new(0).halt
+
+      results = [pipeline.call(input), pipeline.call_parallel(input),
+                 pipeline.call_parallel(input, strategy: :explicit)]
+
+      assert_empty ran
+      results.each { |result| assert_same input, result }
+    end
+
     # Test backward compatibility - old API still works
     def test_backward_compatibility
       pipeline = Pipeline.new do

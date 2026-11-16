@@ -109,6 +109,43 @@ module SimpleFlow
       refute pipeline.optional_steps.include?(:regular)
     end
 
+    # Issue #63: [:optional] means the same as :optional
+    def test_depends_on_optional_array_is_optional
+      ran = []
+      pipeline = Pipeline.new do
+        step :a, ->(r) { r.continue(r.value) }, depends_on: :none
+        step :b, ->(r) { ran << :b; r.continue(r.value) }, depends_on: [:optional]
+      end
+
+      assert_equal Set[:b], pipeline.optional_steps
+      pipeline.call(Result.new(0))
+      pipeline.call_parallel(Result.new(0))
+      assert_empty ran
+    end
+
+    def test_depends_on_optional_mixed_with_other_dependencies_raises
+      error = assert_raises(ArgumentError) do
+        Pipeline.new do
+          step :a, ->(r) { r }, depends_on: :none
+          step :b, ->(r) { r }, depends_on: [:a, :optional]
+        end
+      end
+
+      assert_match(/Step :b cannot combine depends_on: :optional/, error.message)
+    end
+
+    def test_optional_parallel_group_raises
+      error = assert_raises(ArgumentError) do
+        Pipeline.new do
+          parallel :g, depends_on: :optional do
+            step :x, ->(r) { r }
+          end
+        end
+      end
+
+      assert_match(/Parallel group :g cannot be optional/, error.message)
+    end
+
     # Issue #57: an unnamed step can't be optional or depend on anything
     def test_unnamed_step_rejects_depends_on
       [:optional, [:x], :x].each do |deps|
@@ -279,6 +316,32 @@ module SimpleFlow
       end
 
       assert_match(/unknown step :nonexistent_step/, error.message)
+    end
+
+    # Issue #68: call_parallel honours activations already on the input
+    def test_call_parallel_runs_optional_step_activated_on_the_input
+      ran = []
+      pipeline = Pipeline.new do
+        step :o, ->(r) { ran << :o; r.continue(1) }, depends_on: :optional
+      end
+
+      result = pipeline.call_parallel(Result.new(0).activate(:o))
+
+      assert_equal [:o], ran
+      assert_equal 1, result.value
+    end
+
+    def test_activating_unknown_step_on_the_input_names_the_input
+      pipeline = Pipeline.new do
+        step :a, ->(r) { r.continue(r.value) }, depends_on: []
+        step :opt, ->(r) { r.continue(r.value) }, depends_on: :optional
+      end
+
+      error = assert_raises(ArgumentError) do
+        pipeline.call_parallel(Result.new(1).activate(:nope))
+      end
+
+      assert_equal 'The input result attempted to activate unknown step :nope', error.message
     end
 
     def test_activating_non_optional_step_raises_error

@@ -30,6 +30,27 @@ module SimpleFlow
       assert_equal 'boom', error.message
     end
 
+    # NotImplementedError is a ScriptError, not a StandardError (#62)
+    def test_a_script_error_lets_siblings_finish
+      done = []
+      pipeline = Pipeline.new(concurrency: :async) do
+        step :a, ->(_r) { raise NotImplementedError, 'abstract' }, depends_on: :none
+        step :b, lambda { |r|
+          sleep 0.05
+          done << :b
+          r.continue(r.value)
+        }, depends_on: :none
+      end
+
+      _, err = capture_io do
+        error = assert_raises(NotImplementedError) { pipeline.call_parallel(Result.new(1)) }
+        assert_equal 'abstract', error.message
+      end
+
+      assert_equal [:b], done
+      assert_empty err
+    end
+
     def test_parallel_block_raises_the_step_exception
       pipeline = Pipeline.new(concurrency: :async) do
         parallel do

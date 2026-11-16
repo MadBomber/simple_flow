@@ -1,6 +1,14 @@
 ## [Unreleased]
 
 ### Fixed
+- Looking up a step that is not in a `DependencyGraph` no longer returns one shared array, so appending to it no longer leaks into every other missing key or into `merge` (#52)
+- `DependencyGraph#parallel_order`, and so every visualizer and `execution_plan`, no longer slows down cubically on large graphs; a 1000-step chain takes about 0.06s instead of 9s (#60)
+- A parallel step that raises `NotImplementedError` or `LoadError` (a `ScriptError`, not a `StandardError`) no longer cancels its siblings or prints a thread backtrace; the error is raised once every sibling has finished, as for other errors (#62)
+- `use_middleware` raises `ArgumentError` naming the value when it is neither a `Proc` nor responds to `.new` (such as `:logging`), instead of failing later with `NoMethodError` from inside the library, or never when no step follows (#61)
+- `call_parallel` (default `:auto` strategy) returns an already-halted input unchanged without running any step, as `call` and `strategy: :explicit` already do; before, it ran the whole first wave of steps (#59)
+- `call_parallel` (default `:auto` strategy) honours steps activated on the input `Result`, as `call` and `strategy: :explicit` already do, so a pipeline of only optional steps runs the activated ones; an unknown or non-optional activation on the input raises `ArgumentError` naming the input rather than the first step (#68)
+- `parallel :optional` raises the same "reserved" `ArgumentError` as `step :optional`, instead of creating a group that a later `depends_on: :optional` can never refer to (#64)
+- `depends_on: [:optional]` makes a step optional, like `depends_on: :optional`; mixing `:optional` with other dependencies, or giving a `parallel` group `depends_on: :optional`, raises `ArgumentError` instead of running the step every time under `call` or failing with a misleading "unknown step :optional" error under `call_parallel` (#63)
 - An unnamed step given `depends_on:` other than `:none`/`:nothing` raises `ArgumentError` saying a named step is needed, instead of silently ignoring it, which made an unnamed `depends_on: :optional` step run on every call (#57)
 - `call_parallel` raises `ArgumentError` naming the value and the valid ones (`:auto`, `:explicit`) for an unknown `strategy:`, such as a misspelled `:explict`, instead of silently running it as `:explicit`
 - Optional steps (`depends_on: :optional`) now run only when activated under `Pipeline#call` and `call_parallel(strategy: :explicit)`, matching `call_parallel`; before, every optional step ran, so in the router pattern an unactivated branch could overwrite the result (#45)
@@ -20,6 +28,7 @@
 - `ParallelExecutor.execute_with_async` called directly also raises `ArgumentError` for a `max_concurrent:` that isn't a positive Integer or nil, instead of hanging forever on 0 or a negative number
 
 ### Documentation
+- The docs landing page's Get Started button links to the built Quick Start page instead of a 404 `.md` URL, and its Quick Example passes `{ user_id: 123 }` as a hash so `Result.new` no longer raises `ArgumentError` (#65)
 - Added API reference pages for `DependencyGraphVisualizer` (every output format, including `to_html`, which has no `Pipeline` shortcut) and `StepTracker` (#47)
 - Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias
 - Fixed `examples/README.md` async-fallback wording: without the `async` gem, parallel steps fall back to Ruby threads (still parallel), not sequential execution
