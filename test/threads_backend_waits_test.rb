@@ -33,6 +33,27 @@ module SimpleFlow
       assert_equal 1, done.size, 'sibling step was still running when the error was raised'
     end
 
+    # NotImplementedError and LoadError are ScriptErrors, not StandardErrors (#62)
+    def test_a_script_error_waits_for_siblings_and_prints_nothing
+      done = Queue.new
+      steps = [
+        ->(_) { raise NotImplementedError, 'abstract' },
+        lambda do |result|
+          Queue.new.pop(timeout: 0.2)
+          done << :sibling
+          result.continue(1)
+        end
+      ]
+
+      _, err = capture_io do
+        error = assert_raises(NotImplementedError) { run_threads(steps) }
+        assert_equal 'abstract', error.message
+      end
+
+      assert_equal 1, done.size, 'sibling step was still running when the error was raised'
+      assert_empty err
+    end
+
     def test_raises_the_first_failing_step_in_step_order
       second_failed = Queue.new
       steps = [
