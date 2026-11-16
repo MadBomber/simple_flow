@@ -100,6 +100,37 @@ module SimpleFlow
       yield ->(r) { pipeline.call_parallel(r, strategy: :explicit) }
     end
 
+    # Issue #50: a step that depends on a skipped optional step is skipped too
+    def build_dependent_pipeline
+      Pipeline.new do
+        step :start, ->(r) { r.continue(r.value) }, depends_on: :none
+        step :opt, ->(r) { r.with_context(:opt, true).continue(r.value) }, depends_on: :optional
+        step :after_opt, ->(r) { r.with_context(:after_opt, true).continue(r.value) }, depends_on: [:opt]
+        parallel :after_after, depends_on: [:after_opt] do
+          step :aa, ->(r) { r.with_context(:aa, true).continue(r.value) }
+        end
+        step :final, ->(r) { r.with_context(:final, true).continue(r.value) }, depends_on: [:start]
+      end
+    end
+
+    def test_every_runner_skips_dependents_of_an_unactivated_optional_step
+      pipeline = build_dependent_pipeline
+      input = Result.new(1)
+
+      assert_equal({ final: true }, pipeline.call(input).context)
+      assert_equal({ final: true }, pipeline.call_parallel(input).context)
+      assert_equal({ final: true }, pipeline.call_parallel(input, strategy: :explicit).context)
+    end
+
+    def test_dependents_of_an_activated_optional_step_run
+      pipeline = build_dependent_pipeline
+      input = Result.new(1).activate(:opt)
+
+      assert_equal({ opt: true, after_opt: true, aa: true, final: true }, pipeline.call(input).context)
+      assert_equal({ opt: true, after_opt: true, aa: true, final: true },
+                   pipeline.call_parallel(input, strategy: :explicit).context)
+    end
+
     def test_skip_optional_step_predicate
       pipeline = build_router([])
       optional = { name: :pdf, type: :named }
