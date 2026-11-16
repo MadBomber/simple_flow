@@ -46,6 +46,16 @@ class TestSimpleFlowPipeline < Minitest::Test
     assert_equal 2, result.value
   end
 
+  # Issue #61: a value that isn't middleware fails where it is declared
+  def test_use_middleware_rejects_a_value_that_is_not_middleware
+    [:logging, ->(r) { r }.method(:call)].each do |bad|
+      error = assert_raises(ArgumentError) do
+        SimpleFlow::Pipeline.new { use_middleware bad }
+      end
+      assert_includes error.message, bad.inspect
+    end
+  end
+
   # Issue #58: the error names the step and what it received
   def test_step_validation_error_names_the_step_and_what_it_got
     cases = {
