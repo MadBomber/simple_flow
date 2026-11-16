@@ -2297,7 +2297,7 @@
 </span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="p">}</span>
 </span></code></pre></div></p>
 <h4 id="to_mermaid"><code>to_mermaid</code><a class="headerlink" href="#to_mermaid" title="Permanent link">&para;</a></h4>
-<p>Returns a Mermaid <code>graph TD</code> diagram. Parallel groups with more than one step get a fill color.</p>
+<p>Returns a Mermaid <code>graph TD</code> diagram. Parallel groups with more than one step get a fill color. A step named after a Mermaid keyword (such as <code>:end</code>) or containing a space or punctuation like <code>(</code>, <code>]</code> or <code>"</code> gets a generated node id (<code>step_end</code>) and a quoted label; other names are written as-is.</p>
 <p><strong>Returns:</strong> String</p>
 <p><strong>Pipeline shortcut:</strong> <code>pipeline.visualize_mermaid</code></p>
 <p><strong>Sample output:</strong>
