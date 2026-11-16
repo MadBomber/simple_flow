@@ -361,6 +361,7 @@ module SimpleFlow
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
       validate_dependencies!
+      return result if result.respond_to?(:continue?) && !result.continue?
 
       current_result = result
       executed_steps = Set.new
