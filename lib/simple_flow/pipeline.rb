@@ -108,7 +108,7 @@ module SimpleFlow
           raise ArgumentError, "Step name '#{name}' is reserved. Please use a different name."
         end
 
-        raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+        validate_callable!(callable, name)
 
         callable = apply_middleware(callable)
         @named_steps[name] = callable
@@ -132,7 +132,7 @@ module SimpleFlow
       else
         # Unnamed step: step ->(result) { ... } or step { |result| ... }
         callable = name_or_callable || block
-        raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+        validate_callable!(callable)
 
         unless Array(depends_on).all? { |dep| [:none, :nothing].include?(dep) }
           raise ArgumentError,
@@ -335,6 +335,18 @@ module SimpleFlow
       return if valid_strategies.include?(strategy)
 
       raise ArgumentError, "Invalid strategy: #{strategy.inspect}. Valid strategies: #{valid_strategies.inspect}"
+    end
+
+    # Raises unless +callable+ can be used as a step
+    # @param callable [Object] what was given as the step
+    # @param name [Symbol, nil] the step's name, nil for an unnamed step
+    # @raise [ArgumentError] naming the step and the class of what it received
+    def validate_callable!(callable, name = nil)
+      return if callable.respond_to?(:call)
+
+      label = name ? "Step :#{name}" : 'Step'
+      hint = callable.is_a?(String) ? '; step names must be Symbols' : ''
+      raise ArgumentError, "#{label} must respond to #call (got #{callable.class})#{hint}"
     end
 
     def has_named_steps?
@@ -596,14 +608,14 @@ module SimpleFlow
         if name_or_callable.is_a?(Symbol)
           name = name_or_callable
           callable ||= block
-          raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+          @pipeline.send(:validate_callable!, callable, name)
           callable = @pipeline.send(:apply_middleware, callable)
           # Register the step in the pipeline's named_steps
           @pipeline.instance_variable_get(:@named_steps)[name] = callable
           @steps << { name: name, callable: callable, type: :named }
         else
           callable = name_or_callable || block
-          raise ArgumentError, "Step must respond to #call" unless callable.respond_to?(:call)
+          @pipeline.send(:validate_callable!, callable)
           callable = @pipeline.send(:apply_middleware, callable)
           @steps << { callable: callable, type: :unnamed }
         end

@@ -56,6 +56,22 @@ class TestSimpleFlowPipeline < Minitest::Test
     end
   end
 
+  # Issue #58: the error names the step and what it received
+  def test_step_validation_error_names_the_step_and_what_it_got
+    cases = {
+      -> { SimpleFlow::Pipeline.new { step :fetch, 42 } } => 'Step :fetch must respond to #call (got Integer)',
+      -> { SimpleFlow::Pipeline.new { step 42 } } => 'Step must respond to #call (got Integer)',
+      -> { SimpleFlow::Pipeline.new { step 'writer', ->(r) { r } } } =>
+        'Step must respond to #call (got String); step names must be Symbols',
+      -> { SimpleFlow::Pipeline.new { parallel { step :fetch } } } => 'Step :fetch must respond to #call (got NilClass)'
+    }
+
+    cases.each do |build, message|
+      error = assert_raises(ArgumentError) { build.call }
+      assert_equal message, error.message
+    end
+  end
+
   def test_pipeline_stops_when_continue_is_false
     pipeline = SimpleFlow::Pipeline.new do
       step ->(result) { result.halt }
