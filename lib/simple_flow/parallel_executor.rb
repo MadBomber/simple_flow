@@ -79,10 +79,11 @@ module SimpleFlow
     # failure is raised once by the caller rather than logged by the task
     # @param step [#call] the step to run
     # @param result [Result] the input result
-    # @return [Array(Object, StandardError)] [step result, nil] or [nil, error]
+    # @return [Array(Object, Exception)] [step result, nil] or [nil, error];
+    #   ScriptError (NotImplementedError, LoadError) is captured as well
     def self.capture_outcome(step, result)
       [step.call(result), nil]
-    rescue StandardError => e
+    rescue StandardError, ScriptError => e
       [nil, e]
     end
 
