@@ -119,7 +119,7 @@ digraph DependencyGraph {
 
 #### `to_mermaid`
 
-Returns a Mermaid `graph TD` diagram. Parallel groups with more than one step get a fill color.
+Returns a Mermaid `graph TD` diagram. Parallel groups with more than one step get a fill color. A step named after a Mermaid keyword (such as `:end`) or containing a space or punctuation like `(`, `]` or `"` gets a generated node id (`step_end`) and a quoted label; other names are written as-is.
 
 **Returns:** String
 

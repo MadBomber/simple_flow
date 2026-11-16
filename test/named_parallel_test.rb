@@ -100,17 +100,19 @@ class NamedParallelTest < Minitest::Test
     assert_equal [:a, :b, :c], result.context[:products]
   end
 
-  # Test that parallel group names cannot be :none or :nothing
+  # Test that parallel group names cannot be :none, :nothing or :optional (#64)
   def test_parallel_group_reserved_names
-    error = assert_raises(ArgumentError) do
-      Pipeline.new do
-        parallel :none do
-          step :step_a, ->(result) { result.continue(result.value) }
+    %i[none nothing optional].each do |reserved|
+      error = assert_raises(ArgumentError) do
+        Pipeline.new do
+          parallel reserved do
+            step :step_a, ->(result) { result.continue(result.value) }
+          end
         end
       end
-    end
 
-    assert_match(/reserved/i, error.message)
+      assert_match(/reserved/i, error.message)
+    end
   end
 
   # Test multiple parallel groups
