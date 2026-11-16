@@ -65,7 +65,12 @@ module SimpleFlow
     # object that responds to `.new` with the callable to be wrapped and options hash.
     # @param [Proc, Class] middleware the middleware to be used
     # @param [Hash] options any options to be passed to the middleware upon initialization
+    # @raise [ArgumentError] if middleware is neither a Proc nor responds to `.new`
     def use_middleware(middleware, options = {})
+      unless middleware.is_a?(Proc) || middleware.respond_to?(:new)
+        raise ArgumentError, "Middleware must be a Proc or respond to .new, got #{middleware.inspect}"
+      end
+
       @middlewares << [middleware, options]
     end
 
