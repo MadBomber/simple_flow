@@ -146,6 +146,25 @@ module SimpleFlow
       assert_match(/Parallel group :g cannot be optional/, error.message)
     end
 
+    # Issue #57: an unnamed step can't be optional or depend on anything
+    def test_unnamed_step_rejects_depends_on
+      [:optional, [:x], :x].each do |deps|
+        error = assert_raises(ArgumentError) do
+          Pipeline.new { step ->(r) { r }, depends_on: deps }
+        end
+        assert_match(/needs a named step/, error.message)
+      end
+    end
+
+    def test_unnamed_step_accepts_no_dependency_values
+      pipeline = Pipeline.new do
+        step ->(r) { r.continue(1) }, depends_on: :none
+        step(depends_on: [:nothing]) { |r| r.continue(r.value + 1) }
+      end
+
+      assert_equal 2, pipeline.call(Result.new(0)).value
+    end
+
     def test_optional_reserved_as_step_name
       assert_raises(ArgumentError) do
         Pipeline.new do
