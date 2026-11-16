@@ -72,6 +72,24 @@ class TestSimpleFlowPipeline < Minitest::Test
     end
   end
 
+  # Issue #69: a step that would silently drop a callable raises instead
+  def test_step_rejects_an_extra_callable_or_block
+    a = ->(r) { r.continue(1) }
+    b = ->(r) { r.continue(2) }
+    cases = {
+      -> { SimpleFlow::Pipeline.new { step a, b } } => /second callable/,
+      -> { SimpleFlow::Pipeline.new { step(a) { |r| r } } } => /both a callable and a block/,
+      -> { SimpleFlow::Pipeline.new { step(:x, a) { |r| r } } } => /Step :x was given both a callable and a block/,
+      -> { SimpleFlow::Pipeline.new { parallel { step a, b } } } => /second callable/,
+      -> { SimpleFlow::Pipeline.new { parallel { step(:x, a) { |r| r } } } } => /Step :x was given both/
+    }
+
+    cases.each do |build, message|
+      error = assert_raises(ArgumentError) { build.call }
+      assert_match message, error.message
+    end
+  end
+
   def test_pipeline_stops_when_continue_is_false
     pipeline = SimpleFlow::Pipeline.new do
       step ->(result) { result.halt }

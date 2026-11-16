@@ -101,6 +101,8 @@ module SimpleFlow
       if name_or_callable.is_a?(Symbol)
         # Named step: step :name, ->(result) { ... }, depends_on: [...]
         name = name_or_callable
+        raise ArgumentError, "Step :#{name} was given both a callable and a block" if callable && block
+
         callable ||= block
 
         # Validate step name
@@ -131,8 +133,10 @@ module SimpleFlow
         @steps << { name: name, callable: callable, type: :named }
       else
         # Unnamed step: step ->(result) { ... } or step { |result| ... }
+        extra = callable
         callable = name_or_callable || block
         validate_callable!(callable)
+        raise_on_extra_step_arguments!(name_or_callable, extra, block)
 
         unless Array(depends_on).all? { |dep| [:none, :nothing].include?(dep) }
           raise ArgumentError,
@@ -347,6 +351,20 @@ module SimpleFlow
       label = name ? "Step :#{name}" : 'Step'
       hint = callable.is_a?(String) ? '; step names must be Symbols' : ''
       raise ArgumentError, "#{label} must respond to #call (got #{callable.class})#{hint}"
+    end
+
+    # An unnamed step takes exactly one callable: a positional one or a block
+    # @raise [ArgumentError] when given a second positional callable, or both
+    #   a callable and a block
+    def raise_on_extra_step_arguments!(first, second, block)
+      if second
+        raise ArgumentError,
+              "Unnamed step was given a second callable (#{second.class}); " \
+              'declare one step per callable, or name the step with a Symbol'
+      end
+      return unless first && block
+
+      raise ArgumentError, 'Unnamed step was given both a callable and a block'
     end
 
     def has_named_steps?
@@ -607,6 +625,8 @@ module SimpleFlow
       def step(name_or_callable = nil, callable = nil, depends_on: [], &block)
         if name_or_callable.is_a?(Symbol)
           name = name_or_callable
+          raise ArgumentError, "Step :#{name} was given both a callable and a block" if callable && block
+
           callable ||= block
           @pipeline.send(:validate_callable!, callable, name)
           callable = @pipeline.send(:apply_middleware, callable)
@@ -614,8 +634,10 @@ module SimpleFlow
           @pipeline.instance_variable_get(:@named_steps)[name] = callable
           @steps << { name: name, callable: callable, type: :named }
         else
+          extra = callable
           callable = name_or_callable || block
           @pipeline.send(:validate_callable!, callable)
+          @pipeline.send(:raise_on_extra_step_arguments!, name_or_callable, extra, block)
           callable = @pipeline.send(:apply_middleware, callable)
           @steps << { callable: callable, type: :unnamed }
         end
