@@ -29,7 +29,7 @@ module SimpleFlow
     #   would mean that "step1" depends on step2 and step3, step2 depends on step3
     #   and step3 has no dependencies. Nil and missing values will be converted to [].
     def initialize(dependencies)
-      @dependencies = Hash.new([]).merge(dependencies.transform_values { |v| v.nil? ? [] : Array(v).sort })
+      @dependencies = Hash.new { [] }.merge(dependencies.transform_values { |v| v.nil? ? [] : Array(v).sort })
     end
 
     # Returns steps in topological order (dependencies first)
@@ -52,6 +52,7 @@ module SimpleFlow
     # @return [Array<Array>] array of groups, where each group can run in parallel
     def parallel_order
       groups = []
+      grouped = Set.new
       ungrouped_dependencies = order.dup
 
       until ungrouped_dependencies.empty?
@@ -61,7 +62,7 @@ module SimpleFlow
 
         ungrouped_dependencies.each do |ungrouped_dependency|
           same_priority = @dependencies[ungrouped_dependency].all? do |sub_dependency|
-            groups.reduce(false) { |found, g| found || g.include?(sub_dependency) }
+            grouped.include?(sub_dependency)
           end
 
           group << ungrouped_dependency if same_priority
@@ -69,6 +70,7 @@ module SimpleFlow
 
         # Remove dependencies we managed to group
         ungrouped_dependencies -= group
+        grouped.merge(group)
 
         groups << group.sort
       end
