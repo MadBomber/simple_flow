@@ -29,7 +29,7 @@ module SimpleFlow
     #   would mean that "step1" depends on step2 and step3, step2 depends on step3
     #   and step3 has no dependencies. Nil and missing values will be converted to [].
     def initialize(dependencies)
-      @dependencies = Hash.new([]).merge(dependencies.transform_values { |v| v.nil? ? [] : Array(v).sort })
+      @dependencies = Hash.new { [] }.merge(dependencies.transform_values { |v| v.nil? ? [] : Array(v).sort })
     end
 
     # Returns steps in topological order (dependencies first)

@@ -9,6 +9,14 @@ module SimpleFlow
       assert_empty graph.dependencies
     end
 
+    def test_missing_keys_do_not_share_a_mutable_default
+      graph = DependencyGraph.new(a: [])
+      graph.dependencies[:zz] << :leak
+
+      assert_equal [], graph.dependencies[:other]
+      assert_equal [], graph.merge(DependencyGraph.new(b: [])).dependencies[:b]
+    end
+
     def test_initialize_with_dependencies
       deps = { a: [:b], b: [:c], c: [] }
       graph = DependencyGraph.new(deps)
