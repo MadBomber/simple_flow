@@ -71,7 +71,12 @@ module SimpleFlow
     # object that responds to `.new` with the callable to be wrapped and options hash.
     # @param [Proc, Class] middleware the middleware to be used
     # @param [Hash] options any options to be passed to the middleware upon initialization
+    # @raise [ArgumentError] if middleware is neither a Proc nor responds to `.new`
     def use_middleware(middleware, options = {})
+      unless middleware.is_a?(Proc) || middleware.respond_to?(:new)
+        raise ArgumentError, "Middleware must be a Proc or respond to .new, got #{middleware.inspect}"
+      end
+
       @middlewares << [middleware, options]
     end
 
@@ -362,10 +367,12 @@ module SimpleFlow
 
     def execute_with_dependency_graph(result, max_concurrent: nil)
       validate_dependencies!
+      return result if result.respond_to?(:continue?) && !result.continue?
 
       current_result = result
       executed_steps = Set.new
       activated_steps = Set.new
+      process_activations(result, nil, activated_steps)
 
       loop do
         # Build active dependencies: all non-optional steps + activated optional steps
@@ -529,18 +536,21 @@ module SimpleFlow
     end
 
     # Process activated steps from a result, validating each
+    # @param current_step [Symbol, nil] the step that produced +result+, or nil
+    #   when +result+ is the pipeline's input
     def process_activations(result, current_step, activated_steps)
       return unless result.respond_to?(:activated_steps)
 
+      source = current_step ? "Step :#{current_step}" : 'The input result'
       result.activated_steps.each do |step_name|
         next if activated_steps.include?(step_name) # Idempotent
 
         unless @named_steps.key?(step_name)
-          raise ArgumentError, "Step :#{current_step} attempted to activate unknown step :#{step_name}"
+          raise ArgumentError, "#{source} attempted to activate unknown step :#{step_name}"
         end
 
         unless @optional_steps.include?(step_name)
-          raise ArgumentError, "Step :#{current_step} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
+          raise ArgumentError, "#{source} attempted to activate non-optional step :#{step_name}. Only steps declared with depends_on: :optional can be activated."
         end
 
         activated_steps << step_name

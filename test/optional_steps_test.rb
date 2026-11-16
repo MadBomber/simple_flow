@@ -262,6 +262,32 @@ module SimpleFlow
       assert_match(/unknown step :nonexistent_step/, error.message)
     end
 
+    # Issue #68: call_parallel honours activations already on the input
+    def test_call_parallel_runs_optional_step_activated_on_the_input
+      ran = []
+      pipeline = Pipeline.new do
+        step :o, ->(r) { ran << :o; r.continue(1) }, depends_on: :optional
+      end
+
+      result = pipeline.call_parallel(Result.new(0).activate(:o))
+
+      assert_equal [:o], ran
+      assert_equal 1, result.value
+    end
+
+    def test_activating_unknown_step_on_the_input_names_the_input
+      pipeline = Pipeline.new do
+        step :a, ->(r) { r.continue(r.value) }, depends_on: []
+        step :opt, ->(r) { r.continue(r.value) }, depends_on: :optional
+      end
+
+      error = assert_raises(ArgumentError) do
+        pipeline.call_parallel(Result.new(1).activate(:nope))
+      end
+
+      assert_equal 'The input result attempted to activate unknown step :nope', error.message
+    end
+
     def test_activating_non_optional_step_raises_error
       pipeline = Pipeline.new do
         step :start, ->(r) {

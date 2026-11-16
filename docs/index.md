@@ -3,7 +3,7 @@
 <div align="center">
   <img src="assets/images/logo.svg" alt="placehold image of a DAG" />
   <br/><br/>
-  <a href="getting-started/quick-start.md" class="md-button md-button--primary">Get Started</a>
+  <a href="getting-started/quick-start/" class="md-button md-button--primary">Get Started</a>
   <a href="https://github.com/MadBomber/simple_flow" class="md-button">View on GitHub</a>
 </div>
 
@@ -100,7 +100,7 @@ pipeline = SimpleFlow::Pipeline.new do
   step ->(result) { aggregate_data(result) }
 end
 
-result = pipeline.call(SimpleFlow::Result.new(user_id: 123))
+result = pipeline.call(SimpleFlow::Result.new({ user_id: 123 }))
 ```
 
 ## Why SimpleFlow?
