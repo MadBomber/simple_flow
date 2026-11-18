@@ -1,6 +1,6 @@
 # SimpleFlow
 
-[![Ruby Version](https://img.shields.io/badge/ruby-3.2%2B-ruby.svg)](https://www.ruby-lang.org)
+[![Ruby Version](https://img.shields.io/badge/ruby-4.0%2B-ruby.svg)](https://www.ruby-lang.org)
 [![Tests](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/MadBomber/simple_flow/actions/workflows/test.yml?query=branch%3Amain)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://madbomber.github.io/simple_flow)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -514,7 +514,7 @@ Check out the `examples/` directory for comprehensive examples:
 
 ## Requirements
 
-- Ruby 3.2 or higher
+- Ruby 4.0 or higher
 - `logger` and `tsort` (no longer default gems as of Ruby 4.0/4.1; installed automatically)
 - Optional: `async` gem (~> 2.0) for fiber-based concurrency; without it the default `:auto` mode uses threads
 

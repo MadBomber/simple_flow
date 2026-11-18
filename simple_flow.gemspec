@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "SimpleFlow provides a clean and flexible architecture for orchestrating multi-step workflows with middleware support, flow control, parallel execution, and immutable results. Perfect for building data processing pipelines with cross-cutting concerns like logging and instrumentation."
   spec.homepage = "https://github.com/MadBomber/simple_flow"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 4.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/MadBomber/simple_flow"
