@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 module SimpleFlow
   ##
   # DependencyGraphVisualizer generates visual representations of dependency graphs.
@@ -98,7 +100,7 @@ module SimpleFlow
           color = colors[idx % colors.size]
           lines << "  // Group #{idx + 1}"
           group.each do |step|
-            lines << "  #{step} [fillcolor=#{color}, style=\"rounded,filled\"];"
+            lines << "  #{dot_id(step)} [fillcolor=#{color}, style=\"rounded,filled\"];"
           end
         end
         lines << ""
@@ -108,10 +110,10 @@ module SimpleFlow
       lines << "  // Dependencies"
       @graph.dependencies.each do |step, deps|
         if deps.empty?
-          lines << "  #{step};"
+          lines << "  #{dot_id(step)};"
         else
           deps.each do |dep|
-            lines << "  #{dep} -> #{step};"
+            lines << "  #{dot_id(dep)} -> #{dot_id(step)};"
           end
         end
       end
@@ -137,15 +139,16 @@ module SimpleFlow
     # Generate Mermaid diagram format for the dependency graph
     # @return [String] Mermaid format representation
     def to_mermaid
+      ids = mermaid_ids
       lines = []
       lines << "graph TD"
 
       @graph.dependencies.each do |step, deps|
         if deps.empty?
-          lines << "  #{step}[#{step}]"
+          lines << "  #{mermaid_node(step, ids)}"
         else
           deps.each do |dep|
-            lines << "  #{dep}[#{dep}] --> #{step}[#{step}]"
+            lines << "  #{mermaid_node(dep, ids)} --> #{mermaid_node(step, ids)}"
           end
         end
       end
@@ -156,7 +159,7 @@ module SimpleFlow
         next if group.size <= 1
         lines << "  classDef group#{idx} fill:##{['9cf', '9f9', 'ff9', 'f9f', 'ccc'][idx % 5]}"
         group.each do |step|
-          lines << "  class #{step} group#{idx}"
+          lines << "  class #{ids[step]} group#{idx}"
         end
       end
 
@@ -299,7 +302,56 @@ module SimpleFlow
       html
     end
 
+    DOT_KEYWORDS = %w[node edge graph digraph subgraph strict].freeze
+    private_constant :DOT_KEYWORDS
+
+    MERMAID_KEYWORDS = %w[
+      end graph flowchart subgraph class classDef style linkStyle click call href interpolate
+    ].freeze
+    private_constant :MERMAID_KEYWORDS
+
     private
+
+    # Quote a DOT ID unless it is a plain identifier that isn't a DOT keyword,
+    # so names like :"fetch-user" or :save? produce valid Graphviz input.
+    def dot_id(name)
+      name = name.to_s
+      return name if name.match?(/\A[A-Za-z_][A-Za-z0-9_]*\z/) && !DOT_KEYWORDS.include?(name.downcase)
+
+      %("#{name.gsub(/["\\]/) { |char| "\\#{char}" }}")
+    end
+
+    # True when +name+ can be written as-is as a Mermaid node id and label
+    def mermaid_plain?(name)
+      name = name.to_s
+      !name.empty? && !MERMAID_KEYWORDS.include?(name) && !name.match?(/[\s()\[\]{}<>"';|`#&]/)
+    end
+
+    # Map each step name to its Mermaid node id: the name itself when it is
+    # plain, otherwise a generated "step_..." id that no other node uses
+    # @return [Hash{Object => String}]
+    def mermaid_ids
+      names = (@graph.dependencies.keys + @graph.dependencies.values.flatten).uniq
+      used = Set.new(names.select { |name| mermaid_plain?(name) }.map(&:to_s))
+
+      names.to_h do |name|
+        next [name, name.to_s] if mermaid_plain?(name)
+
+        base = "step_#{name.to_s.gsub(/[^A-Za-z0-9_]/, '_')}"
+        id = base
+        suffix = 1
+        id = "#{base}_#{suffix += 1}" while used.include?(id)
+        used << id
+        [name, id]
+      end
+    end
+
+    # A Mermaid node: id[label], with the label quoted when the name isn't plain
+    def mermaid_node(name, ids)
+      return "#{name}[#{name}]" if mermaid_plain?(name)
+
+      %(#{ids[name]}["#{name.to_s.gsub('"', '#quot;')}"])
+    end
 
     def build_tree(parallel_groups)
       output = []

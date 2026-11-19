@@ -1,5 +1,55 @@
 ## [Unreleased]
 
+### Fixed
+- Looking up a step that is not in a `DependencyGraph` no longer returns one shared array, so appending to it no longer leaks into every other missing key or into `merge` (#52)
+- `DependencyGraph#parallel_order`, and so every visualizer and `execution_plan`, no longer slows down cubically on large graphs; a 1000-step chain takes about 0.06s instead of 9s (#60)
+- A parallel step that raises `NotImplementedError` or `LoadError` (a `ScriptError`, not a `StandardError`) no longer cancels its siblings or prints a thread backtrace; the error is raised once every sibling has finished, as for other errors (#62)
+- `use_middleware` raises `ArgumentError` naming the value when it is neither a `Proc` nor responds to `.new` (such as `:logging`), instead of failing later with `NoMethodError` from inside the library, or never when no step follows (#61)
+- `call_parallel` (default `:auto` strategy) returns an already-halted input unchanged without running any step, as `call` and `strategy: :explicit` already do; before, it ran the whole first wave of steps (#59)
+- `call_parallel` (default `:auto` strategy) honours steps activated on the input `Result`, as `call` and `strategy: :explicit` already do, so a pipeline of only optional steps runs the activated ones; an unknown or non-optional activation on the input raises `ArgumentError` naming the input rather than the first step (#68)
+- `parallel :optional` raises the same "reserved" `ArgumentError` as `step :optional`, instead of creating a group that a later `depends_on: :optional` can never refer to (#64)
+- `depends_on: [:optional]` makes a step optional, like `depends_on: :optional`; mixing `:optional` with other dependencies, or giving a `parallel` group `depends_on: :optional`, raises `ArgumentError` instead of running the step every time under `call` or failing with a misleading "unknown step :optional" error under `call_parallel` (#63)
+- An unnamed step given `depends_on:` other than `:none`/`:nothing` raises `ArgumentError` saying a named step is needed, instead of silently ignoring it, which made an unnamed `depends_on: :optional` step run on every call (#57)
+- The "must respond to #call" `ArgumentError` from `step` (in a pipeline or a `parallel` block) names the step and the class it received, such as `Step :fetch must respond to #call (got Integer)`, and adds "step names must be Symbols" when given a String (#58)
+- `step` raises `ArgumentError` when given a second positional callable or both a callable and a block, instead of silently keeping the first and dropping the rest (#69)
+- `Pipeline#visualize_mermaid` (`DependencyGraphVisualizer#to_mermaid`) gives a step named after a Mermaid keyword (such as `:end`) or containing a space, bracket, quote or similar punctuation a generated node id and a quoted label, so Mermaid can parse the output; other names are written unchanged (#56)
+- `call` and `call_parallel(strategy: :explicit)` raise `ArgumentError` when a step activates an unknown or non-optional step, as `call_parallel` already does, instead of silently ignoring the activation (#51)
+- `call` and `call_parallel(strategy: :explicit)` also skip steps (and parallel groups) that depend on an optional step that was not activated, transitively, matching `call_parallel`; before, only the optional step itself was skipped (#50)
+- `call_parallel` raises `ArgumentError` naming the value and the valid ones (`:auto`, `:explicit`) for an unknown `strategy:`, such as a misspelled `:explict`, instead of silently running it as `:explicit`
+- Optional steps (`depends_on: :optional`) now run only when activated under `Pipeline#call` and `call_parallel(strategy: :explicit)`, matching `call_parallel`; before, every optional step ran, so in the router pattern an unactivated branch could overwrite the result (#45)
+- Parallel steps no longer raise `NoMethodError` when the pipeline's input is not a `Result`, a regression from the inherited-errors fix (#18)
+- `call_parallel` no longer silently skips steps: named steps inside an unnamed `parallel do` block (and steps that depend on them) now run, and a `depends_on:` naming an unknown step raises `ArgumentError` instead of skipping the step
+- `Pipeline#visualize_dot` (`DependencyGraphVisualizer#to_dot`) quotes step names that aren't plain DOT identifiers, such as `:"fetch-user"`, `:save?` or `:node`, so Graphviz accepts the output; ordinary names are written unchanged (#36)
+- Declared `logger` and `tsort` as runtime dependencies so `require "simple_flow"` works under Bundler on Ruby 4.0+ (logger is no longer a default gem as of Ruby 4.0, and tsort as of 4.1)
+- `MiddleWare::Logging` now accepts `logger:` as a keyword, so the documented `use_middleware SimpleFlow::MiddleWare::Logging, logger: custom_logger` works instead of raising `NoMethodError` on the first step; the positional `Logging.new(callable, logger)` form still works
+- Parallel steps (`call_parallel` and explicit `parallel do` blocks) no longer repeat errors that were already on the incoming result once per branch; each inherited error appears once, followed by the errors each branch added (#18)
+- An exception raised by a parallel step under the `async` backend (the default when the gem is installed) now reaches the caller instead of being lost behind `NoMethodError: undefined method 'value' for nil`, and parallel execution works when called inside a reactor that is already running (#30)
+- An exception raised by a parallel step under the `threads` backend now reaches the caller only after every sibling step has finished, as it already does under `async`, and no longer prints a thread backtrace to stderr (#37)
+- `call_parallel` raises `ArgumentError` naming the steps when `depends_on` forms a cycle or a step depends on itself, instead of silently skipping those steps (#31)
+- `DependencyGraphVisualizer#to_html` requires `json` itself, so it no longer raises `NoMethodError` when the `async` gem (which happened to load `json`) is not installed (#33)
+- Explicit `parallel do` blocks keep `activated_steps` from the incoming result and from each branch under `call` and `strategy: :explicit` (#34)
+- `benchmarks/parallel_vs_sequential.rb` runs on Ruby 4.0 again; it no longer needs `Benchmark.realtime` (#29)
+- Running steps in parallel (`call_parallel` and `parallel` blocks) raises `ArgumentError` for a `max_concurrent:` that isn't a positive Integer or nil, instead of hanging forever on the async backend when given 0 or a negative number
+- `ParallelExecutor.execute_with_async` called directly also raises `ArgumentError` for a `max_concurrent:` that isn't a positive Integer or nil, instead of hanging forever on 0 or a negative number
+
+### Documentation
+- The docs landing page's Get Started button links to the built Quick Start page instead of a 404 `.md` URL, and its Quick Example passes `{ user_id: 123 }` as a hash so `Result.new` no longer raises `ArgumentError` (#65)
+- Added API reference pages for `DependencyGraphVisualizer` (every output format, including `to_html`, which has no `Pipeline` shortcut) and `StepTracker` (#47)
+- Corrected README middleware examples to use `use_middleware` (the actual DSL method) instead of the non-existent `use` alias
+- Fixed `examples/README.md` async-fallback wording: without the `async` gem, parallel steps fall back to Ruby threads (still parallel), not sequential execution
+- Docs pages link source and example files on GitHub by repo-relative path instead of showing a local checkout path, and the `concurrency: :async` option on the Pipeline API page is spelled correctly (#38)
+
+### Tests
+- The `VERSION` test now runs under `rake test`
+- The two "async gem not available" tests now run on every build instead of being skipped (#35)
+- CI also runs the suite on Ruby 4.0 (#27)
+- Regenerated the example regression baselines, which predated 0.4.0, and added one for example 13 (#14)
+- `rake test` runs without Ruby warnings or stray `Instrumentation` output; the pipeline tests now assert that output instead
+
+### Maintenance
+- Refreshed development and test dependencies: minitest 6, simplecov 1.x, rubocop 1.92, async 2.46 and others; the runtime dependencies are unchanged (#28)
+- Removed unused requires, an unused method argument and unused variables (#32)
+
 ## [0.4.0] - 2026-04-28
 
 ### Added

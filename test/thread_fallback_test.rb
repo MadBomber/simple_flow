@@ -12,44 +12,38 @@ module SimpleFlow
         Object.send(:remove_const, 'ASYNC_AVAILABLE')
         Object.const_set('ASYNC_AVAILABLE', false)
 
-        execution_order = []
-        mutex = Mutex.new
+        # Each step waits until every step has started, which only happens when
+        # they run at the same time. Run one after another, every step but the
+        # last times out and records false.
+        increments = [1, 10, 100]
+        arrivals   = 0
+        mutex      = Mutex.new
+        go         = Queue.new
+        seen       = Queue.new
 
         pipeline = Pipeline.new do
           parallel do
-            step ->(result) {
-              sleep 0.01  # Small delay to ensure concurrency
-              mutex.synchronize { execution_order << :step_a }
-              result.continue(result.value + 1)
-            }
-            step ->(result) {
-              sleep 0.01  # Small delay to ensure concurrency
-              mutex.synchronize { execution_order << :step_b }
-              result.continue(result.value + 10)
-            }
-            step ->(result) {
-              sleep 0.01  # Small delay to ensure concurrency
-              mutex.synchronize { execution_order << :step_c }
-              result.continue(result.value + 100)
-            }
+            increments.each do |increment|
+              step(lambda do |result|
+                last = mutex.synchronize { (arrivals += 1) == increments.size }
+                increments.size.times { go << true } if last
+                seen << [increment, Thread.current, go.pop(timeout: 5) || false]
+                result.continue(result.value + increment)
+              end)
+            end
           end
         end
 
-        start_time = Time.now
         result = pipeline.call(Result.new(0))
-        duration = Time.now - start_time
+        runs = Array.new(seen.size) { seen.pop }
+        ran, threads, released = runs.transpose
 
-        # Verify all steps executed
-        assert_equal 3, execution_order.size
-        assert_includes execution_order, :step_a
-        assert_includes execution_order, :step_b
-        assert_includes execution_order, :step_c
-
-        # If truly parallel with threads, should complete in ~0.01s
-        # If sequential, would take ~0.03s
-        # Allow some margin for thread scheduling overhead
-        assert duration < 0.025, "Expected parallel execution (~0.01s), but took #{duration}s"
-
+        assert_equal increments.size, runs.size, 'Expected one run per step'
+        assert_equal 100, result.value
+        assert_equal increments, ran.sort, 'Expected every step to run once'
+        assert_equal increments.size, threads.uniq.size, 'Expected each step on its own thread'
+        refute_includes threads, Thread.current, 'Expected no step on the calling thread'
+        assert_equal [true] * increments.size, released, 'Expected all steps to run concurrently'
       ensure
         # Restore original ASYNC_AVAILABLE
         Object.send(:remove_const, 'ASYNC_AVAILABLE')

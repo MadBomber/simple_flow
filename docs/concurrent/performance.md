@@ -4,7 +4,7 @@ Understanding the performance implications of parallel execution in SimpleFlow h
 
 ## Overview
 
-SimpleFlow uses the `async` gem for true concurrent execution. When the async gem is available, parallel steps run in separate fibers, allowing I/O operations to execute concurrently. When async is not available, SimpleFlow falls back to sequential execution.
+SimpleFlow uses the `async` gem for true concurrent execution. When the async gem is available, parallel steps run in separate fibers, allowing I/O operations to execute concurrently. When async is not available, SimpleFlow falls back to Ruby threads.
 
 ## Async Gem Integration
 
@@ -31,14 +31,14 @@ bundle install
 
 ### Fallback Behavior
 
-If async is not available, SimpleFlow automatically falls back to sequential execution:
+If async is not available, SimpleFlow automatically falls back to Ruby threads:
 
 ```ruby
 # With async gem
-result = pipeline.call_parallel(data)  # Executes in parallel
+result = pipeline.call_parallel(data)  # Runs steps as fibers
 
 # Without async gem
-result = pipeline.call_parallel(data)  # Executes sequentially (automatically)
+result = pipeline.call_parallel(data)  # Runs steps as Ruby threads (automatically)
 ```
 
 The API remains identical, ensuring your code works in both scenarios.
@@ -468,7 +468,7 @@ File.write('pipeline.dot', pipeline.visualize_dot)
 
 ## Performance Testing
 
-See `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/04_parallel_automatic.rb` for performance comparisons showing:
+See [`examples/04_parallel_automatic.rb`](https://github.com/MadBomber/simple_flow/blob/main/examples/04_parallel_automatic.rb) for performance comparisons showing:
 
 - Parallel vs sequential execution times
 - Context merging behavior

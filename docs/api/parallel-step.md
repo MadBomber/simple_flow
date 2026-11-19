@@ -4,9 +4,9 @@ This document covers the APIs for parallel execution in SimpleFlow, including th
 
 ## Class: `SimpleFlow::ParallelExecutor`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/parallel_executor.rb`
+**Location**: [`lib/simple_flow/parallel_executor.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/parallel_executor.rb)
 
-Handles parallel execution of steps using the async gem, with automatic fallback to sequential execution.
+Handles parallel execution of steps using the async gem, with automatic fallback to Ruby threads.
 
 ### Class Methods
 
@@ -52,19 +52,35 @@ results[1].context[:b]  # => "data_b"
 results[2].context[:c]  # => "data_c"
 ```
 
-#### `execute_sequential(steps, result)`
+#### `execute_with_async(steps, result, max_concurrent: nil)`
 
-Executes steps sequentially (fallback implementation).
+Runs each step in its own fiber inside a `Sync` block, so it waits for every step and works inside a reactor that is already running. If a step raises, the exception is raised to the caller once all steps have finished (the first one in step order when several raise). This is what `execute_parallel` calls for `:async`, and for `:auto` when the async gem is installed.
 
 **Parameters:**
 - `steps` (Array<Proc>) - Array of callable steps
-- `result` (Result) - The input result
+- `result` (Result) - The input result to pass to each step
+- `max_concurrent` (Integer, nil) - Maximum number of fibers to run at once (`nil` means unlimited)
 
-**Returns:** Array<Result>
+**Returns:** Array<Result> - Results in the same order as `steps`
 
 **Example:**
 ```ruby
-results = SimpleFlow::ParallelExecutor.execute_sequential(steps, initial)
+results = SimpleFlow::ParallelExecutor.execute_with_async(steps, initial, max_concurrent: 2)
+```
+
+#### `execute_with_threads(steps, result)`
+
+Runs each step in its own Ruby thread and waits for all of them. This is what `execute_parallel` calls for `:threads`, and for `:auto` when the async gem is not installed. There is no `max_concurrent:` here; every step gets a thread.
+
+**Parameters:**
+- `steps` (Array<Proc>) - Array of callable steps
+- `result` (Result) - The input result to pass to each step
+
+**Returns:** Array<Result> - Results in the same order as `steps`
+
+**Example:**
+```ruby
+results = SimpleFlow::ParallelExecutor.execute_with_threads(steps, initial)
 ```
 
 #### `async_available?`
@@ -78,7 +94,7 @@ Checks if the async gem is available.
 if SimpleFlow::ParallelExecutor.async_available?
   puts "Async gem is installed - true parallel execution enabled"
 else
-  puts "Async gem not found - will use sequential fallback"
+  puts "Async gem not found - will use Ruby threads"
 end
 ```
 
@@ -86,24 +102,22 @@ end
 
 #### Async Integration
 
-When the async gem is available, all steps are run as fibers inside a single `Async` block. An optional `Async::Semaphore` gates the barrier when `max_concurrent:` is set:
+When the async gem is available, all steps are run as fibers inside a single `Sync` block. An optional `Async::Semaphore` gates the barrier when `max_concurrent:` is set:
 
 ```ruby
 # Unlimited (default)
-Async do
+Sync do
   barrier = Async::Barrier.new
   tasks = steps.map { |step| barrier.async { step.call(result) } }
-  barrier.wait
-  tasks.map(&:result)
+  tasks.map(&:wait)
 end
 
 # With cap — semaphore becomes the barrier's parent
-Async do
+Sync do
   semaphore = Async::Semaphore.new(max_concurrent)
   barrier   = Async::Barrier.new(parent: semaphore)
   tasks = steps.map { |step| barrier.async { step.call(result) } }
-  barrier.wait
-  tasks.map(&:result)
+  tasks.map(&:wait)
 end
 ```
 
@@ -118,7 +132,7 @@ threads.map(&:value)
 
 ## Class: `SimpleFlow::DependencyGraph`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/dependency_graph.rb`
+**Location**: [`lib/simple_flow/dependency_graph.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/dependency_graph.rb)
 
 Manages dependencies between pipeline steps and determines which steps can execute in parallel.
 

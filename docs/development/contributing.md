@@ -237,7 +237,7 @@ Aim for comprehensive test coverage:
 - Test edge cases
 - Test with various data types
 
-Current test coverage: **96.61%** (121 tests, 296 assertions)
+`bundle exec rake test` prints the current test count and line coverage.
 
 ### Running Specific Tests
 

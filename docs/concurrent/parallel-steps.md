@@ -270,6 +270,8 @@ result = pipeline.call_parallel(initial_result, strategy: :explicit)
 result = pipeline.call_parallel(initial_result, max_concurrent: 5)
 ```
 
+Any `strategy:` other than `:auto` or `:explicit` raises `ArgumentError`.
+
 ### `call(result)`
 
 Executes sequentially (ignores parallelism):
@@ -470,7 +472,7 @@ end
 
 ## Real-World Example
 
-See `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/examples/06_real_world_ecommerce.rb` for a complete e-commerce order processing pipeline that demonstrates:
+See [`examples/06_real_world_ecommerce.rb`](https://github.com/MadBomber/simple_flow/blob/main/examples/06_real_world_ecommerce.rb) for a complete e-commerce order processing pipeline that demonstrates:
 
 - Multi-level parallel execution
 - Context merging

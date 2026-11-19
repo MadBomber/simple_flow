@@ -4,7 +4,7 @@ The `Pipeline` class orchestrates step execution with middleware integration and
 
 ## Class: `SimpleFlow::Pipeline`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/pipeline.rb`
+**Location**: [`lib/simple_flow/pipeline.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/pipeline.rb)
 
 ### Constructor
 
@@ -166,9 +166,10 @@ Executes the pipeline with parallel execution where possible.
 **Strategies:**
 - `:auto` (default) - Uses dependency graph if named steps exist
 - `:explicit` - Only uses explicit parallel blocks
+- Any other value raises `ArgumentError`
 
 **Notes on `max_concurrent:`:**
-- Only applies when the `async` gem is in use (`:auto` with async present, or `:concurrency: :async`)
+- Only applies when the `async` gem is in use (`:auto` with async present, or `concurrency: :async`)
 - When the thread fallback is active (`concurrency: :threads`), the cap is silently ignored
 - Useful for preventing thundering-herd failures: API rate limits, DB connection-pool exhaustion, etc.
 
@@ -266,7 +267,7 @@ Checks if the async gem is available for true parallel execution.
 if pipeline.async_available?
   puts "Parallel execution enabled"
 else
-  puts "Falling back to sequential execution"
+  puts "Falling back to Ruby threads"
 end
 ```
 
@@ -289,7 +290,7 @@ end
 
 Creates a visualizer for this pipeline's dependency graph.
 
-**Returns:** DependencyGraphVisualizer or nil if no named steps
+**Returns:** [DependencyGraphVisualizer](dependency-graph-visualizer.md) or nil if no named steps
 
 **Example:**
 ```ruby
@@ -431,4 +432,5 @@ end
 - [Parallel Steps Guide](../concurrent/parallel-steps.md) - Using named steps
 - [Optional Steps Guide](../guides/optional-steps.md) - Dynamic step activation
 - [Middleware API](middleware.md) - Middleware reference
+- [DependencyGraphVisualizer API](dependency-graph-visualizer.md) - Every visualization format, including `to_html`
 - [Performance Guide](../concurrent/performance.md) - Optimization strategies

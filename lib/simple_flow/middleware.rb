@@ -1,8 +1,9 @@
 module SimpleFlow
   module MiddleWare
     class Logging
-      def initialize(callable, logger = nil)
-        @callable, @logger = callable, logger
+      def initialize(callable, positional_logger = nil, logger: nil)
+        @callable = callable
+        @logger = logger || positional_logger
       end
 
       def call(result)

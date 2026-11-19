@@ -6,19 +6,20 @@ Middleware in SimpleFlow wraps steps with cross-cutting functionality using the 
 
 ### Class: `SimpleFlow::MiddleWare::Logging`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/middleware.rb`
+**Location**: [`lib/simple_flow/middleware.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/middleware.rb)
 
 Logs before and after step execution.
 
 #### Constructor
 
 ```ruby
-def initialize(callable, logger = nil)
+def initialize(callable, positional_logger = nil, logger: nil)
 ```
 
 **Parameters:**
 - `callable` (Proc/Object) - The step to wrap
-- `logger` (Logger, optional) - Custom logger instance (default: `Logger.new($stdout)`)
+- `logger:` (Logger, optional) - Custom logger instance (default: `Logger.new($stdout)`); this is the form `use_middleware ..., logger:` passes
+- `positional_logger` (Logger, optional) - The same logger passed positionally, kept for backward compatibility; `logger:` wins when both are given
 
 #### Usage
 
@@ -52,7 +53,7 @@ I, [2025-11-15T12:00:00.456789 #12345]  INFO -- : After call
 
 ### Class: `SimpleFlow::MiddleWare::Instrumentation`
 
-**Location**: `/Users/dewayne/sandbox/git_repos/madbomber/simple_flow/lib/simple_flow/middleware.rb`
+**Location**: [`lib/simple_flow/middleware.rb`](https://github.com/MadBomber/simple_flow/blob/main/lib/simple_flow/middleware.rb)
 
 Measures step execution duration.
 

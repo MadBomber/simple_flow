@@ -3,9 +3,9 @@
 require 'simplecov'
 
 SimpleCov.start do
-  add_filter '/test/'
-  add_filter '/examples/'
-  add_filter '/benchmarks/'
+  skip '/test/'
+  skip '/examples/'
+  skip '/benchmarks/'
 end
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)

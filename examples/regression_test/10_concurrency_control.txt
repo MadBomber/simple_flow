@@ -19,7 +19,7 @@ Will use: Ruby Threads (even if async is available)
   [Thread-based] Task A running...
   [Thread-based] Task B running...
   [Thread-based] Task C running...
-Result context: {task_c: :done}
+Result context: {task_a: :done, task_b: :done, task_c: :done}
 
 
 Example 3: Force Async
@@ -83,6 +83,38 @@ Pipeline 4:
   Concurrency: async
   Async available: true
 
+
+Example 7: Capping Concurrency with max_concurrent:
+------------------------------------------------------------
+
+Demonstrates that at most N fibers run simultaneously.
+Useful for: rate-limited APIs, fixed-size DB connection pools.
+
+Running 8 parallel steps with max_concurrent: 3...
+  [Async] Step 0 done (peak so far: 3)
+  [Async] Step 1 done (peak so far: 3)
+  [Async] Step 2 done (peak so far: 3)
+  [Async] Step 3 done (peak so far: 3)
+  [Async] Step 4 done (peak so far: 3)
+  [Async] Step 5 done (peak so far: 3)
+  [Async] Step 6 done (peak so far: 3)
+  [Async] Step 7 done (peak so far: 3)
+
+Peak simultaneous fibers: 3 (cap was 3)
+Cap respected?           ✓ Yes
+All steps completed?     ✓ Yes
+
+
+Example 8: Thread Fallback Ignores max_concurrent:
+------------------------------------------------------------
+
+When concurrency: :threads is active, max_concurrent: is
+silently ignored — no error raised, all steps complete.
+
+All steps completed? ✓ Yes
+Context: {a: :done, b: :done, c: :done}
+(No error raised even though max_concurrent: 1 was passed)
+
 ============================================================
 Concurrency control examples completed!
 ============================================================
@@ -92,5 +124,8 @@ Key Takeaways:
   • concurrency: :threads - always uses Ruby threads
   • concurrency: :async - requires async gem, uses fibers
   • Different pipelines can use different concurrency models
-  • Choose based on your specific workload requirements
+  • max_concurrent: N - caps simultaneous fibers (async only)
+  • max_concurrent: is silently ignored for the thread fallback
+  • Use max_concurrent: to protect rate-limited APIs and
+    fixed-size connection pools from thundering-herd failures
 

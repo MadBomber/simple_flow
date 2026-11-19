@@ -397,7 +397,7 @@ ruby examples/12_none_constant.rb
 
 ## Async Gem Availability
 
-All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to sequential execution.
+All parallel examples will automatically use the `async` gem if available for true concurrent execution. If not available, they fall back to Ruby threads.
 
 Check async availability:
 
@@ -457,10 +457,10 @@ gem install async
 chmod +x examples/*.rb
 ```
 
-**Examples run sequentially despite async gem:**
+**Steps run one after another instead of in parallel:**
 
-- Check that async gem is properly installed
-- Verify with `pipeline.async_available?`
+- Named steps only run in parallel under `pipeline.call_parallel`, and only when no `depends_on:` chain links them; steps in a `parallel` block run in parallel either way
+- A missing async gem is not the cause: SimpleFlow falls back to Ruby threads (`pipeline.async_available?` tells you which one you have)
 
 ---
 

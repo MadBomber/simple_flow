@@ -10,9 +10,6 @@ puts 'SimpleFlow Performance Benchmarks: Pipeline Overhead'
 puts '=' * 80
 puts
 
-# Simple operation for measuring overhead
-simple_op = ->(x) { x + 1 }
-
 # Baseline: raw operations
 def raw_operations(value)
   value += 1

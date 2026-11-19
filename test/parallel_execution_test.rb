@@ -34,7 +34,7 @@ module SimpleFlow
         }
       end
 
-      result = pipeline.call(@initial_result)
+      pipeline.call(@initial_result)
 
       # Check that step1 runs first, parallel steps run together, step3 runs last
       assert_equal :step1, execution_order.first
@@ -92,6 +92,23 @@ module SimpleFlow
 
       refute result.continue?
       assert_includes result.errors[:validation], "Failed validation"
+    end
+
+    # Issue #59: no step runs on an already-halted input, under any runner
+    def test_halted_input_runs_no_steps
+      ran = []
+      pipeline = Pipeline.new do
+        step(:a, depends_on: :none) { |r| ran << :a; r.continue(r.value) }
+        step(:b, depends_on: :none) { |r| ran << :b; r.continue(r.value) }
+        step(:c, depends_on: [:a]) { |r| ran << :c; r.continue(r.value) }
+      end
+      input = Result.new(0).halt
+
+      results = [pipeline.call(input), pipeline.call_parallel(input),
+                 pipeline.call_parallel(input, strategy: :explicit)]
+
+      assert_empty ran
+      results.each { |result| assert_same input, result }
     end
 
     # Test backward compatibility - old API still works
@@ -213,6 +230,40 @@ module SimpleFlow
 
       assert_equal 4, merged.dependencies.keys.size
       assert_equal [:a, :d].sort, merged.dependencies[:b].sort
+    end
+
+    # A typo in depends_on raises instead of silently skipping the step
+    def test_unknown_dependency_raises
+      pipeline = Pipeline.new do
+        step :a, ->(result) { result.continue(result.value + 1) }
+        step :b, ->(result) { result.continue(result.value + 10) }, depends_on: [:aa]
+      end
+
+      error = assert_raises(ArgumentError) { pipeline.call_parallel(@initial_result) }
+      assert_match(/Step :b depends on unknown step :aa/, error.message)
+    end
+
+    # A parallel group referenced before its declaration is an unknown step
+    def test_group_referenced_before_declaration_raises
+      pipeline = Pipeline.new do
+        step :b, ->(result) { result.continue(result.value) }, depends_on: :grp
+        parallel :grp do
+          step :p1, ->(result) { result.continue(result.value) }
+        end
+      end
+
+      error = assert_raises(ArgumentError) { pipeline.call_parallel(@initial_result) }
+      assert_match(/Step :b depends on unknown step :grp/, error.message)
+    end
+
+    # A forward reference to a step declared later is a known dependency
+    def test_forward_reference_to_step_is_known
+      pipeline = Pipeline.new do
+        step :b, ->(result) { result.continue(result.value * 2) }, depends_on: [:a]
+        step :a, ->(result) { result.continue(result.value + 1) }
+      end
+
+      assert_equal 2, pipeline.call_parallel(@initial_result).value
     end
   end
 end

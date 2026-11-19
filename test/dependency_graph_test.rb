@@ -9,6 +9,14 @@ module SimpleFlow
       assert_empty graph.dependencies
     end
 
+    def test_missing_keys_do_not_share_a_mutable_default
+      graph = DependencyGraph.new(a: [])
+      graph.dependencies[:zz] << :leak
+
+      assert_equal [], graph.dependencies[:other]
+      assert_equal [], graph.merge(DependencyGraph.new(b: [])).dependencies[:b]
+    end
+
     def test_initialize_with_dependencies
       deps = { a: [:b], b: [:c], c: [] }
       graph = DependencyGraph.new(deps)
@@ -129,6 +137,20 @@ module SimpleFlow
 
       parallel = graph.parallel_order
       assert_equal [[:c], [:b], [:a]], parallel
+    end
+
+    # A 1000-step chain took about 9 seconds when every dependency was looked
+    # up by scanning all the groups built so far (issue #60)
+    def test_parallel_order_long_chain_is_fast
+      n = 1000
+      graph = DependencyGraph.new((0...n).to_h { |i| [i, i.zero? ? [] : [i - 1]] })
+
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      parallel = graph.parallel_order
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+
+      assert_equal (0...n).map { |i| [i] }, parallel
+      assert_operator elapsed, :<, 2, "parallel_order took #{elapsed.round(2)}s for a #{n}-step chain"
     end
 
     def test_parallel_order_diamond_pattern

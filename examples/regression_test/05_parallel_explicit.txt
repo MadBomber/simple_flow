@@ -13,8 +13,8 @@ Example 1: Basic Parallel Block
   [Parallel C] Fetching from database...
   [Sequential] Post-processing results...
 
-Result: {api: nil, cache: nil, db: {records: 10}}
-Execution time: 101.17ms
+Result: {api: {status: "ok"}, cache: {cached: true}, db: {records: 10}}
+Execution time: 101.29ms
 (Should be ~100ms with parallel, ~300ms sequential)
 
 
@@ -31,8 +31,8 @@ Example 2: Multiple Parallel Blocks
   [Step 3] Finalize
 
 Result: All notifications sent
-Context: {phone_valid: true, logged: true}
-Execution time: 102.68ms
+Context: {email_valid: true, phone_valid: true, email_sent: true, sms_sent: true, logged: true}
+Execution time: 103.23ms
 
 
 Example 3: Mixed Execution Styles
@@ -45,7 +45,7 @@ Example 3: Mixed Execution Styles
   [Unnamed] Finalizing...
 
 Result: Workflow complete
-Context: {config: {timeout: 30}, batch2: :done}
+Context: {config: {timeout: 30}, batch1: :done, batch2: :done}
 
 
 Example 4: Error Handling in Parallel Blocks
@@ -71,9 +71,9 @@ Running sequential pipeline (4 steps @ 100ms each)...
 Running parallel pipeline (4 steps @ 100ms each in parallel)...
 
 Results:
-  Sequential: 418.79ms (expected ~400ms)
-  Parallel:   101.32ms (expected ~100ms)
-  Speedup:    4.13x
+  Sequential: 416.29ms (expected ~400ms)
+  Parallel:   102.72ms (expected ~100ms)
+  Speedup:    4.05x
 
 ============================================================
 Explicit parallel blocks examples completed!
